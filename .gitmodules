@@ -1,0 +1,6 @@
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "sigar"]
+	path = sigar
+	url = https://github.com/hyperic/sigar

@@ -1,0 +1,54 @@
+CC		=  g++
+AR              =  ar
+CFLAGS	        += -std=c++11 -Wall -pedantic -DMAKE_VALGRIND_HAPPY 
+ARFLAGS         =  rvs
+INCLUDES	= -I. -I./rapidjson/include/
+LDFLAGS 	= -L.
+OPTFLAGS	= -g
+LIBS            = -lpthread
+
+# aggiungere qui altri targets se necessario
+TARGETS		= elf        \
+		  klaus
+
+
+# aggiungere qui i file oggetto da compilare
+OBJECTS		= elf.o	\
+		  connections.o \
+		  storage.hpp
+
+# aggiungere qui gli altri include 
+INCLUDE_FILES   = connections.hpp \
+		  inputParser.hpp     \
+		  elf.hpp	  	\
+		  queue.hpp		\
+		  storage.hpp
+
+
+
+.SUFFIXES: .cpp .hpp
+
+%: %.cpp
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) 
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -o $@ $<
+
+all		: $(TARGETS)
+
+connections.o: connections.cpp queue.hpp
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -o $@ $<
+
+elf: elfmain.o elf.a $(INCLUDE_FILES)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+klaus: client.o connections.o message.h
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+############################ non modificare da qui in poi
+
+elf.a: $(OBJECTS)
+	$(AR) $(ARFLAGS) $@ $^
+
+clean		: 
+	rm -f $(TARGETS)
