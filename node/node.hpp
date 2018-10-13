@@ -1,21 +1,17 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
-#include <string>
-#include <thread>
 
+#include "inode.hpp"
 #include "connections.hpp"
-#include "storage.hpp"
+#include "server.hpp"
 
-class Node {
+class Node : public iNode{
 private:
     int timerReport;
     int lastReport;
 
     //ip:port of the server node 
-    string ipS;
-    
-    //port of the listener
-    uint16_t portC;
+    std::string ipS;
 
     int timerPing;
     int timerbandwidth;
@@ -25,21 +21,12 @@ private:
 
     bool running;
 
-    thread listenerThread;
-    thread timerThread;
-
-    Connections connections;
-    
-    int numThreads;
-
-    //fd to wake up the listener thread during poll
-    int efd;
-
-public:
+    std::thread timerThread;
+    Server server;
 
     Storage storage;
-
-
+    Connections connections;
+public:
     Node(int nThreads);
     ~Node();
     //start listener for incoming ping and directions
@@ -61,8 +48,8 @@ public:
     //timer for latency and bandwidth tests
     void timer();
 
-    //listener for incoming connections
-    void listener();
+    Storage* getStorage();
+    iConnections* getConnections();
 };
 
 #endif

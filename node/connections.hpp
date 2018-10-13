@@ -1,17 +1,17 @@
 #ifndef CONNECTIONS_HPP_
 #define CONNECTIONS_HPP_
 
-class Node;
-
+#include "inode.hpp"
+#include "iconnections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
-#include <atomic>
+
 #include <thread>
 
 using namespace std;
-class Connections {
+class Connections : iConnections {
 private:
-    Node *parent;
+    iNode *parent;
     Queue<int> queue;
 
     atomic<bool> running;
@@ -24,7 +24,7 @@ private:
     int num;
     thread *workers;
 public:
-    Connections(Node *elf, int nThread);
+    Connections(iNode *parent, int nThread);
     ~Connections();
     void start();
     void stop();

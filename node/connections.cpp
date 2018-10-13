@@ -1,6 +1,6 @@
 
 #include "connections.hpp"
-#include "node/node.hpp"
+#include "inode.hpp"
 
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -22,8 +22,8 @@
 using namespace rapidjson;
 using namespace std;
 
-Connections::Connections(Node *elf, int nThread) {
-    parent = elf;
+Connections::Connections(iNode *parent, int nThread) {
+    this->parent = parent;
     num = nThread;
     this->running = false;
     
@@ -159,7 +159,7 @@ void Connections::handler(int fd) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->parent->storage.getNodes();
+                vector<string> nodes = this->parent->getStorage()->getNodes();
                 //send nodes
 
             }else if(m.getCommand() == Message::Command::SET) {
@@ -169,12 +169,12 @@ void Connections::handler(int fd) {
                     return;
 
                 //ips now contains the ip of the nodes
-                this->parent->storage.refreshNodes(ips);
+                this->parent->getStorage()->refreshNodes(ips);
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::GET) {
                 //build report
-                this->parent->storage.generateReport();
+                this->parent->getStorage()->generateReport();
                 //send report
                 
             }
@@ -188,7 +188,7 @@ void Connections::handler(int fd) {
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
-                this->parent->storage.updateNodes(ipsNew,ipsRem);
+                this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
             }
         }
     }
