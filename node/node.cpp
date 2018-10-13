@@ -1,6 +1,6 @@
 
 #include "connections.hpp"
-#include "elf.hpp"
+#include "node.hpp"
 
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -31,7 +31,7 @@
 
 using namespace std;
 
-Elf::Elf(int nThreads) : connections(this,nThreads), storage() {
+Node::Node(int nThreads) : connections(this,nThreads), storage() {
     timerReport = 0;
     timerPing = 0;
     timerbandwidth = 0;
@@ -44,18 +44,18 @@ Elf::Elf(int nThreads) : connections(this,nThreads), storage() {
     numThreads = nThreads;
 }
 
-Elf::~Elf() {
+Node::~Node() {
 
 }
 
-void Elf::start() {
-    this->listenerThread = thread(&Elf::listener, this);
+void Node::start() {
+    this->listenerThread = thread(&Node::listener, this);
     this->connections.start();
     this->testPing();
     this->getHardware();
 }
 
-void Elf::stop() {
+void Node::stop() {
     this->running = false;
     eventfd_write(efd,1);
     this->connections.stop();
@@ -71,11 +71,11 @@ void Elf::stop() {
     }
 }
 
-void Elf::report() {
+void Node::report() {
 
 }
 
-void Elf::testBandwidth() {
+void Node::testBandwidth() {
     string command = "ping -c 3 192.168.1.1 2>&1";
     string mode = "r";
     string output;
@@ -115,7 +115,7 @@ void Elf::testBandwidth() {
     }
 }
 
-void Elf::testPing() {
+void Node::testPing() {
     string command = "ping -c 3 192.168.1.1 2>&1";
     string mode = "r";
     string output;
@@ -155,7 +155,7 @@ void Elf::testPing() {
     }
 }
 
-void Elf::getHardware() {
+void Node::getHardware() {
 
     int status, i;
     sigar_t *sigar;
@@ -268,11 +268,11 @@ void Elf::getHardware() {
     std::cout << "Disk free space           = " << hdd_free       << endl;
 }
 
-void Elf::timer() {
+void Node::timer() {
 
 }
 
-void Elf::listener() {
+void Node::listener() {
     int error, on = 1;
     int listen_sd = -1, new_sd = -1;
     int compress_array = false;

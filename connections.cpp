@@ -1,6 +1,6 @@
 
 #include "connections.hpp"
-#include "elf.hpp"
+#include "node/node.hpp"
 
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -22,7 +22,7 @@
 using namespace rapidjson;
 using namespace std;
 
-Connections::Connections(Elf *elf, int nThread) {
+Connections::Connections(Node *elf, int nThread) {
     parent = elf;
     num = nThread;
     this->running = false;

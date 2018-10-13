@@ -1,6 +1,6 @@
 #include <iostream>
 #include "inputParser.hpp"
-#include "elf.hpp"
+#include "node.hpp"
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -41,11 +41,11 @@ int main(int argc, char *argv[]) {
 
 
 
-    Elf elf(2);
-    elf.start();
+    Node node(2);
+    node.start();
     int a;
     scanf("%d",&a);
-    elf.stop();
+    node.stop();
     printf("ciao");
     return 0;
 }

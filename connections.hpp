@@ -1,7 +1,7 @@
 #ifndef CONNECTIONS_HPP_
 #define CONNECTIONS_HPP_
 
-class Elf;
+class Node;
 
 #include "queue.hpp"
 #include "message.hpp"
@@ -11,7 +11,7 @@ class Elf;
 using namespace std;
 class Connections {
 private:
-    Elf *parent;
+    Node *parent;
     Queue<int> queue;
 
     atomic<bool> running;
@@ -24,7 +24,7 @@ private:
     int num;
     thread *workers;
 public:
-    Connections(Elf *elf, int nThread);
+    Connections(Node *elf, int nThread);
     ~Connections();
     void start();
     void stop();

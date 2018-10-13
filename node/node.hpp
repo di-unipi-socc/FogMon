@@ -1,12 +1,12 @@
-#ifndef ELF_HPP_
-#define ELF_HPP_
+#ifndef NODE_HPP_
+#define NODE_HPP_
 #include <string>
 #include <thread>
 
 #include "connections.hpp"
 #include "storage.hpp"
 
-class Elf {
+class Node {
 private:
     int timerReport;
     int lastReport;
@@ -40,8 +40,8 @@ public:
     Storage storage;
 
 
-    Elf(int nThreads);
-    ~Elf();
+    Node(int nThreads);
+    ~Node();
     //start listener for incoming ping and directions
     void start();
     //stop everything
