@@ -32,7 +32,7 @@ Node::Node(int nThreads) : server(this), storage(), connections(this, nThreads) 
 }
 
 Node::~Node() {
-
+    this->stop();
 }
 
 void Node::start() {
@@ -59,8 +59,8 @@ Storage* Node::getStorage() {
     return &(this->storage);
 }
 
-iConnections* Node::getConnections() {
-    return (iConnections*)(&(this->connections));
+IConnections* Node::getConnections() {
+    return (IConnections*)(&(this->connections));
 }
 
 void Node::testBandwidth() {

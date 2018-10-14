@@ -5,7 +5,7 @@
 #include "connections.hpp"
 #include "server.hpp"
 
-class Node : public iNode{
+class Node : public INode{
 private:
     int timerReport;
     int lastReport;
@@ -49,7 +49,7 @@ public:
     void timer();
 
     Storage* getStorage();
-    iConnections* getConnections();
+    IConnections* getConnections();
 };
 
 #endif

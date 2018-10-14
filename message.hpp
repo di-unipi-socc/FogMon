@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "rapidjson/document.h"
+#include "report.hpp"
 
 class Message {
 public:
@@ -27,6 +28,7 @@ public:
 
     bool getData(std::vector<std::string>& strings);
     bool getData(std::vector<std::string>& stringsA, std::vector<std::string>& stringsB);
+    bool getReport(Report& report);
 private:
 
     Type type;

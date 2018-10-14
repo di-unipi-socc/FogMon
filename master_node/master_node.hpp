@@ -5,7 +5,8 @@
 #include "master_connections.hpp"
 #include "server.hpp"
 
-class MasterNode : public iNode{
+class MasterNode : public INode{
+public:
     MasterNode(int nThreads);
     ~MasterNode();
 
@@ -13,8 +14,16 @@ class MasterNode : public iNode{
     void stop();
 
     Storage* getStorage();
-    iConnections* getConnections();
+    IConnections* getConnections();
 private:
+
+    void timerFun();
+
+    std::thread timerThread;
+
+    unsigned int timer;
+
+    bool running;
 
     Storage storage;
     MasterConnections connections;

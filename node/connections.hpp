@@ -9,28 +9,13 @@
 #include <thread>
 
 using namespace std;
-class Connections : iConnections {
+class Connections : public IConnections {
 private:
-    iNode *parent;
-    Queue<int> queue;
+    void handler(int fd, Message &m);
 
-    atomic<bool> running;
-
-    bool getMessage(int fd, Message * m);
-
-    void handler(int fd);
-
-    void worker();
-    int num;
-    thread *workers;
 public:
-    Connections(iNode *parent, int nThread);
+    Connections(INode *parent, int nThread);
     ~Connections();
-    void start();
-    void stop();
-
-    //put the request on a queue to be processed by another thread
-    void request(int fd);
 };
 
 #endif

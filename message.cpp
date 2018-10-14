@@ -97,3 +97,7 @@ bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
     }
     return true;
 }
+
+ bool Message::getReport(Report& report) {
+     
+ }

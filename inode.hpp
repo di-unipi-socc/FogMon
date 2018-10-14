@@ -1,10 +1,12 @@
 #ifndef INODE_HPP_
 #define INODE_HPP_
 
+class INode;
+
 #include "storage.hpp"
 #include "iconnections.hpp"
 
-class iNode {
+class INode {
 public:
     //start listener for incoming ping and directions
     virtual void start() = 0;
@@ -12,7 +14,7 @@ public:
     virtual void stop() = 0;
 
     virtual Storage* getStorage() = 0;
-    virtual iConnections* getConnections() = 0;
+    virtual IConnections* getConnections() = 0;
 };
 
 #endif

@@ -21,7 +21,7 @@
 
 using namespace std;
 
-Server::Server(iNode *node) {
+Server::Server(INode *node) {
     running = false;
     portC = 12345;
     efd = eventfd(0,0);
