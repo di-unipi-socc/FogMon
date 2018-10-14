@@ -10,6 +10,6 @@ int main(int argc, char *argv[]) {
     int a;
     scanf("%d",&a);
 
-    
+    node.stop();
     return 0;
 }

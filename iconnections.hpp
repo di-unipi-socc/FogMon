@@ -17,13 +17,19 @@ protected:
 
     atomic<bool> running;
 
-    bool getMessage(int fd, Message * m);
+    bool getMessage(int fd, Message &m);
+    bool sendMessage(int fd, Message &m);
 
-    virtual void handler(int fd,Message& m) = 0;
+    virtual void handler(int fd,Message &m) = 0;
 
     void worker();
     int num;
     thread *workers;
+
+    int readS(long fd, void *data, int len);
+    int writeS(long fd, const char *data, int len);
+
+    int openConnection(std::string ipS);
 public:
     IConnections(INode *parent, int nThread);
     ~IConnections();

@@ -69,11 +69,12 @@ void Storage::generateReport() {
 void Storage::savePingTest(string ip, int ms) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Ping (ipB, ms) VALUES (%s, %d)", ip.c_str(), ms);
+    std::sprintf(buf,"INSERT INTO Ping (ipB, ms) VALUES (\"%s\", %d)", ip.c_str(), ms);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -82,11 +83,12 @@ void Storage::savePingTest(string ip, int ms) {
 void Storage::saveBandwidthTest(string ip, float kbps) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Band (ipB, kbps) VALUES (%s, %d)", ip.c_str(), kbps);
+    std::sprintf(buf,"INSERT INTO Band (ipB, kbps) VALUES (\"%s\", %d)", ip.c_str(), kbps);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -100,6 +102,7 @@ void Storage::saveHardware(int cores, float free_cpu, int memory, int free_memor
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -108,20 +111,22 @@ void Storage::saveHardware(int cores, float free_cpu, int memory, int free_memor
 void Storage::refreshNodes(vector<string> nodes) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"TRUNCATE TABLE NODES");
+    std::sprintf(buf,"DELETE FROM NODES");
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
     for(auto node : nodes) {
-        std::sprintf(buf,"INSERT INTO Nodes (ip,tested) VALUES (%d, 0)", node);
-
+        std::sprintf(buf,"INSERT INTO Nodes (ip,tested) VALUES (\"%s\", 0)", node.c_str());
+        printf("%s\n", buf);
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
             exit(1);
         }
@@ -133,22 +138,24 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char buf[1024];
 
     for(auto node : add) {
-        std::sprintf(buf,"INSERT IGNORE INTO Nodes (ip,tested) VALUES (%d, 0)", node);
+        std::sprintf(buf,"INSERT IGNORE INTO Nodes (ip,tested) VALUES (\"%s\", 0)", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
             exit(1);
         }
     }
 
     for(auto node : rem) {
-        std::sprintf(buf,"DELETE Nodes WHERE ip = %d", node);
+        std::sprintf(buf,"DELETE Nodes WHERE ip = \"%s\"", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
             exit(1);
         }
@@ -166,6 +173,7 @@ vector<string> Storage::getNodes() {
     int err = sqlite3_exec(this->db, buf, this->callback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }

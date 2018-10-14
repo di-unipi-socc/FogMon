@@ -21,9 +21,9 @@
 
 using namespace std;
 
-Server::Server(INode *node) {
+Server::Server(INode *node, int port) {
     running = false;
-    portC = 12345;
+    portC = port;
     efd = eventfd(0,0);
     this->node = node;
 }

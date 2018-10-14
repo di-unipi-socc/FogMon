@@ -6,7 +6,7 @@
 
 using namespace std;
 
-MasterNode::MasterNode(int nThreads) : server(this), storage(), connections(this, nThreads) {
+MasterNode::MasterNode(int nThreads) : server(this, 5556), storage(), connections(this, nThreads) {
     timer = 5;
     running = false;
 }
@@ -22,8 +22,10 @@ void MasterNode::start() {
 }
 
 void MasterNode::stop() {
-    this->running = true;
+    this->running = false;
     this->server.stop();
+    if(this->timerThread.joinable())
+        this->timerThread.join();
 }
 
 

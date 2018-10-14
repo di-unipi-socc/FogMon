@@ -8,7 +8,6 @@
 
 #include <thread>
 
-using namespace std;
 class MasterConnections : IConnections {
 private:
     void handler(int fd, Message &m);

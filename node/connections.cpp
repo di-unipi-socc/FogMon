@@ -1,6 +1,22 @@
 
 #include "connections.hpp"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <errno.h>
+
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/un.h>
+#include <string>
+#include <netdb.h>
+
 using namespace std;
 
 Connections::Connections(INode *parent, int nThread) : IConnections(parent, nThread) {
@@ -48,6 +64,57 @@ void Connections::handler(int fd, Message &m) {
                 this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
             }
         }
-    }
+    }   
+}
+
+bool Connections::sendHello(string ipS) {
+    int Socket = openConnection(ipS);
     
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build hello message
+    Message m;
+    m.setType(Message::Type::NOTIFY);
+    m.setCommand(Message::Command::HELLO);
+    
+    bool result = false;
+
+    //send hello message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::REQUEST &&
+                res.getCommand() == Message::Command::SET &&
+                res.getArgument() == Message::Argument::NODES) {
+                
+                vector<string> vec;
+                if(res.getData(vec)) {
+                    this->parent->getStorage()->refreshNodes(vec);
+                    result = true;
+                }
+            }
+        }
+    }
+    close(Socket);
+    return result;
+}
+
+bool Connections::sendReport(string ipS) {
+    int Socket = openConnection(ipS);
+
+    if(Socket < 0) {
+        return false;
+    }
+
+    //build report
+    //send report
+
+    close(Socket);
+    return true;
 }

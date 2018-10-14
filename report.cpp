@@ -10,7 +10,12 @@ Report::~Report() {
 
 }
 
-bool Report::jsonParse(Value data) {
+bool Report::parseJson(Value& data) {
 
     return true;
+}
+
+Value Report::getJson() {
+    Value val(10);
+    return val;
 }

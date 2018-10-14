@@ -10,6 +10,11 @@
 
 using namespace std;
 
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include <iostream>
+
+using namespace rapidjson;
 
 int main(int argc, char *argv[]) {
 
@@ -23,8 +28,26 @@ int main(int argc, char *argv[]) {
 
     sprintf(json, "{ \"type\": %d, \"command\": %d, \"argument\": %d, \"data\": {\"A\":[\"aa\",\"b\",\"c\"],\"B\":[\"a1\",\"b1\",\"c1\"]} }", Message::Type::REQUEST, Message::Command::SET, Message::Argument::NODES);
 
+    Document d;
+    ParseResult ok = d.Parse((const char*)json);
+
+    Document d2;
+    ok = d2.Parse((const char*)json);
+
+    d.RemoveMember("data");
+    d.AddMember("data",d2, d.GetAllocator());
+    d.AddMember("data2",42, d.GetAllocator());
+
+    StringBuffer s;
+    rapidjson::Writer<StringBuffer> writer (s);
+    d.Accept (writer);
+    std::string json2 (s.GetString());
+    cout << json2 << endl << "fin" << endl;
+
+
+
     Message m;
-    bool res = m.ParseJson(json);
+    bool res = m.parseJson(json);
     cout << res << " " << m.getType() << " " << m.getCommand() << " " << m.getArgument() << " " <<endl;
     vector<string> vec;
     vector<string> vec2;
@@ -36,8 +59,6 @@ int main(int argc, char *argv[]) {
     for(auto &v : vec2) {
         cout << v << endl;
     }
-    
-
 
 
 

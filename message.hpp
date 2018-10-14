@@ -10,13 +10,16 @@ class Message {
 public:
     enum Type {REQUEST, NOTIFY};
     enum Command {GET, SET, HELLO, NODELIST, UPDATE, RESPONSE};
-    enum Argument {NONE, NODES, REPORT};
+    enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE};
 
     Message();
     ~Message();
 
     void Clear();
-    bool ParseJson(char* json);
+    bool parseJson(char* json);
+
+    void buildString();
+    std::string getString();
 
     void setType(Type t);
     void setCommand(Command c);
@@ -28,13 +31,19 @@ public:
 
     bool getData(std::vector<std::string>& strings);
     bool getData(std::vector<std::string>& stringsA, std::vector<std::string>& stringsB);
-    bool getReport(Report& report);
+    bool getData(Report& report);
+
+    void setData(std::vector<std::string> strings);
+    void setData(std::vector<std::string> stringsA, std::vector<std::string> stringsB);
+    void setData(Report report);
+
 private:
 
     Type type;
     Command command;
     Argument argument;
 
+    rapidjson::Document doc;
     rapidjson::Value data;
 
 };

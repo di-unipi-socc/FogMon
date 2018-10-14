@@ -22,7 +22,7 @@ private:
     //fd to wake up the listener thread during poll
     int efd;
 public:
-    Server(INode *node);
+    Server(INode *node, int port);
     ~Server();
 
     void start();

@@ -4,11 +4,12 @@
 #include "rapidjson/document.h"
 
 class Report {
+public:
     Report();
     ~Report();
 
-    bool jsonParse(rapidjson::Value data);
-    
+    bool parseJson(rapidjson::Value& data);
+    rapidjson::Value getJson();
 };
 
 #endif

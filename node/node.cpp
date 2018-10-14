@@ -20,7 +20,7 @@
 
 using namespace std;
 
-Node::Node(int nThreads) : server(this), storage(), connections(this, nThreads) {
+Node::Node(int nThreads) : server(this,5555), storage(), connections(this, nThreads) {
     running = false;
     timerReport = 0;
     timerPing = 0;
@@ -28,7 +28,7 @@ Node::Node(int nThreads) : server(this), storage(), connections(this, nThreads) 
     lastReport = 0;
     lastPing = 0;
     lastBandwidth = 0;
-    ipS = "";
+    ipS = "localhost:5556";
 }
 
 Node::~Node() {
@@ -39,11 +39,14 @@ void Node::start() {
     this->server.start();
     this->testPing();
     this->getHardware();
+    if(!this->connections.sendHello(this->ipS)) {
+        perror("Cannot connect to the main node");
+        this->stop();
+    }
 }
 
 void Node::stop() {
     this->running = false;
-    //signal to poll to terminate
     if(this->timerThread.joinable())
     {
         this->timerThread.join();
@@ -52,7 +55,7 @@ void Node::stop() {
 }
 
 void Node::report() {
-
+    connections.sendReport(this->ipS);
 }
 
 Storage* Node::getStorage() {
