@@ -6,7 +6,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/rapi
 file(GLOB SRCS "*.cpp")
 file(GLOB HDRS "*.hpp")
 
-message(${SRCS})
+find_library(SQLITE_LIBRARY sqlite3)
+find_library(PTHREAD_LIBRARY pthread)
 
 file(GLOB SRCS_NODE "node/*.cpp")
 file(GLOB HDRS_NODE "node/*.hpp")
