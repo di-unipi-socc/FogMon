@@ -12,33 +12,20 @@ Storage::~Storage() {
 
 void Storage::createTables() {
     char *zErrMsg = 0;
-    int err = sqlite3_exec(this->db, "CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER) ", 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
-    err = sqlite3_exec(this->db, "CREATE TABLE IF NOT EXISTS Ping (time TIMESTAMP PRIMARY KEY, ipB STRING, ms INTEGER) ", 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
-    err = sqlite3_exec(this->db, "CREATE TABLE IF NOT EXISTS Band (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT) ", 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
-    err = sqlite3_exec(this->db, "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, tested INTEGER) ", 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
+
+    vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Ping (time TIMESTAMP PRIMARY KEY, ipB STRING, ms INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Band (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT)",
+                            "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, tested INTEGER)"};
+    
+    for(string str : query) {
+        int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
+        if( err!=SQLITE_OK )
+        {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            sqlite3_free(zErrMsg);
+            exit(1);
+        }        
     }
 }
 

@@ -35,7 +35,7 @@ void Connections::handler(int fd, Message &m) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->getStorage()->getNodes();
+                vector<string> nodes = storage.getNodes();
                 //send nodes
 
             }else if(m.getCommand() == Message::Command::SET) {
@@ -45,12 +45,12 @@ void Connections::handler(int fd, Message &m) {
                     return;
 
                 //ips now contains the ip of the nodes
-                this->getStorage()->refreshNodes(ips);
+                storage.refreshNodes(ips);
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::GET) {
                 //build report
-                this->getStorage()->generateReport();
+                storage.generateReport();
                 //send report
                 
             }
@@ -64,7 +64,7 @@ void Connections::handler(int fd, Message &m) {
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
-                this->getStorage()->updateNodes(ipsNew,ipsRem);
+                storage.updateNodes(ipsNew,ipsRem);
             }
         }
     }   
@@ -98,7 +98,7 @@ bool Connections::sendHello(string ipS) {
                 
                 vector<string> vec;
                 if(res.getData(vec)) {
-                    this->getStorage()->refreshNodes(vec);
+                    storage.refreshNodes(vec);
                     result = true;
                 }
             }

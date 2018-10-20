@@ -18,7 +18,7 @@ void MasterConnections::handler(int fd, Message &m) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->getStorage()->getNodes();
+                vector<string> nodes = storage.getNodes();
                 //send nodes
 
             }
