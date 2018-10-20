@@ -24,7 +24,6 @@ private:
     std::thread timerThread;
     Server server;
 
-    Storage storage;
     Connections connections;
 public:
     Node(int nThreads);
@@ -48,7 +47,6 @@ public:
     //timer for latency and bandwidth tests
     void timer();
 
-    Storage* getStorage();
     IConnections* getConnections();
 };
 

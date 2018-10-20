@@ -4,7 +4,6 @@
 #include <thread>
 
 #include "iconnections.hpp"
-#include "storage.hpp"
 #include "inode.hpp"
 
 #include <thread>

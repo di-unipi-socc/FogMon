@@ -3,7 +3,7 @@
 
 class INode;
 
-#include "storage.hpp"
+#include "istorage.hpp"
 #include "iconnections.hpp"
 
 class INode {
@@ -13,7 +13,6 @@ public:
     //stop everything
     virtual void stop() = 0;
 
-    virtual Storage* getStorage() = 0;
     virtual IConnections* getConnections() = 0;
 };
 

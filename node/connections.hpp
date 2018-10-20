@@ -5,12 +5,15 @@
 #include "iconnections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
+#include "storage.hpp"
 
 #include <thread>
 
 class Connections : public IConnections {
 private:
     void handler(int fd, Message &m);
+
+    Storage storage;
 
 public:
     Connections(INode *parent, int nThread);
@@ -19,6 +22,8 @@ public:
     //ip:port
     bool sendHello(std::string ipS);
     bool sendReport(std::string ipS);
+
+    Storage* getStorage();
 };
 
 #endif

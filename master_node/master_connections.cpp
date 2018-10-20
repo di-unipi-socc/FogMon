@@ -2,10 +2,14 @@
 #include "master_connections.hpp"
 #include "inode.hpp"
 
-MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread) {
+MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread), storage("MasterNode.db") {
 }
 
 MasterConnections::~MasterConnections() {
+}
+
+MasterStorage* MasterConnections::getStorage() {
+    return &(this->storage);
 }
 
 void MasterConnections::handler(int fd, Message &m) {
@@ -14,7 +18,7 @@ void MasterConnections::handler(int fd, Message &m) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->parent->getStorage()->getNodes();
+                vector<string> nodes = this->getStorage()->getNodes();
                 //send nodes
 
             }

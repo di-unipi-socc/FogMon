@@ -18,9 +18,11 @@
 
 #include <sigar.h>
 
+#include "storage.hpp"
+
 using namespace std;
 
-Node::Node(int nThreads) : server(this,5555), storage(), connections(this, nThreads) {
+Node::Node(int nThreads) : server(this,5555), connections(this, nThreads) {
     running = false;
     timerReport = 0;
     timerPing = 0;
@@ -56,10 +58,6 @@ void Node::stop() {
 
 void Node::report() {
     connections.sendReport(this->ipS);
-}
-
-Storage* Node::getStorage() {
-    return &(this->storage);
 }
 
 IConnections* Node::getConnections() {

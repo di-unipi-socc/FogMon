@@ -19,12 +19,15 @@
 
 using namespace std;
 
-Connections::Connections(INode *parent, int nThread) : IConnections(parent, nThread) {
+Connections::Connections(INode *parent, int nThread) : IConnections(parent, nThread), storage("node.db") {
 }
 
 Connections::~Connections() {
 }
 
+Storage* Connections::getStorage() {
+    return &(this->storage);
+}
 
 void Connections::handler(int fd, Message &m) {
 
@@ -32,7 +35,7 @@ void Connections::handler(int fd, Message &m) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->parent->getStorage()->getNodes();
+                vector<string> nodes = this->getStorage()->getNodes();
                 //send nodes
 
             }else if(m.getCommand() == Message::Command::SET) {
@@ -42,12 +45,12 @@ void Connections::handler(int fd, Message &m) {
                     return;
 
                 //ips now contains the ip of the nodes
-                this->parent->getStorage()->refreshNodes(ips);
+                this->getStorage()->refreshNodes(ips);
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::GET) {
                 //build report
-                this->parent->getStorage()->generateReport();
+                this->getStorage()->generateReport();
                 //send report
                 
             }
@@ -61,7 +64,7 @@ void Connections::handler(int fd, Message &m) {
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
-                this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
+                this->getStorage()->updateNodes(ipsNew,ipsRem);
             }
         }
     }   
@@ -95,7 +98,7 @@ bool Connections::sendHello(string ipS) {
                 
                 vector<string> vec;
                 if(res.getData(vec)) {
-                    this->parent->getStorage()->refreshNodes(vec);
+                    this->getStorage()->refreshNodes(vec);
                     result = true;
                 }
             }

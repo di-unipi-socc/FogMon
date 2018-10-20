@@ -1,22 +1,16 @@
 #ifndef STORAGE_HPP_
 #define STORAGE_HPP_
 
-#include <sqlite3.h>
-#include <string>
-#include <vector>
+#include "istorage.hpp"
 
-class Storage {
+class Storage : public IStorage {
 private:
-    void open(std::string path);
-    void close();
     void createTables();
 
     static int callback(void *NotUsed, int argc, char **argv, char **azColName);
 
-    sqlite3 *db;
-
 public:
-    Storage();
+    Storage(std::string path);
     ~Storage();
 
     void generateReport();

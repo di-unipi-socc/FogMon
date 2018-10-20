@@ -3,6 +3,7 @@
 
 #include "inode.hpp"
 #include "master_connections.hpp"
+#include "master_storage.hpp"
 #include "server.hpp"
 
 class MasterNode : public INode{
@@ -13,7 +14,6 @@ public:
     void start();
     void stop();
 
-    Storage* getStorage();
     IConnections* getConnections();
 private:
 
@@ -25,7 +25,6 @@ private:
 
     bool running;
 
-    Storage storage;
     MasterConnections connections;
     Server server;
 };

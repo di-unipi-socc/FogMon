@@ -3,26 +3,11 @@
 
 using namespace std;
 
-Storage::Storage() {
-    this->open("elf.db");
-    this->createTables();
+Storage::Storage(string path) {
+    open(path);
 }
 
 Storage::~Storage() {
-    this->close();
-}
-
-void Storage::open(string path) {
-    int err = sqlite3_open(path.c_str(), &(this->db));
-    if( err ){
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        exit(1);
-    }
-}
-
-void Storage::close() {
-    sqlite3_close(this->db);
 }
 
 void Storage::createTables() {
