@@ -36,7 +36,7 @@ Node::~Node() {
 void Node::start() {
     this->running = true;
     this->server.start();
-    this->testPing();
+    this->testPing("192.168.1.1");
     this->getHardware();
     if(!this->connections.sendHello(this->ipS)) {
         perror("Cannot connect to the main node");
@@ -58,7 +58,7 @@ IConnections* Node::getConnections() {
     return (IConnections*)(&(this->connections));
 }
 
-void Node::testBandwidth() {
+void Node::testBandwidth(string ip) {
     string command = "ping -c 3 192.168.1.1 2>&1";
     string mode = "r";
     string output;
@@ -98,8 +98,9 @@ void Node::testBandwidth() {
     }
 }
 
-void Node::testPing() {
-    string command = "ping -c 3 192.168.1.1 2>&1";
+void Node::testPing(string ip) {
+    char command[256];
+    sprintf(command, "ping -c 3 %s 2>&1", ip.c_str());
     string mode = "r";
     string output;
 
@@ -110,7 +111,7 @@ void Node::testPing() {
     char buff[512];
 
     // Test output
-    if(!(in = popen(command.c_str(), mode.c_str()))){
+    if(!(in = popen(command, mode.c_str()))){
         return;
     }
 
@@ -131,6 +132,7 @@ void Node::testPing() {
         std::smatch m;
         
         while (std::regex_search (output,m,reg)) {
+            this->connections.getStorage()->saveLatencyTest(ip, stoi(m[1]));
             cout<< m[1]<< endl;
             std::cout << std::endl;
             output = m.suffix().str();
@@ -207,7 +209,11 @@ void Node::TestTimer() {
     while(this->running) {
         //get list ordered by time for the latency tests
         //test the least recent
+        vector<string> ips = this->connections.getStorage()->getLRLatency(10); //param: batch latency dimension
 
+        for(auto ip : ips) {
+            this->testPing(ip);
+        }
 
         //if token then do the same for bandwidth
 

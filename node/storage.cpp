@@ -14,9 +14,9 @@ void Storage::createTables() {
     char *zErrMsg = 0;
 
     vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP PRIMARY KEY, ipB STRING, ms INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, ipB STRING, ms INTEGER)",
                             "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT)",
-                            "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, tested INTEGER)"};
+                            "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP)"};
     
     for(string str : query) {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
@@ -139,6 +139,16 @@ void Storage::saveLatencyTest(string ip, int ms) {
         sqlite3_free(zErrMsg);
         exit(1);
     }
+
+    std::sprintf(buf,"UPDATE Nodes SET latencyTime = DATETIME('now') WHERE ip = \"%s\"", ip.c_str());
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
 }
 
 void Storage::saveBandwidthTest(string ip, float kbps) {
@@ -147,6 +157,16 @@ void Storage::saveBandwidthTest(string ip, float kbps) {
     std::sprintf(buf,"INSERT INTO Bandwidth (time, ipB, kbps) VALUES (DATETIME('now'), \"%s\", %d)", ip.c_str(), kbps);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    std::sprintf(buf,"UPDATE Nodes SET bandwidthTime = DATETIME('now') WHERE ip = \"%s\"", ip.c_str());
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -172,7 +192,7 @@ void Storage::saveHardware(Report::hardware_result hardware) {
 void Storage::refreshNodes(vector<string> nodes) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"DELETE FROM NODES");
+    std::sprintf(buf,"DELETE FROM Nodes");
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -199,7 +219,7 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char buf[1024];
 
     for(auto node : add) {
-        std::sprintf(buf,"INSERT IGNORE OR INTO Nodes (ip,tested) VALUES (\"%s\", 0)", node.c_str());
+        std::sprintf(buf,"INSERT IGNORE OR INTO Nodes (ip,tested) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
@@ -234,6 +254,42 @@ vector<string> Storage::getNodes() {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT ip FROM Nodes");
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
+std::vector<std::string> Storage::getLRLatency(int num) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ip FROM Nodes ORDER BY latencyTime LIMIT %d", num);
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
+std::vector<std::string> Storage::getLRBandwidth(int num) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ip FROM Nodes ORDER BY bandwidthTime LIMIT %d", num);
 
     vector<string> nodes;
 

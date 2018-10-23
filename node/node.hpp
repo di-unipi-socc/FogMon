@@ -30,9 +30,9 @@ public:
     void stop();
 
     //test the Bandwidth with another node
-    void testBandwidth();
+    void testBandwidth(std::string ip);
     //test the latency with another node
-    void testPing();
+    void testPing(std::string ip);
 
     //get the hardware of this node
     void getHardware();

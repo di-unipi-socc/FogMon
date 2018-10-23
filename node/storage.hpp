@@ -24,6 +24,9 @@ public:
     void updateNodes(std::vector<std::string> add, std::vector<std::string> rem);
 
     std::vector<std::string> getNodes();
+    
+    std::vector<std::string> getLRLatency(int num);
+    std::vector<std::string> getLRBandwidth(int num);
 
 };
 
