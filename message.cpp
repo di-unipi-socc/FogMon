@@ -79,6 +79,21 @@ bool Message::getData(vector<string>& strings) {
     return true;
 }
 
+bool Message::getData(string& stringA, vector<string>& stringsB) {
+    if( !this->data.HasMember("A") && !this->data["A"].IsString() &&
+        !this->data.HasMember("B") && !this->data["B"].IsArray())
+        return false;
+
+    stringA = this->data["A"].GetString();
+
+    for (auto& v : this->data["B"].GetArray()) {
+        if(!v.IsString())
+            return false;
+        stringsB.push_back(v.GetString());
+    }
+    return true;
+}
+
 bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
     if( !this->data.HasMember("A") && !this->data["A"].IsArray() &&
         !this->data.HasMember("B") && !this->data["B"].IsArray())
@@ -115,6 +130,25 @@ void Message::setData(std::vector<std::string> strings) {
     
 }
 
+void Message::setData(string stringA, vector<string> stringsB) {
+
+    Value obj(kObjectType);
+    Value strA(kStringType);
+    Value arrB(kArrayType);
+    Document::AllocatorType& allocator = doc.GetAllocator();
+    
+    strA.SetString(stringA.c_str(), allocator);
+
+    for(auto str : stringsB) {
+        Value val(str.c_str(), allocator);
+        arrB.PushBack(val, allocator);
+    }
+
+    obj.AddMember("A", strA, allocator);
+    obj.AddMember("B", arrB, allocator);
+    this->data = obj;
+}
+
 void Message::setData(std::vector<std::string> stringsA, std::vector<std::string> stringsB) {
 
     Value obj(kObjectType);
@@ -136,8 +170,8 @@ void Message::setData(std::vector<std::string> stringsA, std::vector<std::string
     this->data = obj;
 }
 
-void Message::setData(Report report) {
-    this->data = report.getJson();
+void Message::setData(Report& report) {
+    this->data = *(report.getJson());
 }
 
 void Message::buildString() {

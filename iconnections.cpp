@@ -140,7 +140,9 @@ bool IConnections::getMessage(int fd, Message &m) {
     {
         perror("   recv() failed at len");
     }else if(len > 0) {
-        char * data = new char[len];
+        char * data = new char[len+1];
+        data[len] = 0;
+
         error = readS(fd, data, len);
         if(error < 0) {
             delete data;
@@ -162,7 +164,7 @@ bool IConnections::sendMessage(int fd, Message &m) {
     string json = m.getString();
 
     int error;
-    int32_t len = json.size();
+    int32_t len = json.length();
 
     error = writeS(fd, (const char*)&len, sizeof(len));
     if (error < 0)

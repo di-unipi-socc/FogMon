@@ -8,8 +8,8 @@
 
 class Message {
 public:
-    enum Type {REQUEST, NOTIFY};
-    enum Command {GET, SET, HELLO, NODELIST, UPDATE, RESPONSE};
+    enum Type {REQUEST, NOTIFY, RESPONSE};
+    enum Command {GET, SET, HELLO, NODELIST, UPDATE};
     enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE};
 
     Message();
@@ -30,12 +30,14 @@ public:
     Argument getArgument();
 
     bool getData(std::vector<std::string>& strings);
+    bool getData(std::string& stringA, std::vector<std::string>& stringsB);
     bool getData(std::vector<std::string>& stringsA, std::vector<std::string>& stringsB);
     bool getData(Report& report);
 
     void setData(std::vector<std::string> strings);
+    void setData(std::string string, std::vector<std::string> strings);
     void setData(std::vector<std::string> stringsA, std::vector<std::string> stringsB);
-    void setData(Report report);
+    void setData(Report& report);
 
 private:
 

@@ -29,9 +29,42 @@ void Storage::createTables() {
     }
 }
 
-int Storage::callback(void *vec, int argc, char **argv, char **azColName) {
-    vector<string> *v = (vector<string>*)vec;
-    v->push_back(string(argv[0]));
+int getHardwareCallback(void *R, int argc, char **argv, char **azColName) {
+    Report::hardware_result *r = (Report::hardware_result*)R;
+    for(int i=0; i<argc; i++) {
+        if(strcmp("cores", azColName[i])==0) {
+            r->cores = stoi(argv[i]);
+        }else if(strcmp("free_cpu", azColName[i])==0) {
+            r->free_cpu = stof(argv[i]);
+        }else if(strcmp("memory", azColName[i])==0) {
+            r->memory = stoi(argv[i]);
+        }else if(strcmp("free_memory", azColName[i])==0) {
+            r->free_memory = stoi(argv[i]);
+        }else if(strcmp("disk", azColName[i])==0) {
+            r->disk = stoi(argv[i]);
+        }else if(strcmp("free_disk", azColName[i])==0) {
+            r->free_disk = stoi(argv[i]);
+        }
+    }
+    return 0;
+}
+
+Report::hardware_result Storage::getHardware() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT * FROM Hardware ORDER BY time LIMIT 1");
+
+    Report::hardware_result r;
+
+    int err = sqlite3_exec(this->db, buf, getHardwareCallback, &r, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return r;
 }
 
 void Storage::generateReport() {
@@ -66,10 +99,10 @@ void Storage::saveBandwidthTest(string ip, float kbps) {
     }
 }
 
-void Storage::saveHardware(int cores, float free_cpu, int memory, int free_memory, int disk, int free_disk) {
+void Storage::saveHardware(Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Hardware (cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (%d, %f, %d, %d, %d, %d)", cores, free_cpu, memory, free_memory, disk, free_disk);
+    std::sprintf(buf,"INSERT INTO Hardware (cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (%d, %f, %d, %d, %d, %d)", hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -110,7 +143,7 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char buf[1024];
 
     for(auto node : add) {
-        std::sprintf(buf,"INSERT IGNORE INTO Nodes (ip,tested) VALUES (\"%s\", 0)", node.c_str());
+        std::sprintf(buf,"INSERT IGNORE OR INTO Nodes (ip,tested) VALUES (\"%s\", 0)", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
@@ -134,6 +167,12 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     }
 }
 
+int getNodesCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<string> *v = (vector<string>*)vec;
+    v->push_back(string(argv[0]));
+    return 0;
+}
+
 
 vector<string> Storage::getNodes() {
     char *zErrMsg = 0;
@@ -142,7 +181,7 @@ vector<string> Storage::getNodes() {
 
     vector<string> nodes;
 
-    int err = sqlite3_exec(this->db, buf, this->callback, &nodes, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);

@@ -1,8 +1,10 @@
 
 #include "master_connections.hpp"
 #include "inode.hpp"
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
-MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread), storage("MasterNode.db") {
+MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread), storage("masterNode.db") {
 }
 
 MasterConnections::~MasterConnections() {
@@ -31,18 +33,43 @@ void MasterConnections::handler(int fd, Message &m) {
         }
     }else if(m.getType() == Message::Type::NOTIFY) {
         if(m.getCommand() == Message::Command::HELLO) {
-            //get nodelist
-            Message res;
-            res.setType(Message::Type::REQUEST);
-            res.setCommand(Message::Command::SET);
-            res.setArgument(Message::Argument::NODES);
-            vector<string> vec;
+            //get report
+            Report r;
+            m.getData(r);
+            Report::hardware_result hardware;
+            r.getHardware(hardware);
+
+            //set new node online
+            socklen_t len;
+            struct sockaddr_storage addr;
+            char ip[INET6_ADDRSTRLEN];
+            
+            len = sizeof(addr);
+            getpeername(fd, (struct sockaddr*)&addr, &len);
+            
+            if(addr.ss_family == AF_INET) {
+                struct sockaddr_in *s = (struct sockaddr_in*)&addr;
+                inet_ntop(AF_INET, &s->sin_addr, ip, sizeof(ip));
+            }else if(addr.ss_family == AF_INET6) {
+                struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
+                inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
+            }
+            
+            storage.addNode(string(ip), hardware);
+
+            vector<string> vec = storage.getNodes();
             vec.push_back("localhost:5556");
             vec.push_back("127.0.0.1:5555");
-            res.setData(vec);
+
+            //get nodelist
+            Message res;
+            res.setType(Message::Type::RESPONSE);
+            res.setCommand(Message::Command::HELLO);
+            res.setArgument(Message::Argument::POSITIVE);
+
+            res.setData(string(ip), vec);
             
             sendMessage(fd, res);
-
         }else if(m.getCommand() == Message::Command::UPDATE) {
             if(m.getArgument() == Message::Argument::REPORT) {
                 //get the report

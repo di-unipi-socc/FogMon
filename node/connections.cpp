@@ -17,6 +17,8 @@
 #include <string>
 #include <netdb.h>
 
+#include <iostream>
+
 using namespace std;
 
 Connections::Connections(INode *parent, int nThread) : IConnections(parent, nThread), storage("node.db") {
@@ -85,19 +87,24 @@ bool Connections::sendHello(string ipS) {
     Message m;
     m.setType(Message::Type::NOTIFY);
     m.setCommand(Message::Command::HELLO);
+    Report r;
     
+    r.setHardware(storage.getHardware());
+    m.setData(r);
+
     bool result = false;
 
     //send hello message
     if(this->sendMessage(Socket, m)) {
         Message res;
         if(this->getMessage(Socket, res)) {
-            if( res.getType()==Message::Type::REQUEST &&
-                res.getCommand() == Message::Command::SET &&
-                res.getArgument() == Message::Argument::NODES) {
-                
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::HELLO &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                string ip;
                 vector<string> vec;
-                if(res.getData(vec)) {
+                if(res.getData(ip, vec)) {
+                    cout << ip << endl;
                     storage.refreshNodes(vec);
                     result = true;
                 }

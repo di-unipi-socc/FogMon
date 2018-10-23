@@ -25,13 +25,48 @@ void MasterStorage::createTables() {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            fprintf(stderr, "SQL error (creating tables): %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
             exit(1);
         }        
     }
 }
 
+void MasterStorage::addNode(string ip, Report::hardware_result hardware) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, datetime('now', 'unixepoch'))", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+}
+
+
+int VectorStringCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<string> *v = (vector<string>*)vec;
+    v->push_back(string(argv[0]));
+    return 0;
+}
+
 vector<string> MasterStorage::getNodes() {
-    return vector<string>();
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ip FROM Nodes");
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (select nodes): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
 }

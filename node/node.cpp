@@ -148,113 +148,54 @@ void Node::getHardware() {
 
     int status, i;
     sigar_t *sigar;
+    sigar_cpu_t cpuT1;
+    sigar_cpu_t cpuT2;
     sigar_cpu_list_t cpulist;
 
     sigar_open(&sigar);
-    sigar_file_system_list_t fsystem;
     sigar_file_system_usage_t disk;
-    sigar_file_system_list_get(sigar, &fsystem);
-    for(int i =0; i<fsystem.number; i++){
-        sigar_file_system_usage_get(sigar,fsystem.data[i].dev_name,&disk);
-        cout << "disk " << fsystem.data[i].dev_name << " " << disk.total << " " << disk.avail << " "  << disk.free << endl;
-    }
     sigar_file_system_usage_get(sigar,"/",&disk);
-    cout << "disk " << "/ " << disk.total << " " << disk.avail << " "  << disk.free << endl;
 
     status = sigar_cpu_list_get(sigar, &cpulist);
-
     if (status != SIGAR_OK) {
         printf("cpu_list error: %d (%s)\n",
                status, sigar_strerror(sigar, status));
         exit(1);
     }
 
-    for (i=0; i<cpulist.number; i++) {
-        sigar_cpu_t cpu = cpulist.data[i];
-        
-        cout << "cpu " << i << " " << cpu.idle << endl;
+    status = sigar_cpu_get(sigar, &cpuT1);
+    if (status != SIGAR_OK) {
+        printf("cpu error: %d (%s)\n",
+               status, sigar_strerror(sigar, status));
+        exit(1);
     }
+    sleep(1);
+    status = sigar_cpu_get(sigar, &cpuT2);
+    if (status != SIGAR_OK) {
+        printf("cpu error: %d (%s)\n",
+               status, sigar_strerror(sigar, status));
+        exit(1);
+    }
+
+    unsigned long long diffIdle = cpuT2.idle - cpuT1.idle;
+    unsigned long long totaldiff = cpuT2.total - cpuT1.total + cpuT2.user - cpuT1.user + cpuT2.sys - cpuT1.sys;
+
     sigar_mem_t mem;
     sigar_mem_get(sigar,&mem);
 
-    cout << "mem " << mem.actual_free << " " << mem.actual_used << " " << mem.free << " " << mem.free_percent << " " << mem.ram << " " << mem.total << " " << mem.used << " " << mem.used_percent << endl;
+    Report::hardware_result hardware;
+    hardware.cores = cpulist.number;
+    hardware.free_cpu = ((float)diffIdle)/(totaldiff);
+    hardware.memory = mem.total;
+    hardware.free_memory = mem.actual_free;
+    hardware.disk = disk.total;
+    hardware.free_disk = disk.avail;
+
+    connections.getStorage()->saveHardware(hardware);
 
     sigar_cpu_list_destroy(sigar, &cpulist);
 
     sigar_close(sigar);
-
-
-
-
-
-    stringstream   strStream;
-    unsigned long  hdd_size;
-    unsigned long  hdd_free;
-    ostringstream  strConvert;
-
-    struct sysinfo info;
-    sysinfo( &info );   
-
-    struct statvfs fsinfo;
-    statvfs("/", &fsinfo);
-
-    unsigned num_cpu = std::thread::hardware_concurrency();
-
-    strStream.str("");
-    ifstream stat("/proc/stat");
-    strStream << stat.rdbuf();
-    unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
-
-
-    std::regex reg("cpu\\s*([0-9]*) ([0-9]*) ([0-9]*) ([0-9]*) [\\s\\S]*");
-
-    std::smatch m;
-    string statString = strStream.str();
-    std::regex_match (statString,m,reg);
-    
-    
-    if(m.size() == 5) {
-        totalUser = stoll(m[1]);
-        totalUserLow = stoll(m[2]);
-        totalSys = stoll(m[3]);
-        totalIdle = stoll(m[4]);
-    }
-    sleep(1);
-
-    strStream.str("");
-    stat.close();
-    stat.open("/proc/stat");
-    strStream << stat.rdbuf();
-    unsigned long long totalUser2, totalUserLow2, totalSys2, totalIdle2;
-
-    statString = strStream.str();
-    std::regex_match (statString,m,reg);
-
-    if(m.size() == 5) {
-        totalUser2 = stoll(m[1]);
-        totalUserLow2 = stoll(m[2]);
-        totalSys2 = stoll(m[3]);
-        totalIdle2 = stoll(m[4]);
-    }
-
-    total = totalUser2-totalUser + totalUserLow2-totalUserLow + totalSys2-totalSys;
-    unsigned long long diffIdle = totalIdle2-totalIdle;
-
-    unsigned long   mem_size = (size_t)info.totalram * (size_t)info.mem_unit;
-    unsigned long   mem_free = (size_t)info.freeram * (size_t)info.mem_unit;
-
-    hdd_size = fsinfo.f_frsize * fsinfo.f_blocks;
-    hdd_free = fsinfo.f_bsize * fsinfo.f_bavail;  
-                                            
-    std::cout << "CPU core number           = " << num_cpu        << endl;
-    std::cout << "CPU free                  = " << (double)diffIdle/(double)(total+diffIdle) << endl;
-    std::cout << "CPU used                  = " << (double)total/(double)(total+diffIdle) << endl;
-
-    std::cout << "Memory size               = " << mem_size       << endl;
-    std::cout << "Memory free               = " << mem_free       << endl;
-
-    std::cout << "Disk, filesystem size     = " << hdd_size       << endl;
-    std::cout << "Disk free space           = " << hdd_free       << endl;
 }
 
 void Node::timer() {
