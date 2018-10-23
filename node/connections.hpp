@@ -21,7 +21,7 @@ public:
 
     //ip:port
     bool sendHello(std::string ipS);
-    bool sendReport(std::string ipS);
+    bool sendUpdate(std::string ipS);
 
     Storage* getStorage();
 };

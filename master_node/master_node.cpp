@@ -35,6 +35,7 @@ IConnections* MasterNode::getConnections() {
 void MasterNode::timerFun() {
     while(this->running) {
         //check database for reports
+        
 
         sleep(this->timer);
     }

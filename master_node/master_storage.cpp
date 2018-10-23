@@ -35,7 +35,7 @@ void MasterStorage::createTables() {
 void MasterStorage::addNode(string ip, Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, datetime('now', 'unixepoch'))", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
+    std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, DATETIME('now'))", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -69,4 +69,37 @@ vector<string> MasterStorage::getNodes() {
     }
 
     return nodes;
+}
+
+void MasterStorage::addTest(string strIpA, string strIpB, Report::test_result test, string type) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"INSERT OR REPLACE INTO %s (ipA, ipB, mean, variance, lasttime) VALUES (\"%s\", \"%s\", %f, %f, DATETIME('now'))", strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, type.c_str());
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+}
+
+void MasterStorage::addReportLatency(string strIp, vector<Report::test_result> latency) {
+    for(auto test : latency) {
+        this->addTest(strIp, test.target, test, "Latency");
+        this->addTest(test.target, strIp, test, "Latency"); //because is symmetric
+    }
+}
+
+void MasterStorage::addReportBandwidth(string strIp, vector<Report::test_result> bandwidth) {
+    for(auto test : bandwidth) {
+        this->addTest(strIp, test.target, test, "Bandwidth"); //asymmetric
+    }
+}
+
+void MasterStorage::addReport(string strIp, Report::hardware_result hardware, vector<Report::test_result> latency, vector<Report::test_result> bandwidth) {
+    this->addNode(strIp, hardware);
+    this->addReportLatency(strIp, latency);
+    this->addReportBandwidth(strIp, bandwidth);
 }

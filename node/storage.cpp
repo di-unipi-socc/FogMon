@@ -14,8 +14,8 @@ void Storage::createTables() {
     char *zErrMsg = 0;
 
     vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Ping (time TIMESTAMP PRIMARY KEY, ipB STRING, ms INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Band (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT)",
+                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP PRIMARY KEY, ipB STRING, ms INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT)",
                             "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, tested INTEGER)"};
     
     for(string str : query) {
@@ -67,14 +67,70 @@ Report::hardware_result Storage::getHardware() {
     return r;
 }
 
-void Storage::generateReport() {
-    
+int getLatencyCallback(void *R, int argc, char **argv, char **azColName) {
+    vector<Report::test_result> *r = (vector<Report::test_result>*)R;
+    for(int i=0; i<argc; i++) {
+        Report::test_result test;
+        test.target = string(argv[0]);
+        test.mean = stof(argv[1]);
+        test.variance = stof(argv[2]);
+        r->push_back(test);
+    }
+    return 0;
 }
 
-void Storage::savePingTest(string ip, int ms) {
+std::vector<Report::test_result> Storage::getLatency() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Ping (ipB, ms) VALUES (\"%s\", %d)", ip.c_str(), ms);
+    std::sprintf(buf,"SELECT ipB, avg(ms) AS mean, variance(ms) AS var FROM Latency group by ipB");
+
+    vector<Report::test_result> tests;
+
+    int err = sqlite3_exec(this->db, buf, getLatencyCallback, &tests, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return tests;
+}
+
+int getBandwidthCallback(void *R, int argc, char **argv, char **azColName) {
+    vector<Report::test_result> *r = (vector<Report::test_result>*)R;
+    for(int i=0; i<argc; i++) {
+        Report::test_result test;
+        test.target = string(argv[0]);
+        test.mean = stof(argv[1]);
+        test.variance = stof(argv[2]);
+        r->push_back(test);
+    }
+    return 0;
+}
+
+std::vector<Report::test_result> Storage::getBandwidth() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ipB, avg(kbps) AS mean, variance(kbps) AS var FROM Bandwidth group by ipB");
+
+    vector<Report::test_result> tests;
+
+    int err = sqlite3_exec(this->db, buf, getBandwidthCallback, &tests, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return tests;
+}
+
+void Storage::saveLatencyTest(string ip, int ms) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"INSERT INTO Latency (time ,ipB, ms) VALUES (DATETIME('now'),\"%s\", %d)", ip.c_str(), ms);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -88,7 +144,7 @@ void Storage::savePingTest(string ip, int ms) {
 void Storage::saveBandwidthTest(string ip, float kbps) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Band (ipB, kbps) VALUES (\"%s\", %d)", ip.c_str(), kbps);
+    std::sprintf(buf,"INSERT INTO Bandwidth (time, ipB, kbps) VALUES (DATETIME('now'), \"%s\", %d)", ip.c_str(), kbps);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -102,7 +158,7 @@ void Storage::saveBandwidthTest(string ip, float kbps) {
 void Storage::saveHardware(Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Hardware (cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (%d, %f, %d, %d, %d, %d)", hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
+    std::sprintf(buf,"INSERT INTO Hardware (time, cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (DATETIME('now'), %d, %f, %d, %d, %d, %d)", hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )

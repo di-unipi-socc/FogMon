@@ -38,8 +38,16 @@ void Connections::handler(int fd, Message &m) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
                 vector<string> nodes = storage.getNodes();
-                //send nodes
 
+                //send nodes
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::GET);
+                res.setArgument(Message::Argument::POSITIVE);
+
+                res.setData(nodes);
+            
+                sendMessage(fd, res);
             }else if(m.getCommand() == Message::Command::SET) {
                 //refresh all the nodes with the array of nodes
                 vector<string> ips;
@@ -52,8 +60,21 @@ void Connections::handler(int fd, Message &m) {
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::GET) {
                 //build report
-                storage.generateReport();
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::GET);
+                res.setArgument(Message::Argument::POSITIVE);
+                Report r;
+                
+                r.setHardware(storage.getHardware());
+                r.setLatency(storage.getLatency());
+                r.setBandwidth(storage.getBandwidth());
+                res.setData(r);
+
                 //send report
+                if(this->sendMessage(fd, res)) {
+                    
+                }
                 
             }
         }
@@ -115,16 +136,35 @@ bool Connections::sendHello(string ipS) {
     return result;
 }
 
-bool Connections::sendReport(string ipS) {
+bool Connections::sendUpdate(string ipS) {
     int Socket = openConnection(ipS);
-
+    
     if(Socket < 0) {
         return false;
     }
 
-    //build report
-    //send report
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
 
+    //build update message
+    Message m;
+    m.setType(Message::Type::NOTIFY);
+    m.setCommand(Message::Command::UPDATE);
+    m.setArgument(Message::Argument::REPORT);
+    Report r;
+    
+    r.setHardware(storage.getHardware());
+    r.setLatency(storage.getLatency());
+    r.setBandwidth(storage.getBandwidth());
+    m.setData(r);
+
+    bool result = false;
+
+    //send update message
+    if(this->sendMessage(Socket, m)) {
+        result = true;
+    }
     close(Socket);
-    return true;
+    return result;
 }

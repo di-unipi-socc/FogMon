@@ -8,20 +8,16 @@
 class Node : public INode{
 private:
     int timerReport;
-    int lastReport;
 
     //ip:port of the server node 
     std::string ipS;
 
-    int timerPing;
-    int timerbandwidth;
-
-    int lastPing;
-    int lastBandwidth;
+    int timeTimerTest;
 
     bool running;
 
     std::thread timerThread;
+    std::thread timerTestThread;
     Server server;
 
     Connections connections;
@@ -33,9 +29,6 @@ public:
     //stop everything
     void stop();
 
-    //send report
-    void report();
-
     //test the Bandwidth with another node
     void testBandwidth();
     //test the latency with another node
@@ -44,8 +37,11 @@ public:
     //get the hardware of this node
     void getHardware();
 
-    //timer for latency and bandwidth tests
+    //timer for hearthbeat
     void timer();
+
+    //timer for latency and bandwidth tests
+    void TestTimer();
 
     IConnections* getConnections();
 };

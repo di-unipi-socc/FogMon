@@ -12,9 +12,11 @@ public:
     Storage(std::string path);
     ~Storage();
 
-    void generateReport();
     Report::hardware_result getHardware();
-    void savePingTest(std::string ip, int ms);
+    std::vector<Report::test_result> getLatency();
+    std::vector<Report::test_result> getBandwidth();
+
+    void saveLatencyTest(std::string ip, int ms);
     void saveBandwidthTest(std::string ip, float kbps);
     void saveHardware(Report::hardware_result hardware);
 

@@ -24,12 +24,8 @@ using namespace std;
 
 Node::Node(int nThreads) : server(this,5555), connections(this, nThreads) {
     running = false;
-    timerReport = 0;
-    timerPing = 0;
-    timerbandwidth = 0;
-    lastReport = 0;
-    lastPing = 0;
-    lastBandwidth = 0;
+    timerReport = 5;
+    timeTimerTest = 5;
     ipS = "localhost:5556";
 }
 
@@ -38,6 +34,7 @@ Node::~Node() {
 }
 
 void Node::start() {
+    this->running = true;
     this->server.start();
     this->testPing();
     this->getHardware();
@@ -45,6 +42,7 @@ void Node::start() {
         perror("Cannot connect to the main node");
         this->stop();
     }
+    this->timerThread = thread(&Node::timer, this);
 }
 
 void Node::stop() {
@@ -54,10 +52,6 @@ void Node::stop() {
         this->timerThread.join();
     }
     this->server.stop();
-}
-
-void Node::report() {
-    connections.sendReport(this->ipS);
 }
 
 IConnections* Node::getConnections() {
@@ -199,5 +193,24 @@ void Node::getHardware() {
 }
 
 void Node::timer() {
+    while(this->running) {
+        //generate hardware report and send it
+        this->getHardware();
 
+        this->connections.sendUpdate(this->ipS);
+
+        sleep(this->timerReport);
+    }
+}
+
+void Node::TestTimer() {
+    while(this->running) {
+        //get list ordered by time for the latency tests
+        //test the least recent
+
+
+        //if token then do the same for bandwidth
+
+        sleep(this->timeTimerTest);
+    }
 }
