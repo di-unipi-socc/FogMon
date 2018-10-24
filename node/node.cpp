@@ -43,6 +43,7 @@ void Node::start() {
         this->stop();
     }
     this->timerThread = thread(&Node::timer, this);
+    this->timerTestThread = thread(&Node::TestTimer, this);
 }
 
 void Node::stop() {
@@ -50,6 +51,10 @@ void Node::stop() {
     if(this->timerThread.joinable())
     {
         this->timerThread.join();
+    }
+    if(this->timerTestThread.joinable())
+    {
+        this->timerTestThread.join();
     }
     this->server.stop();
 }
@@ -59,43 +64,7 @@ IConnections* Node::getConnections() {
 }
 
 void Node::testBandwidth(string ip) {
-    string command = "ping -c 3 192.168.1.1 2>&1";
-    string mode = "r";
-    string output;
-
-    std::stringstream sout;
-
-    // Run Popen
-    FILE *in;
-    char buff[512];
-
-    // Test output
-    if(!(in = popen(command.c_str(), mode.c_str()))){
-        return;
-    }
-
-    // Parse output
-    while(fgets(buff, sizeof(buff), in)!=NULL){
-        sout << buff;
-    }
-
-    // Close
-    int exit_code = pclose(in);
-
-    // set output
-    output = sout.str();
-
-    if(exit_code == 0) {
-        std::regex reg("time=([0-9\\.]*) ms");
-
-        std::smatch m;
-        
-        while (std::regex_search (output,m,reg)) {
-            cout<< m[1]<< endl;
-            std::cout << std::endl;
-            output = m.suffix().str();
-        }
-    }
+    //TODO
 }
 
 void Node::testPing(string ip) {

@@ -199,7 +199,7 @@ int IConnections::openConnection(string ipS) {
 	
 	result = NULL;
 
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
@@ -241,6 +241,55 @@ int IConnections::openConnection(string ipS) {
     }
 
     freeaddrinfo(result);
+
+    if(Socket == -1) {
+        memset( &hints,0, sizeof(hints));
+        
+        result = NULL;
+
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+
+        struct addrinfo *ptr = NULL;
+        int iResult;
+        int Socket;
+        
+        // Resolve the server address and port
+        iResult = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
+        if ( iResult != 0 )
+        {
+            fprintf(stderr, "getaddrinfo failed with error: %d\n", iResult);
+            return -1;
+        }
+
+        // Attempt to connect to an address until one succeeds
+        for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
+        {
+
+            // Create a SOCKET for connecting to server
+            Socket = socket(ptr->ai_family, ptr->ai_socktype,
+                ptr->ai_protocol);
+            if (Socket == -1)
+            {
+                fprintf(stderr, "socket failed");
+                freeaddrinfo(result);
+                return -1;
+            }
+            // Connect to server.
+
+            iResult = connect( Socket, ptr->ai_addr, (int)ptr->ai_addrlen);
+            if (iResult == -1)
+            {
+                close(Socket);
+                Socket = -1;
+                continue;
+            }
+            break;
+        }
+
+        freeaddrinfo(result);
+    }
 
     if (Socket == -1)
 	{

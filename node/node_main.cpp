@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     InputParser input(argc,argv);
 
-    string ip;
+    string ip = "localhost:5556";
 
     if(input.cmdOptionExists("-C"))
         ip = input.getCmdOption("-C");

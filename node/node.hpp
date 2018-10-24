@@ -21,6 +21,13 @@ private:
     Server server;
 
     Connections connections;
+
+    //timer for hearthbeat
+    void timer();
+
+    //timer for latency and bandwidth tests
+    void TestTimer();
+    
 public:
     Node(std::string ip, int nThreads);
     ~Node();
@@ -36,12 +43,6 @@ public:
 
     //get the hardware of this node
     void getHardware();
-
-    //timer for hearthbeat
-    void timer();
-
-    //timer for latency and bandwidth tests
-    void TestTimer();
 
     IConnections* getConnections();
 };
