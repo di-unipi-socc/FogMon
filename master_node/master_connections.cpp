@@ -14,6 +14,7 @@ MasterStorage* MasterConnections::getStorage() {
     return &(this->storage);
 }
 
+
 void MasterConnections::handler(int fd, Message &m) {
 
     socklen_t len;
@@ -28,7 +29,10 @@ void MasterConnections::handler(int fd, Message &m) {
         inet_ntop(AF_INET, &s->sin_addr, ip, sizeof(ip));
     }else if(addr.ss_family == AF_INET6) {
         struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
-        inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
+        if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr))
+            inet_ntop(AF_INET, &(((in_addr*)(s->sin6_addr.s6_addr+12))->s_addr), ip, sizeof(ip));
+        else
+            inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
     }
     string strIp = string(ip);
 
