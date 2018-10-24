@@ -22,11 +22,11 @@
 
 using namespace std;
 
-Node::Node(int nThreads) : server(this,5555), connections(this, nThreads) {
+Node::Node(string ip, int nThreads) : server(this,5555), connections(this, nThreads) {
     running = false;
     timerReport = 5;
     timeTimerTest = 5;
-    ipS = "localhost:5556";
+    ipS = ip;
 }
 
 Node::~Node() {

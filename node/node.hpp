@@ -22,7 +22,7 @@ private:
 
     Connections connections;
 public:
-    Node(int nThreads);
+    Node(std::string ip, int nThreads);
     ~Node();
     //start listener for incoming ping and directions
     void start();
