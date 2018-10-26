@@ -18,6 +18,7 @@
 #include <sys/un.h>
 #include <string.h>
 #include <sys/eventfd.h>
+#include <signal.h>
 
 using namespace std;
 
@@ -49,6 +50,9 @@ void Server::stop() {
 }
 
 void Server::listener() {
+
+    signal(SIGPIPE, SIG_IGN);
+
     int error, on = 1;
     int listen_sd = -1, new_sd = -1;
     int compress_array = false;
@@ -140,7 +144,7 @@ void Server::listener() {
             if(fds[i].revents == 0)
                 continue;
             
-            if(fds[i].revents != POLLIN)
+            if(fds[i].revents&POLLIN != POLLIN)
             {
                 printf("  Error! revents = %d\n", fds[i].revents);
                 running = false;

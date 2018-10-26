@@ -46,10 +46,15 @@ void MasterConnections::handler(int fd, Message &m) {
         inet_ntop(AF_INET, &s->sin_addr, ip, sizeof(ip));
     }else if(addr.ss_family == AF_INET6) {
         struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
-        if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr))
+        if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr)) {
             inet_ntop(AF_INET, &(((in_addr*)(s->sin6_addr.s6_addr+12))->s_addr), ip, sizeof(ip));
+            cout << ip << endl;
+        }
         else
             inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
+    }else {
+        cout << "error socket family" << endl;
+        return;
     }
     string strIp = string(ip);
 
@@ -146,7 +151,7 @@ void MasterConnections::handler(int fd, Message &m) {
 }
 
 bool MasterConnections::sendRequestReport(std::string ip) {
-    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
+    int Socket = openConnection(ip);
     
     if(Socket < 0) {
         return false;
@@ -197,7 +202,7 @@ bool MasterConnections::sendRequestReport(std::string ip) {
 }
 
 bool MasterConnections::sendSetToken(std::string ip, int time) {
-    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
+    int Socket = openConnection(ip);
     
     if(Socket < 0) {
         return false;

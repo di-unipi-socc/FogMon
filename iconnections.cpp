@@ -112,7 +112,7 @@ int IConnections::readS(long fd, void *data, int len) {
 //return 1 if all ok
 //return -1 if error
 int IConnections::writeS(long fd, const char *data, int len) {
-	int n;
+    int n;
 	int pos =0;
 	while(pos < len && (n = write(fd, &(data[pos]), len-pos)) < len)
 	{
@@ -187,27 +187,15 @@ bool IConnections::notifyAll(Message &m) {
     for(auto ip : nodes) {
         if(ip == this->parent->getMyIp())
             continue;
-     
-        if(int fd = this->openConnection(ip) >= 0 ) {
+        int fd = this->openConnection(ip);
+        if(fd >= 0 ) {
             this->sendMessage(fd,m);
             close(fd);
         }
     }
 }
 
-int IConnections::openConnection(string ipS) {
-    string ip = ipS;
-    string port = "5555";
-    
-    try{
-        size_t pos = ipS.find(':');
-        if(pos != string::npos) {
-            ip = ipS.substr(0, pos);
-            port = ipS.substr(pos+1);
-        }
-    }catch(...) {
-        return -1;
-    }
+int IConnections::openConnection(string ip, string port) {
 
     struct addrinfo *result,hints;
 
@@ -221,23 +209,21 @@ int IConnections::openConnection(string ipS) {
 
     struct addrinfo *ptr = NULL;
     int iResult;
-    int Socket;
+    int Socket = -1;
     
     // Resolve the server address and port
 	iResult = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
     if ( iResult != 0 )
 	{
-        fprintf(stderr, "getaddrinfo failed with error: %d\n", iResult);
+        fprintf(stderr, "getaddrinfo failed with error (%s:%s): %d\n",ip.c_str(),port.c_str(), iResult);
         return -1;
     }
-
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
 	{
 
         // Create a SOCKET for connecting to server
-        Socket = socket(ptr->ai_family, ptr->ai_socktype,
-            ptr->ai_protocol);
+        Socket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (Socket == -1)
 		{
             fprintf(stderr, "socket failed");
@@ -260,7 +246,7 @@ int IConnections::openConnection(string ipS) {
 
     if (Socket == -1)
 	{
-        fprintf(stderr, "Unable to connect to server!\n");
+        fprintf(stderr, "Unable to connect to server! (%s : %s)\n",ip.c_str(), port.c_str());
         return -1;
     }
     return Socket;

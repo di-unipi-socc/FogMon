@@ -27,11 +27,12 @@
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(string ip, int nThreads) : server(this,5555), connections(this, nThreads) {
+Node::Node(string ip, string port, int nThreads) : server(this,5555), connections(this, nThreads) {
     running = false;
     timerReport = 5;
     timeTimerTest = 5;
     ipS = ip;
+    portS = port;
 }
 
 Node::~Node() {
@@ -43,7 +44,7 @@ void Node::start() {
     this->server.start();
     this->testBandwidth("192.168.124.1");
     this->getHardware();
-    if(!this->connections.sendHello(this->ipS)) {
+    if(!this->connections.sendHello(this->ipS,this->portS)) {
         perror("Cannot connect to the main node");
         this->stop();
     }
@@ -258,7 +259,7 @@ void Node::timer() {
         //generate hardware report and send it
         this->getHardware();
 
-        this->connections.sendUpdate(this->ipS);
+        this->connections.sendUpdate(this->ipS,this->portS);
 
         sleep(this->timerReport);
     }

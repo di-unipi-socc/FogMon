@@ -35,6 +35,10 @@ void MasterStorage::createTables() {
 void MasterStorage::addNode(string ip, Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
+    if(ip == "") {
+        printf("empty\n");
+        return;
+    }
     std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, DATETIME('now'))", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);

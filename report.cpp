@@ -13,7 +13,9 @@ Report::~Report() {
 
 bool Report::parseJson(Value& data) {
     doc.CopyFrom(data,doc.GetAllocator());
-    return true;
+    if(doc.IsObject())
+        return true;
+    return false;
 }
 
 Value* Report::getJson() {

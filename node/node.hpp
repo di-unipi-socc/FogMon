@@ -9,8 +9,10 @@ class Node : public INode{
 private:
     int timerReport;
 
-    //ip:port of the server node 
+    //ip of the server node 
     std::string ipS;
+    //port of the server node
+    std::string portS;
 
     //ip to differentiate between other nodes in the list and self
     std::string myIp;
@@ -37,7 +39,7 @@ private:
     void testPing(std::string ip);
 
 public:
-    Node(std::string ip, int nThreads);
+    Node(std::string ip, std::string port, int nThreads);
     ~Node();
 
     //start listener for incoming ping and directions

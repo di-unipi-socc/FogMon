@@ -132,8 +132,8 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
-bool Connections::sendHello(string ipS) {
-    int Socket = openConnection(ipS);
+bool Connections::sendHello(string ipS, string portS) {
+    int Socket = openConnection(ipS, portS);
     
     if(Socket < 0) {
         return false;
@@ -176,8 +176,8 @@ bool Connections::sendHello(string ipS) {
     return result;
 }
 
-bool Connections::sendUpdate(string ipS) {
-    int Socket = openConnection(ipS);
+bool Connections::sendUpdate(string ipS, string portS) {
+    int Socket = openConnection(ipS, portS);
     
     if(Socket < 0) {
         return false;
@@ -210,7 +210,7 @@ bool Connections::sendUpdate(string ipS) {
 }
 
 int Connections::sendStartBandwidthTest(string ip) {
-    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
+    int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
     
     if(Socket < 0) {
         return false;

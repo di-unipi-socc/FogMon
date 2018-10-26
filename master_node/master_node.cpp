@@ -36,6 +36,8 @@ void MasterNode::timerFun() {
     while(this->running) {
         //check database for reports
         vector<string> ips = this->connections.getStorage()->getLRHardware(10, 30);
+        int n = ips.size();
+        n++;
         for(auto&& ip : ips) {
             this->connections.sendRequestReport(ip);
         }

@@ -20,12 +20,15 @@ int main(int argc, char *argv[]) {
 
     InputParser input(argc,argv);
 
-    string ip = "localhost:5556";
-
+    string ip = "localhost";
+    string port = "5556";
     if(input.cmdOptionExists("-C"))
         ip = input.getCmdOption("-C");
 
-    Node node(ip,2);
+    if(input.cmdOptionExists("-p"))
+        port = input.getCmdOption("-p");
+
+    Node node(ip, port,2);
     node.start();
 
     int a;

@@ -40,7 +40,7 @@ protected:
     int readS(long fd, void *data, int len);
     int writeS(long fd, const char *data, int len);
 
-    int openConnection(std::string ipS);
+    int openConnection(std::string ipS, std::string port="5555");
 public:
     IConnections(INode *parent, int nThread);
     ~IConnections();

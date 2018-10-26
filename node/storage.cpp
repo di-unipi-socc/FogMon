@@ -224,7 +224,7 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char buf[1024];
 
     for(auto node : add) {
-        std::sprintf(buf,"INSERT IGNORE OR INTO Nodes (ip, latencyTime, bandwidthTime) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
+        std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (ip, latencyTime, bandwidthTime) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )

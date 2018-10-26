@@ -23,8 +23,8 @@ public:
     ~Connections();
 
     //ip:port
-    bool sendHello(std::string ipS);
-    bool sendUpdate(std::string ipS);
+    bool sendHello(std::string ipS, std::string portS);
+    bool sendUpdate(std::string ipS, std::string portS);
 
     //return the port for the test
     int sendStartBandwidthTest(std::string ip);
