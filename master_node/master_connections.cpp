@@ -4,6 +4,23 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <errno.h>
+
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/un.h>
+#include <string>
+#include <netdb.h>
+#include <iostream>
+
 MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread), storage("masterNode.db") {
 }
 
@@ -125,6 +142,90 @@ void MasterConnections::handler(int fd, Message &m) {
                 }
             }
         }
-    }
+    }   
+}
+
+bool MasterConnections::sendRequestReport(std::string ip) {
+    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
     
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::GET);
+    m.setArgument(Message::Argument::REPORT);
+
+    bool ret = false;
+
+    //send message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::GET &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                //get report and save it
+                Report r;
+                if(m.getData(r)) {
+                    Report::hardware_result hardware;
+                    vector<Report::test_result> latency;
+                    vector<Report::test_result> bandwidth;
+
+                    if(r.getHardware(hardware)) {
+                        storage.addNode(ip, hardware);
+                    }
+                    if(r.getLatency(latency)) {
+                        storage.addReportLatency(ip, latency);
+                    }
+                    if(r.getBandwidth(bandwidth)) {
+                        storage.addReportBandwidth(ip, bandwidth);
+                    }
+                    ret = true;
+                }
+            }
+        }
+    }
+    close(Socket);
+    return ret;
+}
+
+bool MasterConnections::sendSetToken(std::string ip, int time) {
+    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
+    
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::SET);
+    m.setArgument(Message::Argument::TOKEN);
+
+    bool ret = false;
+
+    //send message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::SET &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                ret = true;
+            }
+        }
+    }
+    close(Socket);
+    return ret;
 }

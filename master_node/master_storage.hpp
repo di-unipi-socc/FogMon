@@ -20,6 +20,10 @@ public:
     void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth);
 
     void addReport(std::string strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth);
+
+    std::vector<std::string> getLRHardware(int num, int seconds);
+    std::vector<std::string> getLRLatency(int num, int seconds);
+    std::vector<std::string> getLRBandwidth(int num, int seconds);
 };
 
 #endif

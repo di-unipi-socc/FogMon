@@ -20,6 +20,9 @@ public:
     ~MasterConnections();
 
     MasterStorage* getStorage();
+
+    bool sendRequestReport(std::string ip);
+    bool sendSetToken(std::string ip, int time);
 };
 
 #endif

@@ -103,3 +103,57 @@ void MasterStorage::addReport(string strIp, Report::hardware_result hardware, ve
     this->addReportLatency(strIp, latency);
     this->addReportBandwidth(strIp, bandwidth);
 }
+
+std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ipA FROM Latency WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
+std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ipA FROM Bandwidth WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
+std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}

@@ -210,7 +210,7 @@ bool Connections::sendUpdate(string ipS) {
 }
 
 int Connections::sendStartBandwidthTest(string ip) {
-    int Socket = openConnection(ip.append(":").append(to_string(this->parent->getServer()->getPort())));
+    int Socket = openConnection(string().append(ip).append(":").append(to_string(this->parent->getServer()->getPort())));
     
     if(Socket < 0) {
         return false;
