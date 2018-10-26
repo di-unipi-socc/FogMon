@@ -18,8 +18,10 @@ if not working with
 ```
 ./autogen.sh && ./configure && make && sudo make install
 ```
-
-make clean then use:
+```
+make clean
+```
+then use:
 ```
 ./autogen.sh && ./configure && make CFLAGS=-fgnu89-inline && sudo make install
 ```
