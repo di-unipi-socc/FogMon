@@ -9,8 +9,8 @@
 class Message {
 public:
     enum Type {REQUEST, NOTIFY, RESPONSE};
-    enum Command {GET, SET, HELLO, NODELIST, UPDATE};
-    enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE};
+    enum Command {GET, SET, HELLO, NODELIST, UPDATE, START};
+    enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE, TOKEN, IPERF};
 
     Message();
     ~Message();
@@ -29,11 +29,13 @@ public:
     Command getCommand();
     Argument getArgument();
 
+    bool getData(int& i);
     bool getData(std::vector<std::string>& strings);
     bool getData(std::string& stringA, std::vector<std::string>& stringsB);
     bool getData(std::vector<std::string>& stringsA, std::vector<std::string>& stringsB);
     bool getData(Report& report);
 
+    void setData(int i);
     void setData(std::vector<std::string> strings);
     void setData(std::string string, std::vector<std::string> strings);
     void setData(std::vector<std::string> stringsA, std::vector<std::string> stringsB);

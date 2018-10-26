@@ -1,12 +1,12 @@
 #ifndef ICONNECTIONS_HPP_
 #define ICONNECTIONS_HPP_
 
-class IConnections;
+class INode;
 
 #include "inode.hpp"
 #include "queue.hpp"
 #include "message.hpp"
-
+#include "istorage.hpp"
 #include <thread>
 
 #ifndef IN6_IS_ADDR_V4MAPPED
@@ -29,6 +29,7 @@ protected:
 
     bool getMessage(int fd, Message &m);
     bool sendMessage(int fd, Message &m);
+    bool notifyAll(Message &m);
 
     virtual void handler(int fd,Message &m) = 0;
 
@@ -48,6 +49,8 @@ public:
 
     //put the request on a queue to be processed by another thread
     void request(int fd);
+
+    virtual IStorage* getStorage() = 0;
 };
 
 #endif

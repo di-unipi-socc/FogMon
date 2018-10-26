@@ -68,6 +68,13 @@ Message::Argument Message::getArgument() {
     return argument;
 }
 
+bool Message::getData(int& i) {
+    if(!this->data.IsInt())
+        return false;
+    i = data.GetInt();
+    return true;
+}
+
 bool Message::getData(vector<string>& strings) {
     if(!this->data.IsArray())
         return false;
@@ -116,6 +123,14 @@ bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
  bool Message::getData(Report& report) {
      return report.parseJson(this->data);
  }
+
+void Message::setData(int i) {
+
+    Value val(i);
+    Document::AllocatorType& allocator = doc.GetAllocator();                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    
+    this->data = val;
+}
 
 void Message::setData(std::vector<std::string> strings) {
 

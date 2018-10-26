@@ -8,6 +8,11 @@ class Storage : public IStorage {
 private:
     void createTables();
 
+    //start time of the token
+    time_t startToken;
+    //seconds the token lasts
+    int durationToken;
+
 public:
     Storage(std::string path);
     ~Storage();
@@ -28,6 +33,8 @@ public:
     std::vector<std::string> getLRLatency(int num);
     std::vector<std::string> getLRBandwidth(int num);
 
+    void setToken(int duration);
+    int hasToken();
 };
 
 

@@ -9,6 +9,9 @@
 #include <iostream>
 #include <regex>
 
+#include <future>
+#include <chrono>
+
 #include <unistd.h>
 
 #include <sys/types.h>
@@ -17,10 +20,12 @@
 #include <sys/eventfd.h>
 
 #include <sigar.h>
+#include "rapidjson/document.h"
 
 #include "storage.hpp"
 
 using namespace std;
+using namespace rapidjson;
 
 Node::Node(string ip, int nThreads) : server(this,5555), connections(this, nThreads) {
     running = false;
@@ -36,7 +41,7 @@ Node::~Node() {
 void Node::start() {
     this->running = true;
     this->server.start();
-    this->testPing("192.168.1.1");
+    this->testBandwidth("192.168.124.1");
     this->getHardware();
     if(!this->connections.sendHello(this->ipS)) {
         perror("Cannot connect to the main node");
@@ -63,8 +68,93 @@ IConnections* Node::getConnections() {
     return (IConnections*)(&(this->connections));
 }
 
-void Node::testBandwidth(string ip) {
-    //TODO
+int Node::startIperf() {
+    
+    using namespace std::chrono_literals;
+
+    int ret = -1;
+
+    srandom(time(nullptr));
+    int port = random()%3000 + 5000;
+    
+    auto future = std::async(std::launch::async, [](int port) {
+        char command[256];
+        sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
+        string mode = "r";
+
+        // Run Popen
+        FILE *in;
+
+        // Test output
+        if(!(in = popen(command, mode.c_str()))){
+            return;
+        }
+
+        // Close
+        int exit_code = pclose(in);
+        return;
+    },port);
+
+    // Use wait_for() with zero milliseconds to check thread status.
+    auto status = future.wait_for(50ms);
+
+    // Print status.
+    if (status == std::future_status::ready) {
+        std::cout << "Thread finished" << std::endl;
+    } else {
+        std::cout << "Thread still running" << std::endl;
+        ret = port;
+    }
+    
+    return ret;
+}
+
+void Node::testBandwidth(string ip, int port) {
+    char command[256];
+    if(port > 0) {
+        sprintf(command, "iperf3 -c %s -p %d -t 1 -i 1 -J 2>&1", ip.c_str(), port);
+    }else
+        sprintf(command, "iperf3 -c %s -t 1 -i 1 -J 2>&1", ip.c_str());
+    string mode = "r";
+    string output;
+
+    std::stringstream sout;
+
+    // Run Popen
+    FILE *in;
+    char buff[512];
+
+    // Test output
+    if(!(in = popen(command, mode.c_str()))){
+        return;
+    }
+
+    // Parse output
+    while(fgets(buff, sizeof(buff), in)!=NULL){
+        sout << buff;
+    }
+
+    // Close
+    int exit_code = pclose(in);
+
+    // set output
+    output = sout.str();
+    if(exit_code == 0) {
+        Document doc;
+        ParseResult ok = doc.Parse((const char*)output.c_str());
+        if(!ok)
+            return;
+        
+        if( !doc.HasMember("end") && !doc["end"].IsObject() &&
+            !doc["end"].HasMember("sum_received") && !doc["end"]["sum_received"].IsObject() &&
+            !doc["end"]["sum_received"].HasMember("bits_per_second") && !doc["end"]["sum_received"]["bits_per_second"].IsFloat())
+            return;
+
+        float val = doc["end"]["sum_received"]["bits_per_second"].GetFloat();
+
+        cout << "bps " << val << " kbps " << val /1000 << endl;
+        this->connections.getStorage()->saveBandwidthTest(ip, val/1000);
+    }
 }
 
 void Node::testPing(string ip) {
@@ -181,11 +271,36 @@ void Node::TestTimer() {
         vector<string> ips = this->connections.getStorage()->getLRLatency(10); //param: batch latency dimension
 
         for(auto ip : ips) {
+            if(myIp == ip)
+                continue;
             this->testPing(ip);
         }
-
+        if(int m = this->connections.getStorage()->hasToken() > 0) {
+            ips = this->connections.getStorage()->getLRBandwidth(m);
+        }
+        
+        int durationTest = 1;
         //if token then do the same for bandwidth
+        int i=0;
+        while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
+            //send open iperf3
+            if(int port = this->connections.sendStartBandwidthTest(ips[i])) {
+                this->testBandwidth(ips[i], port);
+            }            
+        }
 
         sleep(this->timeTimerTest);
     }
+}
+
+void Node::setMyIp(std::string ip) {
+    this->myIp = ip;
+}
+
+std::string Node::getMyIp() {
+    return this->myIp;
+}
+
+Server* Node::getServer() {
+    return &this->server;
 }

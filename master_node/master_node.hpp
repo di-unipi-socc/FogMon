@@ -27,6 +27,11 @@ private:
 
     MasterConnections connections;
     Server server;
+
+    void setMyIp(std::string ip) {}
+    std::string getMyIp() { return ""; }
+
+    Server* getServer();
 };
 
 #endif

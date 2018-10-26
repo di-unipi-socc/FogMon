@@ -79,6 +79,16 @@ void MasterConnections::handler(int fd, Message &m) {
                 
                 //inform all the other nodes about it
                 //
+                Message broadcast;
+                broadcast.setType(Message::Type::NOTIFY);
+                broadcast.setCommand(Message::Command::UPDATE);
+                broadcast.setArgument(Message::Argument::NODES);
+
+                vector<string> v;
+                v.push_back(strIp);
+                broadcast.setData(v ,vector<string>());
+
+                this->notifyAll(broadcast);
                 //
 
                 vector<string> vec = storage.getNodes();

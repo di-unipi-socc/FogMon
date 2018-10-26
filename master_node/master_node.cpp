@@ -40,3 +40,7 @@ void MasterNode::timerFun() {
         sleep(this->timer);
     }
 }
+
+Server* MasterNode::getServer() {
+    return &this->server;
+}

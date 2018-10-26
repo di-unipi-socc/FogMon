@@ -182,13 +182,29 @@ bool IConnections::sendMessage(int fd, Message &m) {
     return false;
 }
 
+bool IConnections::notifyAll(Message &m) {
+    vector<string> nodes = this->getStorage()->getNodes();
+    for(auto ip : nodes) {
+        if(ip == this->parent->getMyIp())
+            continue;
+     
+        if(int fd = this->openConnection(ip) >= 0 ) {
+            this->sendMessage(fd,m);
+            close(fd);
+        }
+    }
+}
+
 int IConnections::openConnection(string ipS) {
-    string ip;
-    string port;
+    string ip = ipS;
+    string port = "5555";
+    
     try{
         size_t pos = ipS.find(':');
-        ip = ipS.substr(0, pos);
-        port = ipS.substr(pos+1);
+        if(pos != string::npos) {
+            ip = ipS.substr(0, pos);
+            port = ipS.substr(pos+1);
+        }
     }catch(...) {
         return -1;
     }

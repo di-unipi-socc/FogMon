@@ -214,3 +214,8 @@ void Server::listener() {
     }
     this->running = false;
 }
+
+
+int Server::getPort() {
+    return this->portC;
+}

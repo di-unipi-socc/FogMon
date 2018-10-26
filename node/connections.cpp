@@ -1,5 +1,6 @@
-
 #include "connections.hpp"
+
+#include "node.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,12 +17,12 @@
 #include <sys/un.h>
 #include <string>
 #include <netdb.h>
-
 #include <iostream>
 
 using namespace std;
 
-Connections::Connections(INode *parent, int nThread) : IConnections(parent, nThread), storage("node.db") {
+Connections::Connections(Node *parent, int nThread) : IConnections((INode*)parent, nThread), storage("node.db") {
+    this->parent = parent;
 }
 
 Connections::~Connections() {
@@ -34,7 +35,43 @@ Storage* Connections::getStorage() {
 void Connections::handler(int fd, Message &m) {
 
     if(m.getType() == Message::Type::REQUEST) {
-        if(m.getArgument() == Message::Argument::NODES) {
+        if(m.getArgument() == Message::Argument::IPERF) {
+            if(m.getCommand() == Message::Command::START) {
+                
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::SET);
+
+                if(int port = this->parent->startIperf() > 0) {
+                    res.setArgument(Message::Argument::POSITIVE);
+                    res.setData(port);
+                }else {
+                    res.setArgument(Message::Argument::NEGATIVE);
+                }
+                //send response
+                if(this->sendMessage(fd, res)) {
+                    
+                }
+            }
+        }else if(m.getArgument() == Message::Argument::TOKEN) {
+            if(m.getCommand() == Message::Command::SET) {
+                
+                int d;
+                m.getData(d);
+
+                this->storage.setToken(d);
+
+                //send reponse
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::SET);
+                res.setArgument(Message::Argument::POSITIVE);
+
+                if(this->sendMessage(fd, res)) {
+                    
+                }
+            }
+        }else if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
                 vector<string> nodes = storage.getNodes();
@@ -47,7 +84,9 @@ void Connections::handler(int fd, Message &m) {
 
                 res.setData(nodes);
             
-                sendMessage(fd, res);
+                if(this->sendMessage(fd, res)) {
+                    
+                }
             }else if(m.getCommand() == Message::Command::SET) {
                 //refresh all the nodes with the array of nodes
                 vector<string> ips;
@@ -126,6 +165,7 @@ bool Connections::sendHello(string ipS) {
                 vector<string> vec;
                 if(res.getData(ip, vec)) {
                     cout << ip << endl;
+                    this->parent->setMyIp(ip);
                     storage.refreshNodes(vec);
                     result = true;
                 }
@@ -167,4 +207,39 @@ bool Connections::sendUpdate(string ipS) {
     }
     close(Socket);
     return result;
+}
+
+int Connections::sendStartBandwidthTest(string ip) {
+    int Socket = openConnection(ip.append(":").append(to_string(this->parent->getServer()->getPort())));
+    
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build update message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::START);
+    m.setArgument(Message::Argument::IPERF);
+
+    int port = -1;
+
+    //send update message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::START &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                
+                m.getData(port);
+            }
+        }
+    }
+    close(Socket);
+    return port;
 }

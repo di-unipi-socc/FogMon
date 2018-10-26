@@ -1,10 +1,15 @@
 #include "storage.hpp"
 #include <string.h>
 
+#include <ctime>
+
 using namespace std;
 
 Storage::Storage(string path) {
     open(path);
+
+    startToken = time(nullptr);
+    durationToken = 0;
 }
 
 Storage::~Storage() {
@@ -302,4 +307,13 @@ std::vector<std::string> Storage::getLRBandwidth(int num) {
     }
 
     return nodes;
+}
+
+void Storage::setToken(int duration) {
+    startToken = time(nullptr);
+    durationToken = duration;
+}
+
+int Storage::hasToken() {
+    return startToken+durationToken - time(nullptr);
 }

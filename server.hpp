@@ -3,10 +3,11 @@
 #include <string>
 #include <thread>
 
-#include "iconnections.hpp"
-#include "inode.hpp"
+class INode;
+class IConnections;
 
 #include <thread>
+
 
 class Server {
 private:
@@ -28,6 +29,8 @@ public:
     void stop();
 
     void listener();
+
+    int getPort();
 };
 
 #endif

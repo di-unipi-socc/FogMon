@@ -12,6 +12,9 @@ protected:
     virtual void createTables() = 0;
 
     sqlite3 *db;
+    
+public:
+    virtual std::vector<std::string> getNodes() = 0;
 };
 
 
