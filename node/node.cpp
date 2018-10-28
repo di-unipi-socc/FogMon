@@ -42,7 +42,7 @@ Node::~Node() {
 void Node::start() {
     this->running = true;
     this->server.start();
-    //this->testBandwidth("192.168.124.1");
+    
     this->getHardware();
     if(!this->connections.sendHello(this->ipS,this->portS)) {
         perror("Cannot connect to the main node");
@@ -76,9 +76,8 @@ int Node::startIperf() {
     int ret = -1;
 
     srandom(time(nullptr));
-    int port = random()%3000 + 5000;
-    
-    auto future = std::async(std::launch::async, [](int port) {
+    int port = random()%3000 + 5600;
+    std::packaged_task<void(int)> task([](int port) {
         char command[256];
         sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
         string mode = "r";
@@ -94,10 +93,12 @@ int Node::startIperf() {
         // Close
         int exit_code = pclose(in);
         return;
-    },port);
+    });
+    auto f1 = task.get_future();
+    std::thread(std::move(task),port).detach();
 
     // Use wait_for() with zero milliseconds to check thread status.
-    auto status = future.wait_for(50ms);
+    auto status = f1.wait_for(50ms);
 
     // Print status.
     if (status == std::future_status::ready) {
@@ -277,19 +278,18 @@ void Node::TestTimer() {
             this->testPing(ip);
         }
         if(int m = this->connections.getStorage()->hasToken() > 0) {
-            ips = this->connections.getStorage()->getLRBandwidth(m);
-        }
+            ips = this->connections.getStorage()->getLRBandwidth(1000);
         
-        int durationTest = 1;
-        //if token then do the same for bandwidth
-        int i=0;
-        while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
-            //send open iperf3
-            if(int port = this->connections.sendStartBandwidthTest(ips[i])) {
-                this->testBandwidth(ips[i], port);
-            }            
+            int durationTest = 1;
+            //if token then do the same for bandwidth
+            int i=0;
+            while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
+                //send open iperf3
+                if(int port = this->connections.sendStartBandwidthTest(ips[i])) {
+                    this->testBandwidth(ips[i], port);
+                }            
+            }
         }
-
         sleep(this->timeTimerTest);
     }
 }
