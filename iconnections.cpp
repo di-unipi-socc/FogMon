@@ -237,6 +237,7 @@ int IConnections::openConnection(string ip, string port) {
 		{
 			close(Socket);
             Socket = -1;
+            fprintf(stdout, "retry connection %s", ip);
             continue;
         }
         break;
