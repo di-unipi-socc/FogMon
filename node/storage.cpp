@@ -88,7 +88,7 @@ int getLatencyCallback(void *R, int argc, char **argv, char **azColName) {
 std::vector<Report::test_result> Storage::getLatency() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, avg(ms) AS mean, variance(ms) AS var, max(time) as time FROM Latency group by ipB");
+    std::sprintf(buf,"SELECT ipB, avg(ms) AS mean, variance(ms) AS var, strftime('%%s',max(time)) as time FROM Latency group by ipB");
 
     vector<Report::test_result> tests;
 
@@ -111,6 +111,7 @@ int getBandwidthCallback(void *R, int argc, char **argv, char **azColName) {
         test.mean = stof(argv[1]);
         test.variance = stof(argv[2]);
         test.lasttime = stol(argv[3]);
+        
         r->push_back(test);
     }
     return 0;
@@ -119,7 +120,7 @@ int getBandwidthCallback(void *R, int argc, char **argv, char **azColName) {
 std::vector<Report::test_result> Storage::getBandwidth() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, avg(kbps) AS mean, variance(kbps) AS var, max(time) as time FROM Bandwidth group by ipB");
+    std::sprintf(buf,"SELECT ipB, avg(kbps) AS mean, variance(kbps) AS var, strftime('%%s',max(time)) as time FROM Bandwidth group by ipB");
 
     vector<Report::test_result> tests;
 
