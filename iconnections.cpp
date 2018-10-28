@@ -223,7 +223,7 @@ int IConnections::openConnection(string ip, string port) {
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
 	{
-        fprintf(stdout, "try connection %s", ip);
+        fprintf(stdout, "try connection %s", ip.c_str());
         // Create a SOCKET for connecting to server
         Socket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (Socket == -1)
@@ -277,6 +277,7 @@ int IConnections::openConnection(string ip, string port) {
                             break; 
                         } 
                         ris = true;
+                        break;
                     } 
                     else { 
                         fprintf(stderr, "Timeout in select() - Cancelling!\n");
@@ -293,11 +294,12 @@ int IConnections::openConnection(string ip, string port) {
                 fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
             } 
         }
-        if(ris == false)
+        if(ris == false) {
             close(Socket);
             Socket = -1;
             fprintf(stdout, "retry connection %s", ip);
             continue;
+        }
 
         // Set to blocking mode again... 
         if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
