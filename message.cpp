@@ -27,9 +27,9 @@ bool Message::parseJson(char *json) {
     if(!ok)
         return false;
     
-    if( !doc.HasMember("type") && !doc["type"].IsInt() &&
-        !doc.HasMember("command") && !doc["command"].IsInt() &&
-        !doc.HasMember("argument") && !doc["argument"].IsInt())
+    if( !doc.HasMember("type") || !doc["type"].IsInt() ||
+        !doc.HasMember("command") || !doc["command"].IsInt() ||
+        !doc.HasMember("argument") || !doc["argument"].IsInt())
         return false;
     
     this->type = (Type)doc["type"].GetInt();
@@ -87,8 +87,8 @@ bool Message::getData(vector<string>& strings) {
 }
 
 bool Message::getData(string& stringA, vector<string>& stringsB) {
-    if( !this->data.HasMember("A") && !this->data["A"].IsString() &&
-        !this->data.HasMember("B") && !this->data["B"].IsArray())
+    if( !this->data.HasMember("A") || !this->data["A"].IsString() ||
+        !this->data.HasMember("B") || !this->data["B"].IsArray())
         return false;
 
     stringA = this->data["A"].GetString();
@@ -102,8 +102,8 @@ bool Message::getData(string& stringA, vector<string>& stringsB) {
 }
 
 bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
-    if( !this->data.HasMember("A") && !this->data["A"].IsArray() &&
-        !this->data.HasMember("B") && !this->data["B"].IsArray())
+    if( !this->data.HasMember("A") || !this->data["A"].IsArray() ||
+        !this->data.HasMember("B") || !this->data["B"].IsArray())
         return false;
 
     for (auto& v : this->data["A"].GetArray()) {

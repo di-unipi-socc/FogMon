@@ -49,8 +49,23 @@ void Report::setLatency(vector<test_result> latency) {
     Value arr(kArrayType);
     doc.RemoveMember("latency");
 
+    Document::AllocatorType& allocator = doc.GetAllocator();
+
+    for(auto test : latency) {
+        Value target(test.target.c_str(), allocator);
+        Value mean(test.mean);
+        Value variance(test.variance);
+        Value lasttime(test.lasttime);
+        Value obj(kObjectType);
+        obj.AddMember("target",target, allocator);
+        obj.AddMember("mean",mean, allocator);
+        obj.AddMember("variance",variance, allocator);
+        obj.AddMember("lasttime",lasttime, allocator);
+
+        arr.PushBack(obj, allocator);
+    }
     
-    doc.AddMember("latency", arr, doc.GetAllocator());
+    doc.AddMember("latency", arr, allocator);
 }
 
 void Report::setBandwidth(vector<test_result> bandwidth) {
@@ -58,23 +73,38 @@ void Report::setBandwidth(vector<test_result> bandwidth) {
     Value arr(kArrayType);
     doc.RemoveMember("bandwidth");
 
+    Document::AllocatorType& allocator = doc.GetAllocator();
+
+    for(auto test : bandwidth) {
+        Value target(test.target.c_str(), allocator);
+        Value mean(test.mean);
+        Value variance(test.variance);
+        Value lasttime(test.lasttime);
+        Value obj(kObjectType);
+        obj.AddMember("target",target, allocator);
+        obj.AddMember("mean",mean, allocator);
+        obj.AddMember("variance",variance, allocator);
+        obj.AddMember("lasttime",lasttime, allocator);
+
+        arr.PushBack(obj, allocator);
+    }
     
     doc.AddMember("bandwidth", arr, doc.GetAllocator());
 
 }
 
 bool Report::getHardware(hardware_result& hardware) {
-    if( !this->doc.HasMember("hardware") && !this->doc["hardware"].IsObject())
+    if( !this->doc.HasMember("hardware") || !this->doc["hardware"].IsObject())
         return false;
 
     Value &val = doc["hardware"];
     
-    if( !val.HasMember("cores") && !val["cores"].IsInt() &&
-        !val.HasMember("free_cpu") && !val["free_cpu"].IsFloat() &&
-        !val.HasMember("memory") && !val["memory"].IsInt() &&
-        !val.HasMember("free_memory") && !val["free_memory"].IsInt() &&
-        !val.HasMember("disk") && !val["disk"].IsInt() &&
-        !val.HasMember("free_disk") && !val["free_disk"].IsInt())
+    if( !val.HasMember("cores") || !val["cores"].IsInt() ||
+        !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
+        !val.HasMember("memory") || !val["memory"].IsInt() ||
+        !val.HasMember("free_memory") || !val["free_memory"].IsInt() ||
+        !val.HasMember("disk") || !val["disk"].IsInt() ||
+        !val.HasMember("free_disk") || !val["free_disk"].IsInt())
         return false;
 
     hardware.cores = val["cores"].GetInt();
@@ -88,9 +118,51 @@ bool Report::getHardware(hardware_result& hardware) {
 }
 
 bool Report::getLatency(vector<test_result>& latency) {
+    if( !this->doc.HasMember("latency") || !this->doc["latency"].IsArray())
+        return false;
+
+    for (auto& v : this->doc["latency"].GetArray()) {
+        int a = !v.HasMember("target");
+        int b = !v["target"].IsString();
+        int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
+            !v.HasMember("variance") || !v["variance"].IsFloat();
+        int d = !v.IsObject();
+        if( !v.IsObject() ||
+            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("mean") || !v["mean"].IsFloat() ||
+            !v.HasMember("variance") || !v["variance"].IsFloat() ||
+            !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
+            return false;
+        test_result test;
+        test.target = string(v["target"].GetString());
+        test.mean = v["mean"].GetFloat();
+        test.variance = v["variance"].GetFloat();
+        test.lasttime = v["lasttime"].GetInt64();
+
+        latency.push_back(test);
+    }
+
     return true;
 }
 
 bool Report::getBandwidth(vector<test_result>& bandwidth) {
+    if( !this->doc.HasMember("bandwidth") || !this->doc["bandwidth"].IsArray())
+        return false;
+
+    for (auto& v : this->doc["bandwidth"].GetArray()) {
+        if( !v.IsObject() ||
+            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("mean") || !v["mean"].IsFloat() ||
+            !v.HasMember("variance") || !v["variance"].IsFloat() ||
+            !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
+            return false;
+        test_result test;
+        test.target = string(v["target"].GetString());
+        test.mean = v["mean"].GetFloat();
+        test.variance = v["variance"].GetFloat();
+        test.lasttime = v["lasttime"].GetInt64();
+
+        bandwidth.push_back(test);
+    }
     return true;
 }

@@ -22,6 +22,7 @@ public:
         std::string target;
         float mean;
         float variance;
+        long lasttime;
     }test_result;
 
     bool parseJson(rapidjson::Value& data);

@@ -78,7 +78,7 @@ vector<string> MasterStorage::getNodes() {
 void MasterStorage::addTest(string strIpA, string strIpB, Report::test_result test, string type) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT OR REPLACE INTO %s (ipA, ipB, mean, variance, lasttime) VALUES (\"%s\", \"%s\", %f, %f, DATETIME('now'))", strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, type.c_str());
+    std::sprintf(buf,"INSERT OR REPLACE INTO %s (ipA, ipB, mean, variance, lasttime) VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%d,\"unixepoch\"))", type.c_str() ,strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, test.lasttime);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
