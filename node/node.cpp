@@ -284,7 +284,7 @@ void Node::TestTimer() {
             int i=0;
             while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
                 //send open iperf3
-                if(int port = this->connections.sendStartBandwidthTest(ips[i])) {
+                if(int port = this->connections.sendStartBandwidthTest(ips[i]) != -1) {
                     this->testBandwidth(ips[i], port);
                 }
                 i++;
