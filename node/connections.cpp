@@ -40,7 +40,7 @@ void Connections::handler(int fd, Message &m) {
                 
                 Message res;
                 res.setType(Message::Type::RESPONSE);
-                res.setCommand(Message::Command::SET);
+                res.setCommand(Message::Command::START);
 
                 if(int port = this->parent->startIperf() > 0) {
                     res.setArgument(Message::Argument::POSITIVE);
