@@ -186,7 +186,9 @@ void Message::setData(std::vector<std::string> stringsA, std::vector<std::string
 }
 
 void Message::setData(Report& report) {
-    this->data = *(report.getJson());
+    Value obj(kObjectType);
+    obj.CopyFrom(*report.getJson(),doc.GetAllocator());
+    this->data = obj;
 }
 
 void Message::buildString() {
@@ -196,10 +198,7 @@ void Message::buildString() {
     doc.AddMember("command", this->command, doc.GetAllocator());
     doc.AddMember("argument", this->argument, doc.GetAllocator());
 
-    rapidjson::Document jsonSubDocument(&doc.GetAllocator());
-    jsonSubDocument.CopyFrom(this->data,jsonSubDocument.GetAllocator());
-
-    doc.AddMember("data", jsonSubDocument, doc.GetAllocator());
+    doc.AddMember("data", this->data, doc.GetAllocator());
 }
 
 string Message::getString() {
