@@ -86,12 +86,12 @@ int Node::startIperf() {
 
         // Test output
         if(!(in = popen(command, mode.c_str()))){
-            return;
+            return -1;
         }
 
         // Close
         int exit_code = pclose(in);
-        return;
+        return -1;
     });
     auto f1 = task.get_future();
     std::thread(std::move(task),port).detach();
