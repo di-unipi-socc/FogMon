@@ -42,7 +42,7 @@ Node::~Node() {
 void Node::start() {
     this->running = true;
     this->server.start();
-    this->testBandwidth("192.168.124.1");
+    //this->testBandwidth("192.168.124.1");
     this->getHardware();
     if(!this->connections.sendHello(this->ipS,this->portS)) {
         perror("Cannot connect to the main node");
