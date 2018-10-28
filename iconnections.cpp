@@ -243,27 +243,26 @@ int IConnections::openConnection(string ip, string port) {
             fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
             return -1;
         } 
-        int res;
         fd_set myset;
         bool ris = false;
         // Trying to connect with timeout 
-        res = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen); 
-        if (res < 0) { 
+        iResult = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen); 
+        if (iResult < 0) { 
             if (errno == EINPROGRESS) { 
                 fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
                 int num = 3;
-                do { 
+                do {
                     struct timeval tv; 
                     tv.tv_sec = 2; 
                     tv.tv_usec = 0; 
                     FD_ZERO(&myset); 
                     FD_SET(Socket, &myset); 
-                    res = select(Socket+1, NULL, &myset, NULL, &tv); 
-                    if (res < 0 && errno != EINTR) { 
+                    iResult = select(Socket+1, NULL, &myset, NULL, &tv); 
+                    if (iResult < 0 && errno != EINTR) { 
                         fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
                         break;
                     } 
-                    else if (res > 0) {
+                    else if (iResult > 0) {
                         int valopt;
                         socklen_t lon;
                         // Socket selected for write 
@@ -310,23 +309,6 @@ int IConnections::openConnection(string ip, string port) {
             fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
             return -1;
         } 
-
-
-
-
-
-
-
-
-
-        iResult = connect( Socket, ptr->ai_addr, (int)ptr->ai_addrlen);
-        if (iResult == -1)
-		{
-			close(Socket);
-            Socket = -1;
-            fprintf(stdout, "retry connection %s", ip);
-            continue;
-        }
         break;
     }
 
