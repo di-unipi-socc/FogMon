@@ -48,7 +48,7 @@ void MasterNode::timerFun() {
         }
         
         int batch = 5;
-        ips = this->connections.getStorage()->getLRBandwidth(batch*2, 30);
+        ips = this->connections.getStorage()->getLRBandwidth(batch*2, 300);
         vector<string> ips_save;
         for(int i=0,j=0; i<ips.size() && i < batch + j; i++) {
             if(this->connections.sendSetToken(ips[i], this->timer)) {
