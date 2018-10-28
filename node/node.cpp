@@ -42,7 +42,7 @@ Node::~Node() {
 void Node::start() {
     this->running = true;
     this->server.start();
-    
+    srandom(time(nullptr));
     this->getHardware();
     if(!this->connections.sendHello(this->ipS,this->portS)) {
         perror("Cannot connect to the main node");
@@ -75,7 +75,6 @@ int Node::startIperf() {
 
     int ret = -1;
 
-    srandom(time(nullptr));
     int port = random()%3000 + 5600;
     std::packaged_task<void(int)> task([](int port) {
         char command[256];
@@ -287,7 +286,8 @@ void Node::TestTimer() {
                 //send open iperf3
                 if(int port = this->connections.sendStartBandwidthTest(ips[i])) {
                     this->testBandwidth(ips[i], port);
-                }            
+                }
+                i++;
             }
         }
         sleep(this->timeTimerTest);
