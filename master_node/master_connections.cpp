@@ -217,7 +217,8 @@ bool MasterConnections::sendSetToken(std::string ip, int time) {
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::SET);
     m.setArgument(Message::Argument::TOKEN);
-
+    
+    m.setData(time);
     bool ret = false;
 
     //send message

@@ -56,16 +56,18 @@ void Connections::handler(int fd, Message &m) {
         }else if(m.getArgument() == Message::Argument::TOKEN) {
             if(m.getCommand() == Message::Command::SET) {
                 
-                int d;
-                m.getData(d);
-
-                this->storage.setToken(d);
-
                 //send reponse
                 Message res;
                 res.setType(Message::Type::RESPONSE);
                 res.setCommand(Message::Command::SET);
-                res.setArgument(Message::Argument::POSITIVE);
+
+                int d;
+                if(m.getData(d)) {
+                    this->storage.setToken(d);
+                    res.setArgument(Message::Argument::POSITIVE);
+                }else {
+                    res.setArgument(Message::Argument::NEGATIVE);
+                }
 
                 if(this->sendMessage(fd, res)) {
                     
@@ -213,7 +215,7 @@ int Connections::sendStartBandwidthTest(string ip) {
     int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
     
     if(Socket < 0) {
-        return false;
+        return -1;
     }
 
     printf("ready");
