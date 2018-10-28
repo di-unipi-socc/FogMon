@@ -277,19 +277,21 @@ void Node::TestTimer() {
             this->testPing(ip);
         }
         if(int m = this->connections.getStorage()->hasToken() > 0) {
+            cout << "start test bandwidth:" << endl;
             ips = this->connections.getStorage()->getLRBandwidth(m,300);
-        
             int durationTest = 1;
             //if token then do the same for bandwidth
             int i=0;
             while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
                 //send open iperf3
+                cout << "testing: " << ips[i];
                 if(myIp == ips[i]) {
                     i++;
                     continue;
                 }
                 int port = this->connections.sendStartBandwidthTest(ips[i]);
                 if(port != -1) {
+                    cout << "stat test"<<endl;
                     this->testBandwidth(ips[i], port);
                 }
                 i++;
