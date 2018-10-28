@@ -126,8 +126,8 @@ bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
 
 void Message::setData(int i) {
 
-    Value val(i);
-    Document::AllocatorType& allocator = doc.GetAllocator();                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    Value val(kNumberType);
+    val.SetInt(i);                                                                                                                                                                                                                                                                                                                                                                                                                               
     
     this->data = val;
 }
@@ -186,9 +186,7 @@ void Message::setData(std::vector<std::string> stringsA, std::vector<std::string
 }
 
 void Message::setData(Report& report) {
-    Value obj(kObjectType);
-    obj.CopyFrom(*report.getJson(),doc.GetAllocator());
-    this->data = obj;
+    this->data = *(report.getJson());
 }
 
 void Message::buildString() {
@@ -199,6 +197,10 @@ void Message::buildString() {
     doc.AddMember("argument", this->argument, doc.GetAllocator());
 
     doc.AddMember("data", this->data, doc.GetAllocator());
+    if(this->data.IsInt()) {
+        int a =1;
+        a++;
+    }
 }
 
 string Message::getString() {
