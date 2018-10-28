@@ -151,7 +151,7 @@ bool IConnections::getMessage(int fd, Message &m) {
             perror("   recv() failed at data");
         }else {
             m.Clear();
-            printf("%s",data);
+            printf("ricevo: %s\n",data);
             if(m.parseJson(data))
                 return true;
         }
@@ -165,7 +165,7 @@ bool IConnections::sendMessage(int fd, Message &m) {
 
     m.buildString();
     string json = m.getString();
-    printf("%s", json.c_str());
+    printf("invio: %s\n", json.c_str());
     int error;
     int32_t len = json.length();
 

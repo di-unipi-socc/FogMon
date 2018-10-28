@@ -108,7 +108,8 @@ void MasterConnections::handler(int fd, Message &m) {
 
                 vector<string> v;
                 v.push_back(strIp);
-                broadcast.setData(v ,vector<string>());
+                vector<string> v2;
+                broadcast.setData(v ,v2);
 
                 this->notifyAll(broadcast);
                 //
@@ -217,7 +218,7 @@ bool MasterConnections::sendSetToken(std::string ip, int time) {
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::SET);
     m.setArgument(Message::Argument::TOKEN);
-    
+
     m.setData(time);
     bool ret = false;
 

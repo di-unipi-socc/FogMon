@@ -183,6 +183,10 @@ void Message::setData(std::vector<std::string> stringsA, std::vector<std::string
     obj.AddMember("A", arrA, allocator);
     obj.AddMember("B", arrB, allocator);
     this->data = obj;
+    if(data.IsNull()) {
+        int a =3;
+        a++;
+    }
 }
 
 void Message::setData(Report& report) {
@@ -196,11 +200,9 @@ void Message::buildString() {
     doc.AddMember("command", this->command, doc.GetAllocator());
     doc.AddMember("argument", this->argument, doc.GetAllocator());
 
-    doc.AddMember("data", this->data, doc.GetAllocator());
-    if(this->data.IsInt()) {
-        int a =1;
-        a++;
-    }
+    Value v;
+    v.CopyFrom(this->data, doc.GetAllocator());
+    doc.AddMember("data", v, doc.GetAllocator());
 }
 
 string Message::getString() {
