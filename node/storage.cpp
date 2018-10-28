@@ -209,7 +209,7 @@ void Storage::refreshNodes(vector<string> nodes) {
         exit(1);
     }
     for(auto node : nodes) {
-        std::sprintf(buf,"INSERT INTO Nodes (ip, latencyTime, bandwidthTime) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
+        std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (ip, latencyTime, bandwidthTime) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
         printf("%s\n", buf);
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
