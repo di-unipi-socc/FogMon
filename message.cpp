@@ -196,7 +196,10 @@ void Message::buildString() {
     doc.AddMember("command", this->command, doc.GetAllocator());
     doc.AddMember("argument", this->argument, doc.GetAllocator());
 
-    doc.AddMember("data", this->data, doc.GetAllocator());
+    rapidjson::Document jsonSubDocument(&doc.GetAllocator());
+    jsonSubDocument.CopyFrom(this->data,jsonSubDocument.GetAllocator());
+
+    doc.AddMember("data", jsonSubDocument, doc.GetAllocator());
 }
 
 string Message::getString() {

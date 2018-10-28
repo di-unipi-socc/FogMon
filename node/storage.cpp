@@ -198,7 +198,7 @@ void Storage::refreshNodes(vector<string> nodes) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"DELETE FROM Nodes");
-
+    
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {

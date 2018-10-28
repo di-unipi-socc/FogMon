@@ -111,8 +111,8 @@ void MasterStorage::addReport(string strIp, Report::hardware_result hardware, ve
 std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipA FROM Latency WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
-
+    std::sprintf(buf,"select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from Latency where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Latency as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') < 0 order by lasttime limit %d;",seconds, num);
+    
     vector<string> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
@@ -129,8 +129,7 @@ std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipA FROM Bandwidth WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
-
+    std::sprintf(buf,"select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from bandwidth where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Bandwidth as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') < 0 order by lasttime limit %d;",seconds, num);
     vector<string> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
@@ -147,7 +146,7 @@ std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d < strftime('%%s','now') ORDER BY lasttime LIMIT %d", seconds, num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d-strftime('%%s','now')<0 ORDER BY lasttime LIMIT %d", seconds, num);
 
     vector<string> nodes;
 

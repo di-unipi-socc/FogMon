@@ -151,6 +151,7 @@ bool IConnections::getMessage(int fd, Message &m) {
             perror("   recv() failed at data");
         }else {
             m.Clear();
+            printf("%s",data);
             if(m.parseJson(data))
                 return true;
         }
@@ -164,7 +165,7 @@ bool IConnections::sendMessage(int fd, Message &m) {
 
     m.buildString();
     string json = m.getString();
-
+    printf("%s", json.c_str());
     int error;
     int32_t len = json.length();
 
@@ -223,7 +224,6 @@ int IConnections::openConnection(string ip, string port) {
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
 	{
-        fprintf(stdout, "try connection %s", ip.c_str());
         // Create a SOCKET for connecting to server
         Socket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (Socket == -1)
@@ -249,7 +249,6 @@ int IConnections::openConnection(string ip, string port) {
         iResult = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen); 
         if (iResult < 0) { 
             if (errno == EINPROGRESS) { 
-                fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
                 int num = 3;
                 do {
                     struct timeval tv; 
@@ -297,7 +296,7 @@ int IConnections::openConnection(string ip, string port) {
         if(ris == false) {
             close(Socket);
             Socket = -1;
-            fprintf(stdout, "retry connection %s", ip);
+            fprintf(stdout, "retry connection %s", ip.c_str());
             continue;
         }
 
