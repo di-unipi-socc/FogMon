@@ -31,3 +31,5 @@ target_link_libraries(FTPiDiscovererServer ${SQLITE_LIBRARY})
 target_link_libraries(FTPiDiscovererServer ${PTHREAD_LIBRARY})
 target_link_libraries(FTPiDiscovererServer libsigar.a)
 target_link_libraries(FTPiDiscovererServer -static-libstdc++)
+
+add_subdirectory(sqlite3)
