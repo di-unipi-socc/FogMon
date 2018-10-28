@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.4.0)
 
-project(libsqlite_extension)
+project(sqlitefunctions)
 
-add_library(libsqlite_extension SHARED extension-functions.c)
+add_library(sqlitefunctions SHARED extension-functions.c)
 
-set_target_properties(libsqlite_extension
+set_target_properties(sqlitefunctions
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/..
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/..
