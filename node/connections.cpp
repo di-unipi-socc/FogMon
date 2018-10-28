@@ -238,7 +238,7 @@ int Connections::sendStartBandwidthTest(string ip) {
                 res.getCommand() == Message::Command::START &&
                 res.getArgument() == Message::Argument::POSITIVE) {
                 
-                m.getData(port);
+                res.getData(port);
             }
         }
     }
