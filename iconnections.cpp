@@ -12,6 +12,8 @@
 #include <errno.h>
 
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/select.h>
 
 #include <sys/types.h>
 #include <sys/un.h>
@@ -221,7 +223,7 @@ int IConnections::openConnection(string ip, string port) {
     // Attempt to connect to an address until one succeeds
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next)
 	{
-
+        fprintf(stdout, "try connection %s", ip);
         // Create a SOCKET for connecting to server
         Socket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
         if (Socket == -1)
@@ -231,6 +233,91 @@ int IConnections::openConnection(string ip, string port) {
             return -1;
         }
         // Connect to server.
+        int arg;
+        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
+            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+            return -1;
+        } 
+        arg |= O_NONBLOCK; 
+        if( fcntl(Socket, F_SETFL, arg) < 0) { 
+            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+            return -1;
+        } 
+        int res;
+        fd_set myset;
+        bool ris = false;
+        // Trying to connect with timeout 
+        res = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen); 
+        if (res < 0) { 
+            if (errno == EINPROGRESS) { 
+                fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+                int num = 3;
+                do { 
+                    struct timeval tv; 
+                    tv.tv_sec = 2; 
+                    tv.tv_usec = 0; 
+                    FD_ZERO(&myset); 
+                    FD_SET(Socket, &myset); 
+                    res = select(Socket+1, NULL, &myset, NULL, &tv); 
+                    if (res < 0 && errno != EINTR) { 
+                        fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                        break;
+                    } 
+                    else if (res > 0) {
+                        int valopt;
+                        socklen_t lon;
+                        // Socket selected for write 
+                        lon = sizeof(int); 
+                        if (getsockopt(Socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) { 
+                            fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+                            break;
+                        } 
+                        // Check the value returned... 
+                        if (valopt) { 
+                            fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
+                            break; 
+                        } 
+                        ris = true;
+                    } 
+                    else { 
+                        fprintf(stderr, "Timeout in select() - Cancelling!\n");
+                        if(num>0) {
+                            num--;
+                            continue;
+                        }
+                        else
+                            break;
+                    } 
+                } while (1); 
+            } 
+            else { 
+                fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+            } 
+        }
+        if(ris == false)
+            close(Socket);
+            Socket = -1;
+            fprintf(stdout, "retry connection %s", ip);
+            continue;
+
+        // Set to blocking mode again... 
+        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
+            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
+            return -1;
+        } 
+        arg &= (~O_NONBLOCK); 
+        if( fcntl(Socket, F_SETFL, arg) < 0) { 
+            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
+            return -1;
+        } 
+
+
+
+
+
+
+
+
 
         iResult = connect( Socket, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == -1)
