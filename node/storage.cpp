@@ -260,10 +260,10 @@ vector<string> Storage::getNodes() {
     return nodes;
 }
 
-std::vector<std::string> Storage::getLRLatency(int num) {
+std::vector<std::string> Storage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes ORDER BY latencyTime LIMIT %d", num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',latencyTime)+%d-strftime('%%s','now') < 0 ORDER BY latencyTime LIMIT %d",seconds, num);
 
     vector<string> nodes;
 
@@ -278,10 +278,10 @@ std::vector<std::string> Storage::getLRLatency(int num) {
     return nodes;
 }
 
-std::vector<std::string> Storage::getLRBandwidth(int num) {
+std::vector<std::string> Storage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes ORDER BY bandwidthTime LIMIT %d", num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',bandwidthTime)+%d-strftime('%%s','now') < 0 ORDER BY bandwidthTime LIMIT %d",seconds, num);
 
     vector<string> nodes;
 

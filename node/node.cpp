@@ -269,7 +269,7 @@ void Node::TestTimer() {
     while(this->running) {
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<string> ips = this->connections.getStorage()->getLRLatency(10); //param: batch latency dimension
+        vector<string> ips = this->connections.getStorage()->getLRLatency(100,30); //param: batch latency dimension
 
         for(auto ip : ips) {
             if(myIp == ip)
@@ -277,7 +277,7 @@ void Node::TestTimer() {
             this->testPing(ip);
         }
         if(int m = this->connections.getStorage()->hasToken() > 0) {
-            ips = this->connections.getStorage()->getLRBandwidth(1000);
+            ips = this->connections.getStorage()->getLRBandwidth(m,300);
         
             int durationTest = 1;
             //if token then do the same for bandwidth

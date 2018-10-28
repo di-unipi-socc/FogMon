@@ -30,8 +30,8 @@ public:
 
     std::vector<std::string> getNodes();
     
-    std::vector<std::string> getLRLatency(int num);
-    std::vector<std::string> getLRBandwidth(int num);
+    std::vector<std::string> getLRLatency(int num, int seconds);
+    std::vector<std::string> getLRBandwidth(int num, int seconds);
 
     void setToken(int duration);
     int hasToken();
