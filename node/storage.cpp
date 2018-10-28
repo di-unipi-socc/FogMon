@@ -72,16 +72,14 @@ Report::hardware_result Storage::getHardware() {
     return r;
 }
 
-int getLatencyCallback(void *R, int argc, char **argv, char **azColName) {
+int getTestCallback(void *R, int argc, char **argv, char **azColName) {
     vector<Report::test_result> *r = (vector<Report::test_result>*)R;
-    for(int i=0; i<argc; i++) {
-        Report::test_result test;
-        test.target = string(argv[0]);
-        test.mean = stof(argv[1]);
-        test.variance = stof(argv[2]);
-        test.lasttime = stol(argv[3]);
-        r->push_back(test);
-    }
+    Report::test_result test;
+    test.target = string(argv[0]);
+    test.mean = stof(argv[1]);
+    test.variance = stof(argv[2]);
+    test.lasttime = stol(argv[3]);
+    r->push_back(test);
     return 0;
 }
 
@@ -92,7 +90,7 @@ std::vector<Report::test_result> Storage::getLatency() {
 
     vector<Report::test_result> tests;
 
-    int err = sqlite3_exec(this->db, buf, getLatencyCallback, &tests, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -103,35 +101,21 @@ std::vector<Report::test_result> Storage::getLatency() {
     return tests;
 }
 
-int getBandwidthCallback(void *R, int argc, char **argv, char **azColName) {
-    vector<Report::test_result> *r = (vector<Report::test_result>*)R;
-    for(int i=0; i<argc; i++) {
-        Report::test_result test;
-        test.target = string(argv[0]);
-        test.mean = stof(argv[1]);
-        test.variance = stof(argv[2]);
-        test.lasttime = stol(argv[3]);
-        
-        r->push_back(test);
-    }
-    return 0;
-}
-
 std::vector<Report::test_result> Storage::getBandwidth() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, avg(kbps) AS mean, variance(kbps) AS var, strftime('%%s',max(time)) as time FROM Bandwidth group by ipB");
+    std::sprintf(buf,"SELECT ipB as ip, avg(kbps) AS mean, variance(kbps) AS var, strftime('%%s',max(time)) as time FROM Bandwidth group by ipB");
 
     vector<Report::test_result> tests;
 
-    int err = sqlite3_exec(this->db, buf, getBandwidthCallback, &tests, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
-
+ 
     return tests;
 }
 
