@@ -279,6 +279,7 @@ void Node::TestTimer() {
         if(int m = this->connections.getStorage()->hasToken() > 0) {
             cout << "start test bandwidth:" << endl;
             ips = this->connections.getStorage()->getLRBandwidth(m,300);
+            cout << "dimension: "<<ips.size() << endl;
             int durationTest = 1;
             //if token then do the same for bandwidth
             int i=0;
