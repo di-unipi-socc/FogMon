@@ -146,7 +146,7 @@ std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d-strftime('%%s','now')<0 ORDER BY lasttime LIMIT %d", seconds, num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d-strftime('%%s','now') < 0 ORDER BY lasttime LIMIT %d", seconds, num);
 
     vector<string> nodes;
 
