@@ -276,7 +276,8 @@ void Node::TestTimer() {
                 continue;
             this->testPing(ip);
         }
-        if(int m = this->connections.getStorage()->hasToken() > 0) {
+        int m = this->connections.getStorage()->hasToken();
+        if(m > 0) {
             cout << "start test bandwidth:" << endl;
             ips = this->connections.getStorage()->getLRBandwidth(m+1,300);
             cout << "dimension: "<<ips.size() << endl;
