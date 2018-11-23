@@ -36,7 +36,6 @@ void MasterStorage::addNode(string ip, Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
     if(ip == "") {
-        printf("empty\n");
         return;
     }
     std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, DATETIME('now'))", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
@@ -111,14 +110,14 @@ void MasterStorage::addReport(string strIp, Report::hardware_result hardware, ve
 std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from Latency where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Latency as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') < 0 order by lasttime limit %d;",seconds, num);
+    std::sprintf(buf,"select ip from (select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from Latency where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Latency as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') <= 0 order by lasttime limit %d) group by ip;",seconds, num);
     
     vector<string> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stdout, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -129,7 +128,7 @@ std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from bandwidth where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Bandwidth as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') < 0 order by lasttime limit %d;",seconds, num);
+    std::sprintf(buf,"select ip from(select A.ip, B.ip, Null as lasttime from Nodes as A join Nodes as B where A.ip != B.ip and not exists (select * from bandwidth where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from Nodes as A join Nodes as B left join Bandwidth as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') <= 0 order by lasttime limit %d) group by ip;",seconds, num);
     vector<string> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
@@ -146,7 +145,7 @@ std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d-strftime('%%s','now') < 0 ORDER BY lasttime LIMIT %d", seconds, num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',lasttime)+%d-strftime('%%s','now') <= 0 ORDER BY lasttime LIMIT %d", seconds, num);
 
     vector<string> nodes;
 

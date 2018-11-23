@@ -142,7 +142,12 @@ bool IConnections::getMessage(int fd, Message &m) {
     {
         perror("   recv() failed at len");
     }else if(len > 0) {
-        char * data = new char[len+1];
+        char * data;
+        try {
+            data = new char[len+1];
+        }catch(...) {
+            return false;
+        }
         data[len] = 0;
 
         error = readS(fd, data, len);

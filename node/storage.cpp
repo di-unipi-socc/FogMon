@@ -146,7 +146,7 @@ void Storage::saveLatencyTest(string ip, int ms) {
 void Storage::saveBandwidthTest(string ip, float kbps) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Bandwidth (time, ipB, kbps) VALUES (DATETIME('now'), \"%s\", %d)", ip.c_str(), kbps);
+    std::sprintf(buf,"INSERT INTO Bandwidth (time, ipB, kbps) VALUES (DATETIME('now'), \"%s\", %f)", ip.c_str(), kbps);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -195,7 +195,6 @@ void Storage::refreshNodes(vector<string> nodes) {
     }
     for(auto node : nodes) {
         std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (ip, latencyTime, bandwidthTime) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'))", node.c_str());
-        printf("%s\n", buf);
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
@@ -223,7 +222,7 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     }
 
     for(auto node : rem) {
-        std::sprintf(buf,"DELETE Nodes WHERE ip = \"%s\"", node.c_str());
+        std::sprintf(buf,"DELETE FROM Nodes WHERE ip = \"%s\"", node.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
@@ -263,7 +262,7 @@ vector<string> Storage::getNodes() {
 std::vector<std::string> Storage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',latencyTime)+%d-strftime('%%s','now') < 0 ORDER BY latencyTime LIMIT %d",seconds, num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',latencyTime)+%d-strftime('%%s','now') <= 0 ORDER BY latencyTime LIMIT %d",seconds, num);
 
     vector<string> nodes;
 
@@ -281,7 +280,7 @@ std::vector<std::string> Storage::getLRLatency(int num, int seconds) {
 std::vector<std::string> Storage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',bandwidthTime)+%d-strftime('%%s','now') < 0 ORDER BY bandwidthTime LIMIT %d",seconds, num);
+    std::sprintf(buf,"SELECT ip FROM Nodes WHERE strftime('%%s',bandwidthTime)+%d-strftime('%%s','now') <= 0 ORDER BY bandwidthTime LIMIT %d",seconds, num);
 
     vector<string> nodes;
 
