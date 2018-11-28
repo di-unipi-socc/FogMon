@@ -46,9 +46,102 @@ TEST(ReportTest, SetGetHardware) {
 }
 
 TEST(ReportTest, SetGetLatency) {
-   
+    Report report;
+    Report::test_result test;
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> tests;
+    tests.push_back(test);
+    report.setLatency(tests);
+
+    vector<Report::test_result> tests2;
+
+    int ris = report.getLatency(tests2);
+    EXPECT_EQ(true, ris);
+    for(int i=0; i<tests.size(); i++) {
+        EXPECT_EQ(tests[i].mean, tests2[i].mean); 
+        EXPECT_EQ(tests[i].variance, tests2[i].variance); 
+        EXPECT_EQ(tests[i].lasttime, tests2[i].lasttime); 
+        EXPECT_EQ(tests[i].target, tests2[i].target);
+    }
 }
 
 TEST(ReportTest, SetGetBandwidth) {
+    Report report;
+    Report::test_result test;
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> tests;
+    tests.push_back(test);
+    report.setBandwidth(tests);
+
+    vector<Report::test_result> tests2;
+
+    int ris = report.getBandwidth(tests2);
+    EXPECT_EQ(true, ris);
+    for(int i=0; i<tests.size(); i++) {
+        EXPECT_EQ(tests[i].mean, tests2[i].mean); 
+        EXPECT_EQ(tests[i].variance, tests2[i].variance); 
+        EXPECT_EQ(tests[i].lasttime, tests2[i].lasttime); 
+        EXPECT_EQ(tests[i].target, tests2[i].target);
+    }
+}
+
+TEST(ReportTest, SetGetReport) {
+    Report report;
+    Report::test_result test;
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> testsL,tests2L;
+    testsL.push_back(test);
+
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> testsB,tests2B;
+    testsB.push_back(test);
+
+    Report::hardware_result hw,hw2;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.free_disk = 10*1000*1000;
+    hw.free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.free_memory = 1*1000*1000;
+
+    report.setLatency(testsL);
+    report.setBandwidth(testsB);
+    report.setHardware(hw);
+
+    rapidjson::Value * val = report.getJson();
+
+    Report report2;
+    report2.parseJson(*val);
+
+    EXPECT_EQ(true, report2.getHardware(hw2));
+    EXPECT_EQ(true, report2.getLatency(tests2L));
+    EXPECT_EQ(true, report2.getBandwidth(tests2B));
+    bool ris;
+    ris = memcmp(&hw, &hw2, sizeof(Report::hardware_result));
+    EXPECT_EQ(0, ris);
     
+    for(int i=0; i<testsL.size(); i++) {
+        EXPECT_EQ(testsL[i].mean, tests2L[i].mean); 
+        EXPECT_EQ(testsL[i].variance, tests2L[i].variance); 
+        EXPECT_EQ(testsL[i].lasttime, tests2L[i].lasttime); 
+        EXPECT_EQ(testsL[i].target, tests2L[i].target);
+    }
+    for(int i=0; i<testsB.size(); i++) {
+        EXPECT_EQ(testsB[i].mean, tests2B[i].mean); 
+        EXPECT_EQ(testsB[i].variance, tests2B[i].variance); 
+        EXPECT_EQ(testsB[i].lasttime, tests2B[i].lasttime); 
+        EXPECT_EQ(testsB[i].target, tests2B[i].target);
+    }
 }
