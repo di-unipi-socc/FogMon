@@ -25,6 +25,7 @@ link_directories(/usr/lib)
 target_link_libraries(FTPiDiscovererNode ${SQLITE_LIBRARY})
 target_link_libraries(FTPiDiscovererNode ${PTHREAD_LIBRARY})
 target_link_libraries(FTPiDiscovererNode libsigar.a)
+
 if(${LINK_TIRPC})
 	target_link_libraries(FTPiDiscovererNode tirpc)
 endif()

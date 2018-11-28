@@ -24,6 +24,10 @@ SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAG
 
 add_executable(runUnitTests main_test.cpp ${SRCS}  ${SRCS_MASTER} ${SRCS2} ${SRCS_NODE} )
 
+if(${LINK_TIRPC})
+	target_link_libraries(runUnitTests tirpc)
+endif()
+
 find_library(SQLITE_LIBRARY sqlite3)
 target_link_libraries(runUnitTests ${SQLITE_LIBRARY})
 target_link_libraries(runUnitTests gtest pthread libsigar.a)
