@@ -18,7 +18,6 @@ private:
     Node* parent;
 
 public:
-    Connections();
     Connections(Node *parent, int nThread);
     ~Connections();
 

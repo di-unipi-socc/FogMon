@@ -97,7 +97,7 @@ void IConnections::worker() {
 int IConnections::readS(long fd, void *data, int len) {
 	int n;
 	int pos =0;
-	while(pos<len && (n = recv(fd, &(((char*)data)[pos]), len-pos,0)) > 0)
+	while(pos<len && (n = read(fd, &(((char*)data)[pos]), len-pos)) > 0)
 	{
         if(n == 0)
         {
@@ -201,6 +201,7 @@ bool IConnections::notifyAll(Message &m) {
             close(fd);
         }
     }
+    return true;
 }
 
 int IConnections::openConnection(string ip, string port) {

@@ -38,6 +38,8 @@ private:
     //test the latency with another node
     void testPing(std::string ip);
 
+    //get the hardware of this node
+    void getHardware();
 public:
     Node(std::string ip, std::string port, int nThreads);
     ~Node();
@@ -47,17 +49,15 @@ public:
     //stop everything
     void stop();
 
-    //get the hardware of this node
-    void getHardware();
-
     IConnections* getConnections();
 
     void setMyIp(std::string ip);
     std::string getMyIp();
 
-    Server* getServer();
-
+    //start iperf command line server and return the port it is open in
     int startIperf();
+
+    Server* getServer();
 };
 
 #endif
