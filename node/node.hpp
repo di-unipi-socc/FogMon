@@ -6,7 +6,7 @@
 #include "server.hpp"
 
 class Node : public INode{
-private:
+protected:
     int timerReport;
 
     //ip of the server node 

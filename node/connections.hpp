@@ -11,7 +11,7 @@ class Node;
 #include <thread>
 
 class Connections : public IConnections {
-private:
+protected:
     void handler(int fd, Message &m);
 
     Storage storage;

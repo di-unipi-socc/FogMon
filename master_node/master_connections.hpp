@@ -10,7 +10,7 @@
 #include <thread>
 
 class MasterConnections : IConnections {
-private:
+protected:
     void handler(int fd, Message &m);
 
     MasterStorage storage;

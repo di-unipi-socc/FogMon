@@ -15,7 +15,7 @@ public:
     void stop();
 
     IConnections* getConnections();
-private:
+protected:
 
     void timerFun();
 

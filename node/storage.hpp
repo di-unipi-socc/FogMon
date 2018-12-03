@@ -5,7 +5,7 @@
 #include "report.hpp"
 
 class Storage : public IStorage {
-private:
+protected:
     void createTables();
 
     //start time of the token

@@ -5,7 +5,7 @@
 #include "report.hpp"
 
 class MasterStorage : public IStorage {
-private:
+protected:
     void createTables();
     void addTest(std::string strIpA, std::string strIpB, Report::test_result test, std::string type);
 public:
