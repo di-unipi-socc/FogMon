@@ -1,16 +1,17 @@
 #ifndef MASTER_STORAGE_HPP_
 #define MASTER_STORAGE_HPP_
 
-#include "istorage.hpp"
+#include "storage.hpp"
+#include "imaster_storage.hpp"
 #include "report.hpp"
 
-class MasterStorage : public IStorage {
+class MasterStorage : public Storage, virtual public IMasterStorage {
 protected:
-    void createTables();
+    virtual void createTables();
     void addTest(std::string strIpA, std::string strIpB, Report::test_result test, std::string type);
 public:
-    MasterStorage(std::string path);
-    ~MasterStorage();
+    MasterStorage();
+    virtual ~MasterStorage();
 
     std::vector<std::string> getNodes();
 

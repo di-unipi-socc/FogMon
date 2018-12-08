@@ -5,9 +5,7 @@
 
 using namespace std;
 
-Storage::Storage(string path) {
-    open(path);
-
+Storage::Storage() {
     startToken = time(nullptr);
     durationToken = 0;
 }

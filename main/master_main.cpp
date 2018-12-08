@@ -3,8 +3,8 @@
 
 int main(int argc, char *argv[]) {
 
-    MasterNode node(2);
-
+    MasterNode node(1);
+    node.initialize();
     node.start();
 
     int a;

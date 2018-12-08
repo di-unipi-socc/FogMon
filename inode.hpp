@@ -1,9 +1,9 @@
 #ifndef INODE_HPP_
 #define INODE_HPP_
 
-#include "istorage.hpp"
 #include "server.hpp"
-#include "iconnections.hpp"
+#include "istorage.hpp"
+#include <string>
 
 class INode {
 public:
@@ -13,8 +13,13 @@ public:
     virtual void stop() = 0;
 
     virtual IConnections* getConnections() = 0;
+    virtual IStorage* getStorage() = 0;
+
     virtual void setMyIp(std::string ip) = 0;
     virtual std::string getMyIp() = 0;
+    
+    virtual int startIperf() = 0;
+    
     virtual Server* getServer() = 0;
 };
 

@@ -1,26 +1,28 @@
 #ifndef MASTER_CONNECTIONS_HPP_
 #define MASTER_CONNECTIONS_HPP_
 
-#include "inode.hpp"
-#include "iconnections.hpp"
+class IParentMaster;
+
+#include "connections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
 #include "master_storage.hpp"
+#include "iparent_master.hpp"
 
 #include <thread>
 
-class MasterConnections : IConnections {
+class MasterConnections : public Connections {
 protected:
     void handler(int fd, Message &m);
 
-    MasterStorage storage;
+    IParentMaster* parent;
     
 public:
-    MasterConnections(INode *parent, int nThread);
+    MasterConnections(int nThread);
     ~MasterConnections();
 
-    MasterStorage* getStorage();
-
+    void initialize(IParentMaster* parent);
+    
     bool sendRequestReport(std::string ip);
     bool sendSetToken(std::string ip, int time);
 };

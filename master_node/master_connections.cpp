@@ -1,6 +1,6 @@
 
 #include "master_connections.hpp"
-#include "inode.hpp"
+#include "master_node.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -21,18 +21,20 @@
 #include <netdb.h>
 #include <iostream>
 
-MasterConnections::MasterConnections(INode *parent, int nThread) : IConnections(parent, nThread), storage("masterNode.db") {
+MasterConnections::MasterConnections(int nThread) : Connections(nThread) {
 }
 
 MasterConnections::~MasterConnections() {
 }
 
-MasterStorage* MasterConnections::getStorage() {
-    return &(this->storage);
+void MasterConnections::initialize(IParentMaster* parent) {
+    Connections::initialize(parent);
+    this->parent = parent;
 }
 
-
 void MasterConnections::handler(int fd, Message &m) {
+
+    Connections::handler(fd, m);
 
     socklen_t len;
     struct sockaddr_storage addr;
@@ -54,7 +56,9 @@ void MasterConnections::handler(int fd, Message &m) {
             inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
     }else {
         cout << "error socket family" << endl;
+#ifndef ENABLE_TESTS
         return;
+#endif
     }
     string strIp = string(ip);
 
@@ -62,7 +66,7 @@ void MasterConnections::handler(int fd, Message &m) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = storage.getNodes();
+                vector<string> nodes = this->parent->getStorage()->getNodes();
                 //send nodes
                 Message res;
                 res.setType(Message::Type::RESPONSE);
@@ -83,7 +87,7 @@ void MasterConnections::handler(int fd, Message &m) {
                     vector<Report::test_result> bandwidth;
 
                     if(r.getHardware(hardware) && r.getLatency(latency) && r.getBandwidth(bandwidth)) {
-                        storage.addReport(strIp, hardware, latency, bandwidth);
+                        this->parent->getStorage()->addReport(strIp, hardware, latency, bandwidth);
                     }
                 }
             }
@@ -97,7 +101,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 r.getHardware(hardware);
 
                 //set new node online                
-                storage.addNode(strIp, hardware);
+                this->parent->getStorage()->addNode(strIp, hardware);
                 
                 //inform all the other nodes about it
                 //
@@ -114,7 +118,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 this->notifyAll(broadcast);
                 //
 
-                vector<string> vec = storage.getNodes();
+                vector<string> vec = this->parent->getStorage()->getNodes();
 
                 //get nodelist
                 Message res;
@@ -137,13 +141,13 @@ void MasterConnections::handler(int fd, Message &m) {
                     vector<Report::test_result> bandwidth;
 
                     if(r.getHardware(hardware)) {
-                        storage.addNode(strIp, hardware);
+                        this->parent->getStorage()->addNode(strIp, hardware);
                     }
                     if(r.getLatency(latency)) {
-                        storage.addReportLatency(strIp, latency);
+                        this->parent->getStorage()->addReportLatency(strIp, latency);
                     }
                     if(r.getBandwidth(bandwidth)) {
-                        storage.addReportBandwidth(strIp, bandwidth);
+                        this->parent->getStorage()->addReportBandwidth(strIp, bandwidth);
                     }
                 }
             }
@@ -185,13 +189,13 @@ bool MasterConnections::sendRequestReport(std::string ip) {
                     vector<Report::test_result> bandwidth;
 
                     if(r.getHardware(hardware)) {
-                        storage.addNode(ip, hardware);
+                        this->parent->getStorage()->addNode(ip, hardware);
                     }
                     if(r.getLatency(latency)) {
-                        storage.addReportLatency(ip, latency);
+                        this->parent->getStorage()->addReportLatency(ip, latency);
                     }
                     if(r.getBandwidth(bandwidth)) {
-                        storage.addReportBandwidth(ip, bandwidth);
+                        this->parent->getStorage()->addReportBandwidth(ip, bandwidth);
                     }
                     ret = true;
                 }

@@ -42,15 +42,16 @@ protected:
 
     int openConnection(std::string ipS, std::string port="5555");
 public:
-    IConnections(INode *parent, int nThread);
+    IConnections(int nThread);
     ~IConnections();
+
+    void initialize(INode *parent);
+
     void start();
     void stop();
 
     //put the request on a queue to be processed by another thread
     void request(int fd);
-
-    virtual IStorage* getStorage() = 0;
 };
 
 #endif

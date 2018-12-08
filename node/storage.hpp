@@ -4,9 +4,9 @@
 #include "istorage.hpp"
 #include "report.hpp"
 
-class Storage : public IStorage {
+class Storage : virtual public IStorage {
 protected:
-    void createTables();
+    virtual void createTables();
 
     //start time of the token
     time_t startToken;
@@ -14,8 +14,8 @@ protected:
     int durationToken;
 
 public:
-    Storage(std::string path);
-    ~Storage();
+    Storage();
+    virtual ~Storage();
 
     Report::hardware_result getHardware();
     std::vector<Report::test_result> getLatency();

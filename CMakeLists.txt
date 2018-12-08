@@ -17,18 +17,19 @@ add_executable(FTPiDiscovererNode main/node_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE
 file(GLOB SRCS_MASTER "master_node/*.cpp")
 file(GLOB HDRS_MASTER "master_node/*.hpp")
 
-add_executable(FTPiDiscovererServer main/master_main.cpp ${SRCS} ${HDRS} ${SRCS_MASTER} ${HDRS_MASTER})
+add_executable(FTPiDiscovererServer main/master_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_MASTER} ${HDRS_MASTER})
 
 include_directories(/usr/include)
 link_directories(/usr/lib)
 
+if(${LINK_TIRPC})
+	target_link_libraries(FTPiDiscovererNode tirpc)
+	target_link_libraries(FTPiDiscovererServer tirpc)
+endif()
+
 target_link_libraries(FTPiDiscovererNode ${SQLITE_LIBRARY})
 target_link_libraries(FTPiDiscovererNode ${PTHREAD_LIBRARY})
 target_link_libraries(FTPiDiscovererNode libsigar.a)
-
-if(${LINK_TIRPC})
-	target_link_libraries(FTPiDiscovererNode tirpc)
-endif()
 target_link_libraries(FTPiDiscovererNode -static-libstdc++)
 
 target_link_libraries(FTPiDiscovererServer ${SQLITE_LIBRARY})

@@ -1,37 +1,41 @@
 #ifndef MASTER_NODE_HPP_
 #define MASTER_NODE_HPP_
 
-#include "inode.hpp"
+class MasterFactory;
+
 #include "master_connections.hpp"
+#include "node.hpp"
 #include "master_storage.hpp"
 #include "server.hpp"
+#include "master_factory.hpp"
+#include "iparent_master.hpp"
 
-class MasterNode : public INode{
+class MasterNode : virtual public IParentMaster, public Node {
 public:
     MasterNode(int nThreads);
     ~MasterNode();
 
+    virtual void initialize(MasterFactory* factory = NULL);
+
     void start();
     void stop();
 
-    IConnections* getConnections();
+    IMasterStorage* getStorage();
+
+
 protected:
 
     void timerFun();
 
-    std::thread timerThread;
+    std::thread timerFunThread;
 
-    unsigned int timer;
+    unsigned int timeTimerFun;
 
-    bool running;
+    MasterConnections *connections;
+    IMasterStorage* storage;
 
-    MasterConnections connections;
-    Server server;
-
-    void setMyIp(std::string ip) {}
-    std::string getMyIp() { return ""; }
-
-    Server* getServer();
+    MasterFactory tFactory;
+    MasterFactory *factory;
 };
 
 #endif

@@ -1,8 +1,7 @@
 #ifndef CONNECTIONS_HPP_
 #define CONNECTIONS_HPP_
 
-class Node;
-
+#include "inode.hpp"
 #include "iconnections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
@@ -14,12 +13,13 @@ class Connections : public IConnections {
 protected:
     void handler(int fd, Message &m);
 
-    Storage storage;
-    Node* parent;
+    INode* parent;
 
 public:
-    Connections(Node *parent, int nThread);
+    Connections(int nThread);
     ~Connections();
+
+    void initialize(INode *parent);
 
     //ip:port
     bool sendHello(std::string ipS, std::string portS);
@@ -27,8 +27,6 @@ public:
 
     //return the port for the test
     int sendStartBandwidthTest(std::string ip);
-
-    Storage* getStorage();
 };
 
 #endif

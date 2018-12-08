@@ -8,7 +8,8 @@
 using namespace std;
 
 TEST(StorageTest, RefreshGetNodes) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
 
     vector<string> strs;
     strs.push_back("test");
@@ -27,7 +28,8 @@ TEST(StorageTest, RefreshGetNodes) {
 }
 
 TEST(StorageTest, UpdateGetNodes) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
 
     vector<string> add;
     add.push_back("test");
@@ -48,7 +50,9 @@ TEST(StorageTest, UpdateGetNodes) {
 }
 
 TEST(StorageTest, SaveGetHardware) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
+
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
@@ -65,7 +69,8 @@ TEST(StorageTest, SaveGetHardware) {
 }
 
 TEST(StorageTest, SaveGetLatency) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
     
     storage.saveLatencyTest("test", 10);
 
@@ -82,7 +87,8 @@ TEST(StorageTest, SaveGetLatency) {
 }
 
 TEST(StorageTest, SaveGetBandwidth) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
     
     storage.saveBandwidthTest("test", 100.0f);
 
@@ -99,14 +105,16 @@ TEST(StorageTest, SaveGetBandwidth) {
 }
 
 TEST(StorageTest, SetGetToken) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
 
     storage.setToken(100);
     EXPECT_GE(100,storage.hasToken());
 }
 
 TEST(StorageTest, GetLRLatency) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
 
     vector<string> ris = storage.getLRLatency(2,100);
     int dim = 1;
@@ -118,7 +126,8 @@ TEST(StorageTest, GetLRLatency) {
 }
 
 TEST(StorageTest, GetLRBandwidth) {
-    Storage storage("testA.db");
+    Storage storage;
+    storage.open("testA.db");
 
     vector<string> ris = storage.getLRBandwidth(2,100);
     int dim = 1;
@@ -131,7 +140,8 @@ TEST(StorageTest, GetLRBandwidth) {
 
 TEST(StorageMasterTest, SaveGetNode) {
     unlink("testB.db");
-    MasterStorage storage("testB.db");
+    MasterStorage storage;
+    storage.open("testB.db");
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
@@ -151,7 +161,8 @@ TEST(StorageMasterTest, SaveGetNode) {
 }
 
 TEST(StorageMasterTest, GetLRHardware) {
-    MasterStorage storage("testB.db");
+    MasterStorage storage;
+    storage.open("testB.db");
     sleep(2);
     Report::hardware_result hw;
     hw.cores = 4;
@@ -173,7 +184,8 @@ TEST(StorageMasterTest, GetLRHardware) {
 }
 
 TEST(StorageMasterTest, ReportGetLRLatency) {
-    MasterStorage storage("testB.db");
+    MasterStorage storage;
+    storage.open("testB.db");
     
     Report::test_result test;
     test.mean = 100;
@@ -201,7 +213,8 @@ TEST(StorageMasterTest, ReportGetLRLatency) {
 }
 
 TEST(StorageMasterTest, ReportGetLRBandwidth) {
-    MasterStorage storage("testB.db");
+    MasterStorage storage;
+    storage.open("testB.db");
 
     Report::test_result test;
     test.mean = 100;

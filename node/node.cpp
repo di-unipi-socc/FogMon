@@ -27,24 +27,55 @@
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(string ip, string port, int nThreads) : server(this,5555), connections(this, nThreads) {
-    running = false;
-    timerReport = 5;
-    timeTimerTest = 5;
-    ipS = ip;
-    portS = port;
+Node::Node(string ip, string port, int nThreads) {
+    this->nThreads = nThreads;
+    this->running = false;
+    this->timerReport = 5;
+    this->timeTimerTest = 5;
+    this->ipS = ip;
+    this->portS = port;
+    this->storage = NULL;
+    this->connections = NULL;
+    this->server = NULL;
+}
+
+void Node::initialize(Factory* fact) {
+    if(fact == NULL) {
+        this->factory = &this->tFactory;
+    }else {
+        this->factory = fact;
+    }
+    if(this->storage == NULL)
+        this->storage = this->factory->newStorage("node.db");
+    if(this->connections == NULL) {
+        this->connections = this->factory->newConnections(this->nThreads);
+        this->connections->initialize(this);
+    }
+    this->server = this->factory->newServer(this->connections,5555);
 }
 
 Node::~Node() {
     this->stop();
+    try{
+        delete this->connections;
+        this->connections = NULL;
+    }catch(...) {}
+    try{
+        delete this->storage;
+        this->storage = NULL;
+    }catch(...) {}
+    try{
+        delete this->server;
+        this->server = NULL;
+    }catch(...) {}
 }
 
 void Node::start() {
     this->running = true;
-    this->server.start();
+    this->server->start();
     srandom(time(nullptr));
     this->getHardware();
-    if(!this->connections.sendHello(this->ipS,this->portS)) {
+    if(!this->connections->sendHello(this->ipS,this->portS)) {
         perror("Cannot connect to the main node");
         this->stop();
     }
@@ -62,11 +93,20 @@ void Node::stop() {
     {
         this->timerTestThread.join();
     }
-    this->server.stop();
+    if(this->server)
+        this->server->stop();
+    if(this->connections)
+        this->connections->stop();
+    if(this->storage)
+        this->storage->close();
 }
 
 IConnections* Node::getConnections() {
     return (IConnections*)(&(this->connections));
+}
+
+IStorage* Node::getStorage() {
+    return this->storage;
 }
 
 int Node::startIperf() {
@@ -154,7 +194,7 @@ void Node::testBandwidth(string ip, int port) {
         float val = doc["end"]["sum_received"]["bits_per_second"].GetFloat();
 
         cout << "bps " << val << " kbps " << val /1000 << endl;
-        this->connections.getStorage()->saveBandwidthTest(ip, val/1000);
+        this->storage->saveBandwidthTest(ip, val/1000);
     }
 }
 
@@ -192,7 +232,7 @@ void Node::testPing(string ip) {
         std::smatch m;
         
         while (std::regex_search (output,m,reg)) {
-            this->connections.getStorage()->saveLatencyTest(ip, stoi(m[1]));
+            this->storage->saveLatencyTest(ip, stoi(m[1]));
             cout<< m[1]<< endl;
             std::cout << std::endl;
             output = m.suffix().str();
@@ -247,7 +287,7 @@ void Node::getHardware() {
     hardware.disk = disk.total;
     hardware.free_disk = disk.avail;
 
-    connections.getStorage()->saveHardware(hardware);
+    this->storage->saveHardware(hardware);
 
     sigar_cpu_list_destroy(sigar, &cpulist);
 
@@ -259,7 +299,7 @@ void Node::timer() {
         //generate hardware report and send it
         this->getHardware();
 
-        this->connections.sendUpdate(this->ipS,this->portS);
+        this->connections->sendUpdate(this->ipS,this->portS);
 
         sleep(this->timerReport);
     }
@@ -269,29 +309,29 @@ void Node::TestTimer() {
     while(this->running) {
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<string> ips = this->connections.getStorage()->getLRLatency(100,30); //param: batch latency dimension
+        vector<string> ips = this->storage->getLRLatency(100,30); //param: batch latency dimension
 
         for(auto ip : ips) {
             if(myIp == ip)
                 continue;
             this->testPing(ip);
         }
-        int m = this->connections.getStorage()->hasToken();
+        int m = this->storage->hasToken();
         if(m > 0) {
             cout << "start test bandwidth:" << endl;
-            ips = this->connections.getStorage()->getLRBandwidth(m+1,300);
+            ips = this->storage->getLRBandwidth(m+1,300);
             cout << "dimension: "<<ips.size() << endl;
             int durationTest = 1;
             //if token then do the same for bandwidth
             int i=0;
-            while(this->connections.getStorage()->hasToken() >= durationTest && i<ips.size()) {
+            while(this->storage->hasToken() >= durationTest && i<ips.size()) {
                 //send open iperf3
                 cout << "testing: " << ips[i];
                 if(myIp == ips[i]) {
                     i++;
                     continue;
                 }
-                int port = this->connections.sendStartBandwidthTest(ips[i]);
+                int port = this->connections->sendStartBandwidthTest(ips[i]);
                 if(port != -1) {
                     cout << "stat test"<<endl;
                     this->testBandwidth(ips[i], port);
@@ -312,5 +352,5 @@ std::string Node::getMyIp() {
 }
 
 Server* Node::getServer() {
-    return &this->server;
+    return this->server;
 }

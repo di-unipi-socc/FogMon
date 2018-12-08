@@ -25,8 +25,7 @@
 using namespace rapidjson;
 using namespace std;
 
-IConnections::IConnections(INode *parent, int nThread) {
-    this->parent = parent;
+IConnections::IConnections(int nThread) {
     num = nThread;
     this->running = false;
     
@@ -36,6 +35,10 @@ IConnections::IConnections(INode *parent, int nThread) {
 IConnections::~IConnections() {
     this->stop();
     delete [] this->workers;
+}
+
+void IConnections::initialize(INode *parent) {
+    this->parent = parent;
 }
 
 //start the workers and the queue
@@ -97,17 +100,19 @@ void IConnections::worker() {
 int IConnections::readS(long fd, void *data, int len) {
 	int n;
 	int pos =0;
-	while(pos<len && (n = read(fd, &(((char*)data)[pos]), len-pos)) > 0)
+	while(pos<len && (n = read(fd, &(((char*)data)[pos]), len-pos)) < len)
 	{
-        if(n == 0)
+        if(n < 0 && !(errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+		{
+			perror("send");
+			return -1;
+		}else if(n == 0)
         {
             //end of stream
             return -1;
         }
 		pos+=n;
 	}
-	if(pos<len)
-		return -1;
 	return 1;
 }
 
@@ -191,7 +196,7 @@ bool IConnections::sendMessage(int fd, Message &m) {
 }
 
 bool IConnections::notifyAll(Message &m) {
-    vector<string> nodes = this->getStorage()->getNodes();
+    vector<string> nodes = this->parent->getStorage()->getNodes();
     for(auto ip : nodes) {
         if(ip == this->parent->getMyIp())
             continue;

@@ -17,12 +17,12 @@ private:
 
     std::thread listenerThread;
 
-    INode* node;
+    IConnections* connection;
 
     //fd to wake up the listener thread during poll
     int efd;
 public:
-    Server(INode *node, int port);
+    Server(IConnections *conn, int port);
     ~Server();
 
     void start();

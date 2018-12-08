@@ -1,14 +1,29 @@
 #include "master_node.hpp"
 
+#include "node.hpp"
 #include <cstdio>
 #include <time.h>
 #include <unistd.h>
+#include <string>
 
 using namespace std;
 
-MasterNode::MasterNode(int nThreads) : server(this, 5556),  connections(this, nThreads) {
-    timer = 20;
-    running = false;
+MasterNode::MasterNode(int nThreads) : Node("localhost", "5555", nThreads) {
+    timeTimerFun = 20;
+}
+
+void MasterNode::initialize(MasterFactory* fact) {
+    if(fact == NULL) {
+        this->factory = &this->tFactory;
+    }else {
+        this->factory = fact;
+    }
+    this->storage = this->factory->newStorage("master_node.db");
+    Node::storage = this->storage;
+    this->connections = this->factory->newConnections(this->nThreads);
+    this->connections->initialize(this);
+    Node::connections = this->connections;
+    Node::initialize(this->factory);
 }
 
 MasterNode::~MasterNode() {
@@ -16,56 +31,54 @@ MasterNode::~MasterNode() {
 }
 
 void MasterNode::start() {
-    this->running = true;
-    this->timerThread = thread(&MasterNode::timerFun, this);
-    this->server.start();
+    Node::start();
+    this->timerFunThread = thread(&MasterNode::timerFun, this);
 }
 
 void MasterNode::stop() {
-    this->running = false;
-    this->server.stop();
-    if(this->timerThread.joinable())
-        this->timerThread.join();
+    Node::stop();
+    if(this->timerFunThread.joinable())
+        this->timerFunThread.join();
 }
 
-IConnections* MasterNode::getConnections() {
-    return (IConnections*)(&(this->connections));
+IMasterStorage* MasterNode::getStorage() {
+    return this->storage;
 }
 
 void MasterNode::timerFun() {
+    try{
     while(this->running) {
         //check database for reports
-        vector<string> ips = this->connections.getStorage()->getLRHardware(10, 30);
+        vector<string> ips = this->getStorage()->getLRHardware(10, 30);
         int n = ips.size();
         n++;
         for(auto&& ip : ips) {
-            this->connections.sendRequestReport(ip);
+            this->connections->sendRequestReport(ip);
         }
 
-        ips = this->connections.getStorage()->getLRLatency(10, 30);
+        ips = this->getStorage()->getLRLatency(10, 30);
         for(auto&& ip : ips) {
-            this->connections.sendRequestReport(ip);
+            this->connections->sendRequestReport(ip);
         }
         
         int batch = 5;
-        ips = this->connections.getStorage()->getLRBandwidth(batch*2, 300);
+        ips = this->getStorage()->getLRBandwidth(batch*2, 300);
         vector<string> ips_save;
         for(int i=0,j=0; i<ips.size() && i < batch + j; i++) {
-            if(this->connections.sendSetToken(ips[i], this->timer)) {
+            if(this->connections->sendSetToken(ips[i], this->timeTimerFun)) {
                 ips_save.push_back(ips[i]);
             }else
                 j++;
         }
 
-        sleep(this->timer);
+        sleep(this->timeTimerFun);
 
         for(auto&& ip : ips_save) {
-            this->connections.sendRequestReport(ip);
+            this->connections->sendRequestReport(ip);
         }
 
     }
-}
-
-Server* MasterNode::getServer() {
-    return &this->server;
+    }catch(...) {
+        int a=0;
+    }
 }

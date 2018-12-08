@@ -1,7 +1,5 @@
 #include "connections.hpp"
 
-#include "node.hpp"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -21,15 +19,15 @@
 
 using namespace std;
 
-Connections::Connections(Node *parent, int nThread) : IConnections((INode*)parent, nThread), storage("node.db") {
-    this->parent = parent;
+Connections::Connections(int nThread) : IConnections(nThread) {
 }
 
 Connections::~Connections() {
 }
 
-Storage* Connections::getStorage() {
-    return &(this->storage);
+void Connections::initialize(INode *parent) {
+    IConnections::initialize(parent);
+    this->parent = parent;
 }
 
 void Connections::handler(int fd, Message &m) {
@@ -63,7 +61,7 @@ void Connections::handler(int fd, Message &m) {
 
                 int d;
                 if(m.getData(d)) {
-                    this->storage.setToken(d);
+                    this->parent->getStorage()->setToken(d);
                     res.setArgument(Message::Argument::POSITIVE);
                 }else {
                     res.setArgument(Message::Argument::NEGATIVE);
@@ -76,7 +74,7 @@ void Connections::handler(int fd, Message &m) {
         }else if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = storage.getNodes();
+                vector<string> nodes = this->parent->getStorage()->getNodes();
 
                 //send nodes
                 Message res;
@@ -90,13 +88,25 @@ void Connections::handler(int fd, Message &m) {
                     
                 }
             }else if(m.getCommand() == Message::Command::SET) {
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::SET);
+
                 //refresh all the nodes with the array of nodes
                 vector<string> ips;
-                if(!m.getData(ips))
-                    return;
+                if(!m.getData(ips)) {
+                    res.setArgument(Message::Argument::NEGATIVE);
+                }else {
+                    res.setArgument(Message::Argument::POSITIVE);
+                }
 
                 //ips now contains the ip of the nodes
-                storage.refreshNodes(ips);
+                this->parent->getStorage()->refreshNodes(ips);
+
+                //send report
+                if(this->sendMessage(fd, res)) {
+                    
+                }
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::GET) {
@@ -107,9 +117,9 @@ void Connections::handler(int fd, Message &m) {
                 res.setArgument(Message::Argument::POSITIVE);
                 Report r;
                 
-                r.setHardware(storage.getHardware());
-                r.setLatency(storage.getLatency());
-                r.setBandwidth(storage.getBandwidth());
+                r.setHardware(this->parent->getStorage()->getHardware());
+                r.setLatency(this->parent->getStorage()->getLatency());
+                r.setBandwidth(this->parent->getStorage()->getBandwidth());
                 res.setData(r);
 
                 //send report
@@ -128,7 +138,15 @@ void Connections::handler(int fd, Message &m) {
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
-                storage.updateNodes(ipsNew,ipsRem);
+                this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::UPDATE);
+                res.setArgument(Message::Argument::POSITIVE);
+                //send report
+                if(this->sendMessage(fd, res)) {
+                    
+                }
             }
         }
     }   
@@ -151,7 +169,7 @@ bool Connections::sendHello(string ipS, string portS) {
     m.setCommand(Message::Command::HELLO);
     Report r;
     
-    r.setHardware(storage.getHardware());
+    r.setHardware(this->parent->getStorage()->getHardware());
     m.setData(r);
 
     bool result = false;
@@ -168,7 +186,7 @@ bool Connections::sendHello(string ipS, string portS) {
                 if(res.getData(ip, vec)) {
                     cout << ip << endl;
                     this->parent->setMyIp(ip);
-                    storage.refreshNodes(vec);
+                    this->parent->getStorage()->refreshNodes(vec);
                     result = true;
                 }
             }
@@ -196,9 +214,9 @@ bool Connections::sendUpdate(string ipS, string portS) {
     m.setArgument(Message::Argument::REPORT);
     Report r;
     
-    r.setHardware(storage.getHardware());
-    r.setLatency(storage.getLatency());
-    r.setBandwidth(storage.getBandwidth());
+    r.setHardware(this->parent->getStorage()->getHardware());
+    r.setLatency(this->parent->getStorage()->getLatency());
+    r.setBandwidth(this->parent->getStorage()->getBandwidth());
     m.setData(r);
 
     bool result = false;

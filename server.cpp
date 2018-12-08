@@ -22,11 +22,11 @@
 
 using namespace std;
 
-Server::Server(INode *node, int port) {
+Server::Server(IConnections *conn, int port) {
     running = false;
     portC = port;
     efd = eventfd(0,0);
-    this->node = node;
+    this->connection = conn;
 }
 
 Server::~Server() {
@@ -35,13 +35,13 @@ Server::~Server() {
 
 void Server::start() {
     this->listenerThread = thread(&Server::listener, this);
-    this->node->getConnections()->start();
+    this->connection->start();
 }
 
 void Server::stop() {
     this->running = false;
     eventfd_write(efd,1);
-    this->node->getConnections()->stop();
+    this->connection->stop();
 
     if(this->listenerThread.joinable())
     {
@@ -184,7 +184,7 @@ void Server::listener() {
                 //read incoming packets
                 //printf("  Descriptor %d is readable\n", fds[i].fd);
 
-                this->node->getConnections()->request(fds[i].fd);
+                this->connection->request(fds[i].fd);
 
                 fds[i].fd = -1;
                 fds[i].events = 0;

@@ -3,6 +3,10 @@
 
 using namespace std;
 
+IStorage::~IStorage() {
+
+}
+
 void IStorage::open(string path) {
     int err = sqlite3_open(path.c_str(), &(this->db));
     if( err ){

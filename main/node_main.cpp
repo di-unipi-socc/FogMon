@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
         port = input.getCmdOption("-p");
 
     Node node(ip, port,2);
+    node.initialize();
     node.start();
 
     int a;

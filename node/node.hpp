@@ -4,9 +4,32 @@
 #include "inode.hpp"
 #include "connections.hpp"
 #include "server.hpp"
+#include "factory.hpp"
 
-class Node : public INode{
+class Node : virtual public INode {
+public:
+    Node(std::string ip, std::string port, int nThreads);
+    ~Node();
+
+    virtual void initialize(Factory* factory = NULL);
+
+    //start listener for incoming ping and directions
+    void start();
+    //stop everything
+    void stop();
+
+    virtual IConnections* getConnections();
+    virtual IStorage* getStorage();
+
+    virtual void setMyIp(std::string ip);
+    virtual std::string getMyIp();
+
+    //start iperf command line server and return the port it is open in
+    virtual int startIperf();
+
+    virtual Server* getServer();
 protected:
+
     int timerReport;
 
     //ip of the server node 
@@ -23,9 +46,15 @@ protected:
 
     std::thread timerThread;
     std::thread timerTestThread;
-    Server server;
+    Server* server;
 
-    Connections connections;
+    Connections * connections;
+    IStorage* storage;
+
+    Factory tFactory;
+    Factory * factory;
+
+    int nThreads;
 
     //timer for hearthbeat
     void timer();
@@ -40,24 +69,6 @@ protected:
 
     //get the hardware of this node
     void getHardware();
-public:
-    Node(std::string ip, std::string port, int nThreads);
-    ~Node();
-
-    //start listener for incoming ping and directions
-    void start();
-    //stop everything
-    void stop();
-
-    IConnections* getConnections();
-
-    void setMyIp(std::string ip);
-    std::string getMyIp();
-
-    //start iperf command line server and return the port it is open in
-    int startIperf();
-
-    Server* getServer();
 };
 
 #endif
