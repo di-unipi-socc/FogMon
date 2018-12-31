@@ -48,6 +48,8 @@ IMasterStorage* MasterNode::getStorage() {
 void MasterNode::timerFun() {
     try{
     while(this->running) {
+        //routine for Nodes
+        
         //check database for reports
         vector<string> ips = this->getStorage()->getLRHardware(10, 30);
         int n = ips.size();
@@ -60,7 +62,25 @@ void MasterNode::timerFun() {
         for(auto&& ip : ips) {
             this->connections->sendRequestReport(ip);
         }
+
+        //routine for MasterNodes
+        ips = this->getStorage()->getMNodes();
+        int i=0;
+        int sent=0;
+        while(i < ips.size() && sent < 1) {
+            if(ips[i] == this->myIp) {
+                i++;
+                continue;
+            }
+
+            vector<Report::report_result> report = this->getStorage()->getReport();
+            if(this->connections->sendMReport(ips[i], report)) {
+                sent++;
+            }
+            i++;
+        }
         
+        /*
         int batch = 5;
         ips = this->getStorage()->getLRBandwidth(batch*2, 300);
         vector<string> ips_save;
@@ -69,14 +89,13 @@ void MasterNode::timerFun() {
                 ips_save.push_back(ips[i]);
             }else
                 j++;
-        }
+        }*/
 
         sleep(this->timeTimerFun);
 
-        for(auto&& ip : ips_save) {
-            this->connections->sendRequestReport(ip);
-        }
-
+        //for(auto&& ip : ips_save) {
+        //    this->connections->sendRequestReport(ip);
+        //}
     }
     }catch(...) {
         int a=0;

@@ -25,16 +25,29 @@ public:
         long lasttime;
     }test_result;
 
+    typedef struct {
+        std::string ip;
+        hardware_result hardware;
+        std::vector<test_result> latency;
+        std::vector<test_result> bandwidth;
+    }report_result;
+
     bool parseJson(rapidjson::Value& data);
     rapidjson::Value* getJson();
 
     void setHardware(hardware_result hardware);
     void setLatency(std::vector<test_result> latency);
     void setBandwidth(std::vector<test_result> bandwidth);
+    void setReport(report_result report);
+
+    void setReports(std::vector<report_result> reports);
 
     bool getHardware(hardware_result& hardware);
     bool getLatency(std::vector<test_result>& latency);
     bool getBandwidth(std::vector<test_result>& bandwidth);
+    bool getReport(report_result &report);
+    
+    bool getReports(std::vector<report_result> &reports);
 
 private:
     rapidjson::Document doc;

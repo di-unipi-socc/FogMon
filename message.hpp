@@ -10,7 +10,7 @@ class Message {
 public:
     enum Type {REQUEST, NOTIFY, RESPONSE};
     enum Command {GET, SET, HELLO, NODELIST, UPDATE, START};
-    enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE, TOKEN, IPERF, LATENCY, BANDWIDTH};
+    enum Argument {NONE, NODES, REPORT, POSITIVE, NEGATIVE, TOKEN, IPERF, ESTIMATE, LATENCY, BANDWIDTH};
 
     Message();
     ~Message();

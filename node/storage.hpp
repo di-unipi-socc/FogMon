@@ -12,17 +12,16 @@ protected:
     time_t startToken;
     //seconds the token lasts
     int durationToken;
-
 public:
     Storage();
     virtual ~Storage();
 
-    Report::hardware_result getHardware();
-    std::vector<Report::test_result> getLatency();
-    std::vector<Report::test_result> getBandwidth();
+    virtual Report::hardware_result getHardware();
+    virtual std::vector<Report::test_result> getLatency();
+    virtual std::vector<Report::test_result> getBandwidth();
 
     void saveLatencyTest(std::string ip, int ms);
-    void saveBandwidthTest(std::string ip, float kbps);
+    void saveBandwidthTest(std::string ip, float kbps, int state);
     void saveHardware(Report::hardware_result hardware);
 
     void refreshNodes(std::vector<std::string> nodes);
@@ -32,6 +31,9 @@ public:
     
     std::vector<std::string> getLRLatency(int num, int seconds);
     std::vector<std::string> getLRBandwidth(int num, int seconds);
+
+    //return -1 on fail
+    int getTestBandwidthState(std::string ip, Report::test_result &last);
 
     void setToken(int duration);
     int hasToken();

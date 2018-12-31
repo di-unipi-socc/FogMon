@@ -37,7 +37,7 @@ public:
     }
 
     virtual void saveLatencyTest(std::string ip, int ms) {}
-    virtual void saveBandwidthTest(std::string ip, float kbps) {}
+    virtual void saveBandwidthTest(std::string ip, float kbps, int state) {}
     virtual void saveHardware(Report::hardware_result hardware) {}
 
     virtual void refreshNodes(std::vector<std::string> nodes) {
@@ -54,6 +54,8 @@ public:
     virtual std::vector<std::string> getLRLatency(int num, int seconds) {return vector<string>();}
     virtual std::vector<std::string> getLRBandwidth(int num, int seconds) {return vector<string>();}
 
+    virtual int getTestBandwidthState(std::string ip, Report::test_result &last) { return 0;}
+
     virtual void setToken(int duration) {
         EXPECT_EQ(duration, 10);
     }
@@ -68,6 +70,15 @@ public:
     virtual void addReport(std::string strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth) {}
 
     virtual std::vector<std::string> getLRHardware(int num, int seconds) {return vector<string>();}
+
+    virtual void addMNode(string ip) {}
+    virtual Report::report_result getReport(string ip) {}
+    virtual vector<string> getMNodes() {}
+    virtual vector<Report::report_result> getReport() {}
+
+    virtual Report::hardware_result getHardware(string ip) {}
+    virtual std::vector<Report::test_result> getLatency(string ip) {}
+    virtual std::vector<Report::test_result> getBandwidth(string ip) {}
 };
 
 class MParent : virtual public IParentMaster {
@@ -79,6 +90,7 @@ public:
     void setMyIp(std::string ip) {}
     std::string getMyIp() {return "";}
     int startIperf() {return 55555;}
+    int startEstimate() {return 55556;}
     Server* getServer() {return NULL;}
 
     IMasterStorage* getStorage() {return &this->storage;}
@@ -151,6 +163,37 @@ TEST(ConnectionsTest, RStartIperf) {
     int port = -1;
     EXPECT_EQ(res.getData(port), true);
     EXPECT_EQ(port, mNode.startIperf());
+    
+    EXPECT_EQ(close(pipefd[1]), 0);
+    conn.stop();
+}
+
+TEST(ConnectionsTest, RStartEstimate) {
+    int pipefd[2];
+    MConn mConn;
+
+    EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
+    MParent mNode;
+    Connections conn(1);
+    conn.initialize(&mNode);
+    conn.start();
+    conn.request(pipefd[0]);
+
+    Message mess;
+    mess.setType(Message::Type::REQUEST);
+    mess.setCommand(Message::Command::START);
+    mess.setArgument(Message::Argument::ESTIMATE);
+    
+    EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
+    Message res;
+    EXPECT_EQ(mConn.getMessage(pipefd[1],res), true);
+
+    EXPECT_EQ(res.getType(), Message::Type::RESPONSE);
+    EXPECT_EQ(res.getCommand(), Message::Command::START);
+    EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
+    int port = -1;
+    EXPECT_EQ(res.getData(port), true);
+    EXPECT_EQ(port, mNode.startEstimate());
     
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
@@ -247,9 +290,9 @@ TEST(ConnectionsTest, RGetReport) {
     EXPECT_EQ(res.getData(r), true);
 
     Report r2; 
-    r2.setHardware(mNode.getStorage()->getHardware());
-    r2.setLatency(mNode.getStorage()->getLatency());
-    r2.setBandwidth(mNode.getStorage()->getBandwidth());
+    r2.setHardware(((Storage*)mNode.getStorage())->getHardware());
+    r2.setLatency(((Storage*)mNode.getStorage())->getLatency());
+    r2.setBandwidth(((Storage*)mNode.getStorage())->getBandwidth());
 
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> writer (s);

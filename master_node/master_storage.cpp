@@ -15,7 +15,8 @@ void MasterStorage::createTables() {
     Storage::createTables();
     char *zErrMsg = 0;
     
-    vector<string> query = {"CREATE TABLE IF NOT EXISTS MNodes (ip STRING PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP)",
+    vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (ip STRING PRIMARY KEY)"
+                            "CREATE TABLE IF NOT EXISTS MNodes (ip STRING PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP)",
                             "CREATE TABLE IF NOT EXISTS MBandwidth (ipA STRING, ipB STRING, mean FLOAT, variance FLOAT, lasttime TIMESTAMP, PRIMARY KEY(ipA,ipB))",
                             "CREATE TABLE IF NOT EXISTS MLatency (ipA STRING, ipB STRING, mean FLOAT, variance FLOAT, lasttime TIMESTAMP, PRIMARY KEY(ipA,ipB))",
                             "CREATE INDEX IF NOT EXISTS MlastNodes ON MNodes(lasttime)",
@@ -29,7 +30,7 @@ void MasterStorage::createTables() {
             fprintf(stderr, "SQL error (creating tables): %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
             exit(1);
-        }        
+        }
     }
 }
 
@@ -159,4 +160,117 @@ std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
     }
 
     return nodes;
+}
+
+vector<string> MasterStorage::getMNodes() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ip FROM MMNodes");
+
+    vector<string> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (select nodes): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
+void MasterStorage::addMNode(std::string ip) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    if(ip == "") {
+        return;
+    }
+    std::sprintf(buf,"INSERT OR REPLACE INTO MMNodes (ip) VALUES (\"%s\")", ip.c_str());
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+}
+
+vector<Report::report_result> MasterStorage::getReport() {
+    vector<string> ips = this->getNodes();
+    vector<Report::report_result> res;
+
+    for(auto ip : ips) {
+        res.push_back(this->getReport(ip));
+    }
+
+    return res;
+}
+
+Report::hardware_result MasterStorage::getHardware(std::string ip) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT * FROM MHardware WHERE ip = \"%s\" ORDER BY time LIMIT 1", ip.c_str());
+
+    Report::hardware_result r;
+
+    int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return r;
+}
+
+std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ipB, mean, variance, lasttime as time FROM MLatency WHERE ipA = \"%s\" group by ipB", ip.c_str());
+
+    vector<Report::test_result> tests;
+
+    int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return tests;
+}
+
+std::vector<Report::test_result> MasterStorage::getBandwidth(std::string ip) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT ipB, mean, variance, lasttime as time FROM MBandwidth WHERE ipA = \"%s\" group by ipB", ip.c_str());
+
+    vector<Report::test_result> tests;
+
+    int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+ 
+    return tests;
+}
+
+Report::report_result MasterStorage::getReport(string strIp) {
+    Report::report_result r;
+    r.ip = strIp;
+
+    r.hardware = this->getHardware(r.ip);
+
+    r.latency = this->getLatency(r.ip);
+
+    r.bandwidth = this->getBandwidth(r.ip);
+
+    return r;
 }

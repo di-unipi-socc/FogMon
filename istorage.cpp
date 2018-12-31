@@ -33,3 +33,34 @@ void IStorage::open(string path) {
 void IStorage::close() {
     sqlite3_close(this->db);
 }
+
+int IStorage::getHardwareCallback(void *R, int argc, char **argv, char **azColName) {
+    Report::hardware_result *r = (Report::hardware_result*)R;
+    for(int i=0; i<argc; i++) {
+        if(strcmp("cores", azColName[i])==0) {
+            r->cores = stoi(argv[i]);
+        }else if(strcmp("free_cpu", azColName[i])==0) {
+            r->free_cpu = stof(argv[i]);
+        }else if(strcmp("memory", azColName[i])==0) {
+            r->memory = stoi(argv[i]);
+        }else if(strcmp("free_memory", azColName[i])==0) {
+            r->free_memory = stoi(argv[i]);
+        }else if(strcmp("disk", azColName[i])==0) {
+            r->disk = stoi(argv[i]);
+        }else if(strcmp("free_disk", azColName[i])==0) {
+            r->free_disk = stoi(argv[i]);
+        }
+    }
+    return 0;
+}
+
+int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) {
+    vector<Report::test_result> *r = (vector<Report::test_result>*)R;
+    Report::test_result test;
+    test.target = string(argv[0]);
+    test.mean = stof(argv[1]);
+    test.variance = stof(argv[2]);
+    test.lasttime = stol(argv[3]);
+    r->push_back(test);
+    return 0;
+}

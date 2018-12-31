@@ -33,13 +33,12 @@ void MasterConnections::initialize(IParentMaster* parent) {
 }
 
 void MasterConnections::handler(int fd, Message &m) {
-
-    Connections::handler(fd, m);
-
     socklen_t len;
     struct sockaddr_storage addr;
     char ip[INET6_ADDRSTRLEN];
-                
+
+    strcat(ip, "::1");
+
     len = sizeof(addr);
     getpeername(fd, (struct sockaddr*)&addr, &len);
                 
@@ -152,7 +151,9 @@ void MasterConnections::handler(int fd, Message &m) {
                 }
             }
         }
-    }   
+    }
+    
+    Connections::handler(fd, m);
 }
 
 bool MasterConnections::sendRequestReport(std::string ip) {
@@ -224,6 +225,43 @@ bool MasterConnections::sendSetToken(std::string ip, int time) {
     m.setArgument(Message::Argument::TOKEN);
 
     m.setData(time);
+    bool ret = false;
+
+    //send message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::SET &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                ret = true;
+            }
+        }
+    }
+    close(Socket);
+    return ret;
+}
+
+bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result> report) {
+    int Socket = this->openConnection(ip);
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build message
+    Message m;
+    m.setType(Message::Type::REQUEST);//TODO
+    m.setCommand(Message::Command::SET);
+    m.setArgument(Message::Argument::TOKEN);
+
+    Report r;
+    r.setReports(report);
+
+    m.setData(r);
     bool ret = false;
 
     //send message

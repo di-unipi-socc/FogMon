@@ -51,6 +51,24 @@ void Connections::handler(int fd, Message &m) {
                     
                 }
             }
+        }else if(m.getArgument() == Message::Argument::ESTIMATE) {
+            if(m.getCommand() == Message::Command::START) {
+                
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::START);
+                int port = this->parent->startEstimate();
+                if(port > 0) {
+                    res.setArgument(Message::Argument::POSITIVE);
+                    res.setData(port);
+                }else {
+                    res.setArgument(Message::Argument::NEGATIVE);
+                }
+                //send response
+                if(this->sendMessage(fd, res)) {
+                    
+                }
+            }
         }else if(m.getArgument() == Message::Argument::TOKEN) {
             if(m.getCommand() == Message::Command::SET) {
                 
@@ -229,7 +247,7 @@ bool Connections::sendUpdate(string ipS, string portS) {
     return result;
 }
 
-int Connections::sendStartBandwidthTest(string ip) {
+int Connections::sendStartIperfTest(string ip) {
     int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
     
     if(Socket < 0) {
@@ -245,6 +263,41 @@ int Connections::sendStartBandwidthTest(string ip) {
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::START);
     m.setArgument(Message::Argument::IPERF);
+
+    int port = -1;
+
+    //send update message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::START &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                
+                res.getData(port);
+            }
+        }
+    }
+    close(Socket);
+    return port;
+}
+
+int Connections::sendStartEstimateTest(string ip) {
+    int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
+    
+    if(Socket < 0) {
+        return -1;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build update message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::START);
+    m.setArgument(Message::Argument::ESTIMATE);
 
     int port = -1;
 

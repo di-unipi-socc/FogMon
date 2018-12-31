@@ -8,6 +8,7 @@
 using namespace std;
 
 TEST(StorageTest, RefreshGetNodes) {
+    unlink("testA.db");
     Storage storage;
     storage.open("testA.db");
 
@@ -90,7 +91,7 @@ TEST(StorageTest, SaveGetBandwidth) {
     Storage storage;
     storage.open("testA.db");
     
-    storage.saveBandwidthTest("test", 100.0f);
+    storage.saveBandwidthTest("test", 100.0f, 2);
 
     vector<Report::test_result> test = storage.getBandwidth();
     int dim = 1;
@@ -102,6 +103,13 @@ TEST(StorageTest, SaveGetBandwidth) {
         EXPECT_GE(time(NULL), test[0].lasttime);
     }else 
         FAIL();
+    Report::test_result last;
+    int state = storage.getTestBandwidthState("test", last);
+    EXPECT_EQ(state, 2);
+    EXPECT_FLOAT_EQ(100.0f, last.mean);
+    EXPECT_FLOAT_EQ(0, last.variance);
+    EXPECT_EQ("test", last.target);
+    EXPECT_GE(time(NULL), last.lasttime);
 }
 
 TEST(StorageTest, SetGetToken) {
@@ -138,7 +146,7 @@ TEST(StorageTest, GetLRBandwidth) {
         FAIL();
 }
 
-TEST(StorageMasterTest, SaveGetNode) {
+TEST(StorageMasterTest, AddGetNode) {
     unlink("testB.db");
     MasterStorage storage;
     storage.open("testB.db");

@@ -26,7 +26,8 @@ public:
     bool sendUpdate(std::string ipS, std::string portS);
 
     //return the port for the test
-    int sendStartBandwidthTest(std::string ip);
+    int sendStartIperfTest(std::string ip);
+    int sendStartEstimateTest(std::string ip);
 };
 
 #endif

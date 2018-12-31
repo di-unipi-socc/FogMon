@@ -93,6 +93,86 @@ void Report::setBandwidth(vector<test_result> bandwidth) {
 
 }
 
+void Report::setReport(report_result report) {
+    this->setHardware(report.hardware);
+    this->setLatency(report.latency);
+    this->setBandwidth(report.bandwidth);
+}
+
+void Report::setReports(std::vector<report_result> reports) {
+    Value arr(kArrayType);
+    doc.RemoveMember("reports");
+
+    Document::AllocatorType& allocator = doc.GetAllocator();
+
+    for(auto test : reports) {
+        
+        Value ip(test.ip.c_str(), allocator);
+        Value hw(kObjectType);
+        Value lt(kArrayType);
+        Value bw(kArrayType);
+
+        {
+            Report::hardware_result &hardware = test.hardware;
+            
+        
+            Value cores(hardware.cores);
+            Value free_cpu(hardware.free_cpu);
+            Value memory(hardware.memory);
+            Value free_memory(hardware.free_memory);
+            Value disk(hardware.disk);
+            Value free_disk(hardware.free_disk);
+
+            hw.AddMember("cores", cores, doc.GetAllocator());
+            hw.AddMember("free_cpu", free_cpu, doc.GetAllocator());
+            hw.AddMember("memory", memory, doc.GetAllocator());
+            hw.AddMember("free_memory", free_memory, doc.GetAllocator());
+            hw.AddMember("disk", disk, doc.GetAllocator());
+            hw.AddMember("free_disk", free_disk, doc.GetAllocator());
+        }
+        
+        for(auto testLt : test.latency) {
+            Value target(testLt.target.c_str(), allocator);
+            Value mean(testLt.mean);
+            Value variance(testLt.variance);
+            Value lasttime(testLt.lasttime);
+            Value obj(kObjectType);
+            obj.AddMember("target",target, allocator);
+            obj.AddMember("mean",mean, allocator);
+            obj.AddMember("variance",variance, allocator);
+            obj.AddMember("lasttime",lasttime, allocator);
+
+            arr.PushBack(lt, allocator);
+        }
+
+        for(auto testBw : test.bandwidth) {
+            Value target(testBw.target.c_str(), allocator);
+            Value mean(testBw.mean);
+            Value variance(testBw.variance);
+            Value lasttime(testBw.lasttime);
+            Value obj(kObjectType);
+            obj.AddMember("target",target, allocator);
+            obj.AddMember("mean",mean, allocator);
+            obj.AddMember("variance",variance, allocator);
+            obj.AddMember("lasttime",lasttime, allocator);
+
+            arr.PushBack(bw, allocator);
+        }
+
+        
+        Value obj(kObjectType);
+        
+        obj.AddMember("ip",ip, allocator);
+        obj.AddMember("hardware",hw, allocator);
+        obj.AddMember("latency",lt, allocator);
+        obj.AddMember("bandwidth",bw, allocator);
+
+        arr.PushBack(obj, allocator);
+    }
+    
+    doc.AddMember("bandwidth", arr, doc.GetAllocator());
+}
+
 bool Report::getHardware(hardware_result& hardware) {
     if( !this->doc.HasMember("hardware") || !this->doc["hardware"].IsObject())
         return false;
@@ -165,4 +245,12 @@ bool Report::getBandwidth(vector<test_result>& bandwidth) {
         bandwidth.push_back(test);
     }
     return true;
+}
+
+bool Report::getReport(report_result &report) {
+
+}
+    
+bool Report::getReports(std::vector<report_result> &reports) {
+
 }

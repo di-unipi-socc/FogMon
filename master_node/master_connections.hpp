@@ -25,6 +25,7 @@ public:
     
     bool sendRequestReport(std::string ip);
     bool sendSetToken(std::string ip, int time);
+    bool sendMReport(std::string ip, vector<Report::report_result> report);
 };
 
 #endif

@@ -19,6 +19,7 @@ public:
     virtual std::string getMyIp() = 0;
     
     virtual int startIperf() = 0;
+    virtual int startEstimate() = 0;
     
     virtual Server* getServer() = 0;
 };

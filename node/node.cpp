@@ -150,7 +150,11 @@ int Node::startIperf() {
     return ret;
 }
 
-void Node::testBandwidth(string ip, int port) {
+int Node::startEstimate() {
+    return -1;
+}
+
+float Node::testBandwidthIperf(string ip, int port) {
     char command[256];
     if(port > 0) {
         sprintf(command, "iperf3 -c %s -p %d -t 1 -i 1 -J 2>&1", ip.c_str(), port);
@@ -167,7 +171,7 @@ void Node::testBandwidth(string ip, int port) {
 
     // Test output
     if(!(in = popen(command, mode.c_str()))){
-        return;
+        return -1;
     }
 
     // Parse output
@@ -184,21 +188,27 @@ void Node::testBandwidth(string ip, int port) {
         Document doc;
         ParseResult ok = doc.Parse((const char*)output.c_str());
         if(!ok)
-            return;
+            return -1;
         
         if( !doc.HasMember("end") && !doc["end"].IsObject() &&
             !doc["end"].HasMember("sum_received") && !doc["end"]["sum_received"].IsObject() &&
             !doc["end"]["sum_received"].HasMember("bits_per_second") && !doc["end"]["sum_received"]["bits_per_second"].IsFloat())
-            return;
+            return -1;
 
         float val = doc["end"]["sum_received"]["bits_per_second"].GetFloat();
 
         cout << "bps " << val << " kbps " << val /1000 << endl;
-        this->storage->saveBandwidthTest(ip, val/1000);
+        //this->storage->saveBandwidthTest(ip, val/1000, 0);
+        return val/1000;
     }
+    return -1;
 }
 
-void Node::testPing(string ip) {
+float Node::testBandwidthEstimate(string ip, int port) {
+    return -1;
+}
+
+int Node::testPing(string ip) {
     char command[256];
     sprintf(command, "ping -c 3 %s 2>&1", ip.c_str());
     string mode = "r";
@@ -212,7 +222,7 @@ void Node::testPing(string ip) {
 
     // Test output
     if(!(in = popen(command, mode.c_str()))){
-        return;
+        return -1;
     }
 
     // Parse output
@@ -232,12 +242,14 @@ void Node::testPing(string ip) {
         std::smatch m;
         
         while (std::regex_search (output,m,reg)) {
-            this->storage->saveLatencyTest(ip, stoi(m[1]));
             cout<< m[1]<< endl;
             std::cout << std::endl;
             output = m.suffix().str();
+            //this->storage->saveLatencyTest(ip, stoi(m[1]));
+            return stoi(m[1]);
         }
     }
+    return -1;
 }
 
 void Node::getHardware() {
@@ -314,8 +326,12 @@ void Node::TestTimer() {
         for(auto ip : ips) {
             if(myIp == ip)
                 continue;
-            this->testPing(ip);
+            int val = this->testPing(ip);
+            if(val >= 0) {
+                this->storage->saveLatencyTest(ip, val);
+            }
         }
+        /*
         int m = this->storage->hasToken();
         if(m > 0) {
             cout << "start test bandwidth:" << endl;
@@ -331,16 +347,88 @@ void Node::TestTimer() {
                     i++;
                     continue;
                 }
-                int port = this->connections->sendStartBandwidthTest(ips[i]);
+                int port = this->connections->sendStartIperfTest(ips[i]);
                 if(port != -1) {
                     cout << "stat test"<<endl;
-                    this->testBandwidth(ips[i], port);
+                    float val = this->testBandwidthIperf(ips[i], port);
+                    if(val >= 0)
+                        this->storage->saveBandwidthTest(ips[i], val, 0);
                 }
                 i++;
             }
+        }*/
+        ips = this->storage->getLRBandwidth(10,300);
+        int i=0;
+        int tested=0;
+        while(i < ips.size() && tested < 1) {
+            if(this->myIp == ips[i]) {
+                i++;
+                continue;
+            }
+            Report::test_result last;
+            int state = this->storage->getTestBandwidthState(ips[i], last);
+            float val = this->testBandwidth(ips[i], last.mean, state);
+            if(val < 0) {
+                val = this->testBandwidth(ips[i], last.mean, state);
+            }
+
+            if(val >= 0) {
+                this->storage->saveBandwidthTest(ips[i], val, state);
+                tested++;
+            }
+            i++;
         }
+
         sleep(this->timeTimerTest);
     }
+}
+
+
+float Node::testBandwidth(std::string ip, float old, int &state) {
+    float result = -1;
+    int port;
+    switch(state) {
+        case 0: //base state
+            port = this->connections->sendStartIperfTest(ip);
+            if(port != -1) {
+                result = this->testBandwidthIperf(ip);
+                if(result >= 0)
+                    state = 1;
+            }
+        break;
+        case 1: //a test is already done
+            port = this->connections->sendStartEstimateTest(ip);
+            if(port != -1) {
+                result = this->testBandwidthEstimate(ip);
+                if(result >= 0 && abs(result - old)/old < 0.1) {
+                    state = 2;
+                }else {
+                    state = 3;
+                    result = -1;
+                }
+            }
+        break;
+        case 2: //estimate succeeded
+            port = this->connections->sendStartEstimateTest(ip);
+            if(port != -1) {
+                result = this->testBandwidthEstimate(ip);
+                if(result >= 0 && abs(result - old)/old < 0.1) {
+                    state = 0;
+                }else {
+                    state = 3;
+                    result = -1;
+                }
+            }
+        break;
+        case 3: //estimate failed
+            port = this->connections->sendStartIperfTest(ip);
+            if(port != -1) {
+                result = this->testBandwidthIperf(ip);
+                if(result >= 0)
+                    state = 0;
+            }
+    }
+    return result;
 }
 
 void Node::setMyIp(std::string ip) {

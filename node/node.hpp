@@ -26,6 +26,8 @@ public:
 
     //start iperf command line server and return the port it is open in
     virtual int startIperf();
+    //start estimate tool (assolo) server and return the port it is open in
+    virtual int startEstimate();
 
     virtual Server* getServer();
 protected:
@@ -61,11 +63,17 @@ protected:
 
     //timer for latency and bandwidth tests
     void TestTimer();
-    
-    //test the Bandwidth with another node
-    void testBandwidth(std::string ip, int port= -1);
+
+    //test the bandwidth with another ip
+    float testBandwidth(std::string ip, float old, int &state);
+
+    //test the bandwidth using iperf3
+    float testBandwidthIperf(std::string ip, int port = -1);
+    //test the bandwidth using an estimation tool (assolo)
+    float testBandwidthEstimate(std::string ip, int port = -1);
+
     //test the latency with another node
-    void testPing(std::string ip);
+    int testPing(std::string ip);
 
     //get the hardware of this node
     void getHardware();
