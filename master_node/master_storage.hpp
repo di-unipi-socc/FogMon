@@ -19,13 +19,15 @@ public:
     std::vector<Report::report_result> getReport();
     Report::report_result getReport(std::string strIp);
 
-    void addNode(std::string strIp, Report::hardware_result);
+    void addReport(std::vector<Report::report_result> results);
+    
+    void addNode(std::string strIp, Report::hardware_result hardware, bool monitored = true);
     void addMNode(std::string strIp);
 
     void addReportLatency(std::string strIp, std::vector<Report::test_result> latency);
     void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth);
 
-    void addReport(std::string strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth);
+    void addReport(Report::report_result result, bool monitored = true);
 
     std::vector<std::string> getLRHardware(int num, int seconds);
     std::vector<std::string> getLRLatency(int num, int seconds);

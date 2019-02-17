@@ -61,7 +61,19 @@ void MasterConnections::handler(int fd, Message &m) {
     }
     string strIp = string(ip);
 
-    if(m.getType() == Message::Type::REQUEST) {
+    if(m.getType() == Message::Type::MREQUEST) {
+        if(m.getCommand() == Message::Command::SET) {
+            if(m.getArgument() == Message::Argument::REPORT) {
+                Report r;
+                if(m.getData(r)) {
+                    vector<Report::report_result> results;
+                    if(r.getReports(results)) {
+                        this->parent->getStorage()->addReport(results);
+                    }
+                }
+            }
+        }
+    }else if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
@@ -86,7 +98,7 @@ void MasterConnections::handler(int fd, Message &m) {
                     vector<Report::test_result> bandwidth;
 
                     if(r.getHardware(hardware) && r.getLatency(latency) && r.getBandwidth(bandwidth)) {
-                        this->parent->getStorage()->addReport(strIp, hardware, latency, bandwidth);
+                        this->parent->getStorage()->addReport( Report::report_result(strIp, hardware, latency, bandwidth) );
                     }
                 }
             }
@@ -254,9 +266,9 @@ bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result
 
     //build message
     Message m;
-    m.setType(Message::Type::REQUEST);//TODO
+    m.setType(Message::Type::MREQUEST);//TODO
     m.setCommand(Message::Command::SET);
-    m.setArgument(Message::Argument::TOKEN);
+    m.setArgument(Message::Argument::REPORT);
 
     Report r;
     r.setReports(report);
@@ -268,7 +280,7 @@ bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result
     if(this->sendMessage(Socket, m)) {
         Message res;
         if(this->getMessage(Socket, res)) {
-            if( res.getType()==Message::Type::RESPONSE &&
+            if( res.getType()==Message::Type::MRESPONSE &&
                 res.getCommand() == Message::Command::SET &&
                 res.getArgument() == Message::Argument::POSITIVE) {
                 ret = true;

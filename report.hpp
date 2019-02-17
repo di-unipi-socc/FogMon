@@ -25,11 +25,15 @@ public:
         long lasttime;
     }test_result;
 
-    typedef struct {
+    typedef struct report_result{
         std::string ip;
         hardware_result hardware;
         std::vector<test_result> latency;
         std::vector<test_result> bandwidth;
+
+        report_result() {}
+        report_result(std::string Ip, hardware_result Hardware, std::vector<test_result> Latency, std::vector<test_result> Bandwidth)
+        : ip(Ip), hardware(Hardware), latency(Latency), bandwidth(Bandwidth) {}
     }report_result;
 
     bool parseJson(rapidjson::Value& data);

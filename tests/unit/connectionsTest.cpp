@@ -79,6 +79,9 @@ public:
     virtual Report::hardware_result getHardware(string ip) {}
     virtual std::vector<Report::test_result> getLatency(string ip) {}
     virtual std::vector<Report::test_result> getBandwidth(string ip) {}
+    virtual void addNode(std::string strIp, Report::hardware_result hardware, bool monitored = true) {}
+    virtual void addReport(Report::report_result result, bool monitored = true) {}
+    virtual void addReport(std::vector<Report::report_result> results) {}
 };
 
 class MParent : virtual public IParentMaster {
