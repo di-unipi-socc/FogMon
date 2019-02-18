@@ -68,7 +68,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 if(m.getData(r)) {
                     vector<Report::report_result> results;
                     if(r.getReports(results)) {
-                        this->parent->getStorage()->addReport(results);
+                        this->parent->getStorage()->addReport(results, strIp);
                     }
                 }
             }

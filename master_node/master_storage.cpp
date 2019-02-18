@@ -16,7 +16,7 @@ void MasterStorage::createTables() {
     char *zErrMsg = 0;
     
     vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (ip STRING PRIMARY KEY)",
-                            "CREATE TABLE IF NOT EXISTS MNodes (ip STRING PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitored BOOLEAN)",
+                            "CREATE TABLE IF NOT EXISTS MNodes (ip STRING PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitoredBy STRING)",
                             "CREATE TABLE IF NOT EXISTS MLinks (ipA STRING, ipB STRING, meanL FLOAT, varianceL FLOAT, lasttimeL TIMESTAMP, meanB FLOAT, varianceB FLOAT, lasttimeB TIMESTAMP, PRIMARY KEY(ipA,ipB))",
                             "CREATE INDEX IF NOT EXISTS MlastNodes ON MNodes(lasttime)",
                             "CREATE INDEX IF NOT EXISTS MlastBandwidth ON MLinks(lasttimeB)",
@@ -33,13 +33,13 @@ void MasterStorage::createTables() {
     }
 }
 
-void MasterStorage::addNode(std::string ip, Report::hardware_result hardware, bool monitored) {
+void MasterStorage::addNode(std::string ip, Report::hardware_result hardware, string monitored) {
     char *zErrMsg = 0;
     char buf[1024];
     if(ip == "") {
         return;
     }
-    std::sprintf(buf,"INSERT OR REPLACE INTO MNodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime, monitored) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, DATETIME('now'), %d)", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk, (int)monitored);
+    std::sprintf(buf,"INSERT OR REPLACE INTO MNodes (ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime, monitored) VALUES (\"%s\", %d, %f, %d, %d, %d, %d, DATETIME('now'), %d)", ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk, monitored.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -119,25 +119,25 @@ void MasterStorage::addReportBandwidth(string strIp, vector<Report::test_result>
     }
 }
 
-void MasterStorage::addReport(Report::report_result result, bool monitored) {
+void MasterStorage::addReport(Report::report_result result, string monitored) {
     this->addNode(result.ip, result.hardware, monitored);
     this->addReportLatency(result.ip, result.latency);
     this->addReportBandwidth(result.ip, result.bandwidth);
 }
 
-void MasterStorage::addReport(std::vector<Report::report_result> results) {
+void MasterStorage::addReport(std::vector<Report::report_result> results, string ip) {
     for(auto result : results) {
-        this->addReport(result, false);
+        this->addReport(result, ip);
     }
 }
 
 std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,   "SELECT ip from "
-                        " (SELECT A.ip, B.ip, Null as lasttimeL from MNodes as A join MNodes as B"
-                        "  WHERE A.ip != B.ip and not exists (SELECT * from MLinks WHERE A.ip = ipA and B.ip = ipB) "
-                        " UNION SELECT A.ip, B.ip, C.lasttimeL from MNodes as A join MNodes as B left join MLinks as C"
+    std::sprintf(buf,   "SELECT ip FROM "
+                        " (SELECT A.ip, B.ip, Null as lasttimeL FROM MNodes as A join MNodes as B"
+                        "  WHERE A.ip != B.ip and not exists (SELECT * FROM MLinks WHERE A.ip = ipA and B.ip = ipB) "
+                        " UNION SELECT A.ip, B.ip, C.lasttimeL FROM MNodes as A join MNodes as B left join MLinks as C"
                         "  WHERE A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttimeL)+%d-strftime('%%s','now') <= 0 "
                         " order by lasttimeL limit %d) "
                         "group by ip;",
@@ -159,10 +159,10 @@ std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,   "SELECT ip from "
-                        " (SELECT A.ip, B.ip, Null as lasttimeB from MNodes as A join MNodes as B"
-                        "  WHERE A.ip != B.ip and not exists (SELECT * from MLinks WHERE A.ip = ipA and B.ip = ipB) "
-                        " UNION SELECT A.ip, B.ip, C.lasttimeB from MNodes as A join MNodes as B left join MLinks as C"
+    std::sprintf(buf,   "SELECT ip FROM "
+                        " (SELECT A.ip, B.ip, Null as lasttimeB FROM MNodes as A join MNodes as B"
+                        "  WHERE A.ip != B.ip and not exists (SELECT * FROM MLinks WHERE A.ip = ipA and B.ip = ipB) "
+                        " UNION SELECT A.ip, B.ip, C.lasttimeB FROM MNodes as A join MNodes as B left join MLinks as C"
                         "  WHERE A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttimeB)+%d-strftime('%%s','now') <= 0 "
                         " order by lasttimeB limit %d) "
                         "group by ip;",
@@ -309,4 +309,35 @@ Report::report_result MasterStorage::getReport(string strIp) {
     r.bandwidth = this->getBandwidth(r.ip);
 
     return r;
+}
+
+void MasterStorage::complete() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,
+                "INSERT OR REPLACE INTO MLinks (ipA, ipB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
+                " SELECT A.ip as ipA, B.ip as ipB, "
+                    "(SELECT meanL from MLinks WHERE ipA = A.monitoredBy AND ipB = B.monitoredBy) + "
+                    "(SELECT meanL from MLinks WHERE ipA = A.ip AND ipB = A.monitoredBy) + "
+                    "(SELECT meanL from MLinks WHERE ipA = B.monitoredBy AND ipB = B.ip) "
+                    "as meanL, "
+                    "(SELECT varianceL from MLinks WHERE ipA = A.monitoredBy AND ipB = B.monitoredBy) + "
+                    "(SELECT varianceL from MLinks WHERE ipA = A.ip AND ipB = A.monitoredBy) + "
+                    "(SELECT varianceL from MLinks WHERE ipA = B.monitoredBy AND ipB = B.ip) "
+                    "as varianceL, NULL as lasttimeL, "
+                    "(SELECT min(meanB) from MLinks WHERE (ipA = A.ip AND ipB <> B.ip) OR (ipA <> A.ip AND ipB = B.ip) "
+                    "as meanB, "
+                    "(SELECT max(varianceB) from MLinks WHERE (ipA = A.ip AND ipB <> B.ip) OR (ipA <> A.ip AND ipB = B.ip) "
+                    "as varianceB, NULL as lasttimeB "
+                "  FROM Nodes as A JOIN Nodes as B WHERE A.ip <> B.ip");
+
+    vector<Report::test_result> tests;
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
 }
