@@ -15,13 +15,12 @@ void MasterStorage::createTables() {
     Storage::createTables();
     char *zErrMsg = 0;
     
-    vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (ip STRING PRIMARY KEY)"
+    vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (ip STRING PRIMARY KEY)",
                             "CREATE TABLE IF NOT EXISTS MNodes (ip STRING PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitored BOOLEAN)",
-                            "CREATE TABLE IF NOT EXISTS MBandwidth (ipA STRING, ipB STRING, mean FLOAT, variance FLOAT, lasttime TIMESTAMP, PRIMARY KEY(ipA,ipB))",
-                            "CREATE TABLE IF NOT EXISTS MLatency (ipA STRING, ipB STRING, mean FLOAT, variance FLOAT, lasttime TIMESTAMP, PRIMARY KEY(ipA,ipB))",
+                            "CREATE TABLE IF NOT EXISTS MLinks (ipA STRING, ipB STRING, meanL FLOAT, varianceL FLOAT, lasttimeL TIMESTAMP, meanB FLOAT, varianceB FLOAT, lasttimeB TIMESTAMP, PRIMARY KEY(ipA,ipB))",
                             "CREATE INDEX IF NOT EXISTS MlastNodes ON MNodes(lasttime)",
-                            "CREATE INDEX IF NOT EXISTS MlastBandwidth ON MBandwidth(lasttime)",
-                            "CREATE INDEX IF NOT EXISTS MlastLatency ON MLatency(lasttime)"};
+                            "CREATE INDEX IF NOT EXISTS MlastBandwidth ON MLinks(lasttimeB)",
+                            "CREATE INDEX IF NOT EXISTS MlastLatency ON MLinks(lasttimeL)"};
     
     for(string str : query) {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
@@ -68,7 +67,7 @@ vector<string> MasterStorage::getNodes() {
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error (select nodes): %s\n", zErrMsg);
+        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -79,8 +78,25 @@ vector<string> MasterStorage::getNodes() {
 void MasterStorage::addTest(string strIpA, string strIpB, Report::test_result test, string type) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT OR REPLACE INTO M%s (ipA, ipB, mean, variance, lasttime) VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%d,\"unixepoch\"))", type.c_str() ,strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, test.lasttime);
+    if(type == string("Latency")) {
+        std::sprintf(buf,
+                        "INSERT OR REPLACE INTO MLinks (ipA, ipB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
+                        "VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%d,\"unixepoch\"), "
+                        "(SELECT meanB FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\"), "
+                        "(SELECT varianceB FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\"), "
+                        "(SELECT lasttimeB FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\") ",
+                        strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, test.lasttime, strIpA.c_str(), strIpB.c_str(), strIpA.c_str(), strIpB.c_str(), strIpA.c_str(), strIpB.c_str());
+    }else if(type == string("Bandwidth")) {
+        std::sprintf(buf,
+                        "INSERT OR REPLACE INTO MLinks (ipA, ipB, meanB, varianceB, lasttimeB, meanL, varianceL, lasttimeL) "
+                        "VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%d,\"unixepoch\"), "
+                        "(SELECT meanL FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\"), "
+                        "(SELECT varianceL FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\"), "
+                        "(SELECT lasttimeL FROM MLinks WHERE ipA = \"%s\" AND ipA = \"%s\") ",
+                        strIpA.c_str(), strIpB.c_str() , test.mean, test.variance, test.lasttime, strIpA.c_str(), strIpB.c_str(), strIpA.c_str(), strIpB.c_str(), strIpA.c_str(), strIpB.c_str());
 
+    }
+    
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
@@ -118,7 +134,14 @@ void MasterStorage::addReport(std::vector<Report::report_result> results) {
 std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"select ip from (select A.ip, B.ip, Null as lasttime from MNodes as A join MNodes as B where A.ip != B.ip and not exists (select * from MLatency where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from MNodes as A join MNodes as B left join MLatency as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') <= 0 order by lasttime limit %d) group by ip;",seconds, num);
+    std::sprintf(buf,   "SELECT ip from "
+                        " (SELECT A.ip, B.ip, Null as lasttimeL from MNodes as A join MNodes as B"
+                        "  WHERE A.ip != B.ip and not exists (SELECT * from MLinks WHERE A.ip = ipA and B.ip = ipB) "
+                        " UNION SELECT A.ip, B.ip, C.lasttimeL from MNodes as A join MNodes as B left join MLinks as C"
+                        "  WHERE A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttimeL)+%d-strftime('%%s','now') <= 0 "
+                        " order by lasttimeL limit %d) "
+                        "group by ip;",
+                seconds, num);
     
     vector<string> nodes;
 
@@ -136,7 +159,14 @@ std::vector<std::string> MasterStorage::getLRLatency(int num, int seconds) {
 std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"select ip from(select A.ip, B.ip, Null as lasttime from MNodes as A join MNodes as B where A.ip != B.ip and not exists (select * from MBandwidth where A.ip = ipA and B.ip = ipB) union select A.ip, B.ip, C.lasttime from MNodes as A join MNodes as B left join MBandwidth as C where A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttime)+%d-strftime('%%s','now') <= 0 order by lasttime limit %d) group by ip;",seconds, num);
+    std::sprintf(buf,   "SELECT ip from "
+                        " (SELECT A.ip, B.ip, Null as lasttimeB from MNodes as A join MNodes as B"
+                        "  WHERE A.ip != B.ip and not exists (SELECT * from MLinks WHERE A.ip = ipA and B.ip = ipB) "
+                        " UNION SELECT A.ip, B.ip, C.lasttimeB from MNodes as A join MNodes as B left join MLinks as C"
+                        "  WHERE A.ip != B.ip and A.ip = C.ipA and B.ip = C.ipB and strftime('%%s',C.lasttimeB)+%d-strftime('%%s','now') <= 0 "
+                        " order by lasttimeB limit %d) "
+                        "group by ip;",
+                seconds, num);
     vector<string> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
@@ -178,7 +208,7 @@ vector<string> MasterStorage::getMNodes() {
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error (select nodes): %s\n", zErrMsg);
+        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -235,7 +265,7 @@ Report::hardware_result MasterStorage::getHardware(std::string ip) {
 std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, mean, variance, lasttime as time FROM MLatency WHERE ipA = \"%s\" group by ipB", ip.c_str());
+    std::sprintf(buf,"SELECT ipB, meanL as mean, varianceL as variance, lasttimeL as time FROM MLinks WHERE ipA = \"%s\" group by ipB", ip.c_str());
 
     vector<Report::test_result> tests;
 
@@ -253,7 +283,7 @@ std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
 std::vector<Report::test_result> MasterStorage::getBandwidth(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, mean, variance, lasttime as time FROM MBandwidth WHERE ipA = \"%s\" group by ipB", ip.c_str());
+    std::sprintf(buf,"SELECT ipB, meanB as mean, varianceB as variance, lasttime as time FROM MBandwidth WHERE ipA = \"%s\" group by ipB", ip.c_str());
 
     vector<Report::test_result> tests;
 

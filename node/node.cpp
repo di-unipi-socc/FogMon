@@ -27,7 +27,7 @@
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(string ip, string port, int nThreads) {
+Node::Node(string ip, string port, int nThreads, bool direct) {
     this->nThreads = nThreads;
     this->running = false;
     this->timerReport = 5;
@@ -37,6 +37,7 @@ Node::Node(string ip, string port, int nThreads) {
     this->storage = NULL;
     this->connections = NULL;
     this->server = NULL;
+    this->direct = direct;
 }
 
 void Node::initialize(Factory* fact) {
@@ -74,8 +75,26 @@ void Node::start() {
     this->running = true;
     this->server->start();
     srandom(time(nullptr));
+
+    if(!this->direct) {
+        //ask the MNodes list and select one MNode with the min latency
+        vector<string> MNodes = this->connections->requestMNodes(this->ipS, this->portS);
+        MNodes.push_back(this->ipS);
+        
+        int imin=0;
+        unsigned int min = (unsigned int)this->testPing(MNodes[imin]);
+        for(int i=1; i<MNodes.size(); i++) {
+            unsigned int tmp = (unsigned int)this->testPing(MNodes[imin]);
+            if(tmp < min) {
+                imin = i;
+                min = tmp;
+            }
+        }
+        this->ipS = MNodes[imin];
+    }
+    
     this->getHardware();
-    if(!this->connections->sendHello(this->ipS,this->portS)) {
+    if(!this->connections->sendHello(this->ipS, this->portS)) {
         perror("Cannot connect to the main node");
         this->stop();
     }

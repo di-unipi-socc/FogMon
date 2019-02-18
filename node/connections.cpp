@@ -170,6 +170,44 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
+vector<string> Connections::requestMNodes(string ipS, string portS) {
+    int Socket = openConnection(ipS, portS);
+    
+    if(Socket < 0) {
+        return vector<string>();
+    }
+
+    printf("asking");
+    fflush(stdout);
+    char buffer[10];
+
+    //build hello message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::GET);
+    m.setArgument(Message::Argument::MNODES);
+
+    vector<string> nodes;
+    bool result = false;
+    //send hello message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::MNODELIST &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                if(res.getData(nodes)) {
+                    result = true;
+                }
+            }
+        }
+    }
+    close(Socket);
+    if(result)
+        return nodes;
+    return vector<string>();
+}
+
 bool Connections::sendHello(string ipS, string portS) {
     int Socket = openConnection(ipS, portS);
     

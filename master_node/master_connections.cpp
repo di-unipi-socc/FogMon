@@ -72,6 +72,14 @@ void MasterConnections::handler(int fd, Message &m) {
                     }
                 }
             }
+        }else if(m.getCommand() == Message::Command::START) {
+            this->parent->getStorage()->addMNode(strIp);
+            Message res;
+            res.setType(Message::Type::RESPONSE);
+            res.setCommand(Message::Command::START);
+            res.setArgument(Message::Argument::POSITIVE);
+
+            sendMessage(fd, res);
         }
     }else if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::NODES) {
@@ -82,6 +90,20 @@ void MasterConnections::handler(int fd, Message &m) {
                 Message res;
                 res.setType(Message::Type::RESPONSE);
                 res.setCommand(Message::Command::NODELIST);
+                res.setArgument(Message::Argument::POSITIVE);
+
+                res.setData(nodes);
+            
+                sendMessage(fd, res);
+            }
+        }else if(m.getArgument() == Message::Argument::MNODES) {
+            if(m.getCommand() == Message::Command::GET) {
+                //build array of nodes
+                vector<string> nodes = this->parent->getStorage()->getMNodes();
+                //send nodes
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::MNODELIST);
                 res.setArgument(Message::Argument::POSITIVE);
 
                 res.setData(nodes);
