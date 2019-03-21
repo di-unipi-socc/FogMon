@@ -17,9 +17,10 @@ void Storage::createTables() {
     char *zErrMsg = 0;
 
     vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, ipB STRING, ms INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, ipB STRING, kbps FLOAT)",
-                            "CREATE TABLE IF NOT EXISTS Nodes (ip STRING PRIMARY KEY, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP, bandwidthState INTEGER)"};
+                            "CREATE TABLE IF NOT EXISTS Nodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP, bandwidthState INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, idNodeB INTEGER REFERENCES Nodes(id), ms INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, idNodeB INTEGER REFERENCES Nodes(id), kbps FLOAT)",
+                            "CREATE TABLE IF NOT EXISTS IoTs (id STRING PRIMARY KEY, desc STRING, ms INTEGER)"};
     
     for(string str : query) {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
@@ -53,7 +54,7 @@ Report::hardware_result Storage::getHardware() {
 std::vector<Report::test_result> Storage::getLatency() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB, avg(ms) AS mean, variance(ms) AS var, strftime('%%s',max(time)) as time FROM Latency group by ipB");
+    std::sprintf(buf,"SELECT N.ip AS ip, avg(L.ms) AS mean, variance(L.ms) AS var, strftime('%%s',max(L.time)) as time FROM Latency AS L JOIN Nodes AS N WHERE L.idNodeB = N.id group by N.id");
 
     vector<Report::test_result> tests;
 
@@ -71,7 +72,7 @@ std::vector<Report::test_result> Storage::getLatency() {
 std::vector<Report::test_result> Storage::getBandwidth() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ipB as ip, avg(kbps) AS mean, variance(kbps) AS var, strftime('%%s',max(time)) as time FROM Bandwidth group by ipB");
+    std::sprintf(buf,"SELECT N.ip AS ip, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N WHERE B.idNodeB = N.id group by N.id");
 
     vector<Report::test_result> tests;
 
@@ -89,7 +90,7 @@ std::vector<Report::test_result> Storage::getBandwidth() {
 void Storage::saveLatencyTest(string ip, int ms) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Latency (time ,ipB, ms) VALUES (DATETIME('now'),\"%s\", %d)", ip.c_str(), ms);
+    std::sprintf(buf,"INSERT INTO Latency (time ,idNodeB, ms) SELECT DATETIME('now') AS time, id AS idNodeB, %d AS ms FROM Nodes WHERE ip = \"%s\"", ms, ip.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -113,7 +114,7 @@ void Storage::saveLatencyTest(string ip, int ms) {
 void Storage::saveBandwidthTest(string ip, float kbps, int state) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Bandwidth (time, ipB, kbps) VALUES (DATETIME('now'), \"%s\", %f)", ip.c_str(), kbps);
+    std::sprintf(buf,"INSERT INTO Bandwidth (time, idNodeB, kbps) SELECT DATETIME('now') AS time, id AS idNodeB, %f AS kbps FROM Nodes WHERE ip = \"%s\"", kbps, ip.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -148,26 +149,44 @@ void Storage::saveHardware(Report::hardware_result hardware) {
     }
 }
 
-void Storage::refreshNodes(vector<string> nodes) {
+long long Storage::getNodeId(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"DELETE FROM Nodes");
+    std::sprintf(buf,"SELECT id FROM Nodes WHERE ip = \"%s\"", ip.c_str());
 
-    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    vector<long long> ret;
+
+    int err = sqlite3_exec(this->db, buf, VectorIntCallback, &ret, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
+
+    if(ret.empty()) {
+        return 0;
+    }
+    return ret[0];
+}
+
+void Storage::refreshNodes(vector<string> nodes) {
+    char *zErrMsg = 0;
+    char buf[1024];
+
     for(auto node : nodes) {
-        std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (ip, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
-        int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-            exit(1);
+        int id = this->getNodeId(node);
+
+        if(id == 0) {
+            //does not exists then insert
+            std::sprintf(buf,"INSERT INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
+            int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+            if( err!=SQLITE_OK )
+            {
+                fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                sqlite3_free(zErrMsg);
+                exit(1);
+            }  
         }
     }
 }
@@ -177,14 +196,18 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char buf[1024];
 
     for(auto node : add) {
-        std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (ip, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
+        int id = this->getNodeId(node);
 
-        int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-            exit(1);
+        if(id == 0) {
+            //does not exists then insert
+            std::sprintf(buf,"INSERT INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
+            int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+            if( err!=SQLITE_OK )
+            {
+                fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                sqlite3_free(zErrMsg);
+                exit(1);
+            }  
         }
     }
 
@@ -201,13 +224,6 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     }
 }
 
-int getNodesCallback(void *vec, int argc, char **argv, char **azColName) {
-    vector<string> *v = (vector<string>*)vec;
-    v->push_back(string(argv[0]));
-    return 0;
-}
-
-
 vector<string> Storage::getNodes() {
     char *zErrMsg = 0;
     char buf[1024];
@@ -215,7 +231,7 @@ vector<string> Storage::getNodes() {
 
     vector<string> nodes;
 
-    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -233,7 +249,7 @@ std::vector<std::string> Storage::getLRLatency(int num, int seconds) {
 
     vector<string> nodes;
 
-    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -251,7 +267,7 @@ std::vector<std::string> Storage::getLRBandwidth(int num, int seconds) {
 
     vector<string> nodes;
 
-    int err = sqlite3_exec(this->db, buf, getNodesCallback, &nodes, &zErrMsg);
+    int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -292,7 +308,7 @@ int Storage::getTestBandwidthState(std::string ip, Report::test_result &last) {
         exit(1);
     }
 
-    std::sprintf(buf,"SELECT ipB as ip, avg(kbps) AS mean, variance(kbps) AS var, strftime('%%s',max(time)) as time FROM Bandwidth where ipB = \"%s\" group by ipB", ip.c_str());
+    std::sprintf(buf,"SELECT N.ip as ip, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N where B.idNodeB = N.id AND N.ip = \"%s\" group by N.id", ip.c_str());
 
     vector<Report::test_result> tests;
 
@@ -305,6 +321,40 @@ int Storage::getTestBandwidthState(std::string ip, Report::test_result &last) {
     }
 
     return val;
+}
+
+vector<Report::IoT> Storage::getIots() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT * FROM IoTs");
+
+    vector<Report::IoT> vect;
+
+    int err = sqlite3_exec(this->db, buf, VectorIoTCallback, &vect, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+    return vect;
+}
+
+void Storage::addIot(IThing *iot) {
+    if(iot == NULL)
+        return;
+        
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"INSERT OR REPLACE INTO IoTs (id, desc, ms) VALUES (\"%s\",\"%s\",%d)", iot->getId().c_str(), iot->getDesc().c_str(), iot->getLatency());
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
 }
 
 void Storage::setToken(int duration) {

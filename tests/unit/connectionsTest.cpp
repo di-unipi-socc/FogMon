@@ -66,7 +66,7 @@ public:
 
     virtual void addReportLatency(std::string strIp, std::vector<Report::test_result> latency) {}
     virtual void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth) {}
-
+    virtual void addReportIot(std::string strIp, std::vector<Report::IoT> iots) {}
     virtual void addReport(std::string strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth) {}
 
     virtual std::vector<std::string> getLRHardware(int num, int seconds) {return vector<string>();}
@@ -83,6 +83,11 @@ public:
     virtual void addReport(Report::report_result result, std::string monitored = "::1") {}
     virtual void addReport(std::vector<Report::report_result> results, std::string ip) {}
     virtual void complete() {}
+
+    virtual std::vector<Report::IoT> getIots() {};
+
+    virtual void addIot(IThing *iot) {};
+    virtual void addIot(std::string strIp, Report::IoT iot) {}
 };
 
 class MParent : virtual public IParentMaster {
@@ -294,9 +299,9 @@ TEST(ConnectionsTest, RGetReport) {
     EXPECT_EQ(res.getData(r), true);
 
     Report r2; 
-    r2.setHardware(((Storage*)mNode.getStorage())->getHardware());
-    r2.setLatency(((Storage*)mNode.getStorage())->getLatency());
-    r2.setBandwidth(((Storage*)mNode.getStorage())->getBandwidth());
+    r2.setHardware(((IStorage*)mNode.getStorage())->getHardware());
+    r2.setLatency(((IStorage*)mNode.getStorage())->getLatency());
+    r2.setBandwidth(((IStorage*)mNode.getStorage())->getBandwidth());
 
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> writer (s);
@@ -306,7 +311,7 @@ TEST(ConnectionsTest, RGetReport) {
     rapidjson::StringBuffer s2;
     rapidjson::Writer<rapidjson::StringBuffer> writer2 (s2);
     r2.getJson()->Accept (writer2);
-    std::string str2 (s.GetString());
+    std::string str2 (s2.GetString());
     EXPECT_EQ(str2, str);
     
     EXPECT_EQ(close(pipefd[1]), 0);

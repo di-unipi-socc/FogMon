@@ -115,12 +115,9 @@ void MasterConnections::handler(int fd, Message &m) {
                 //read report
                 Report r;
                 if(m.getData(r)) {
-                    Report::hardware_result hardware;
-                    vector<Report::test_result> latency;
-                    vector<Report::test_result> bandwidth;
-
-                    if(r.getHardware(hardware) && r.getLatency(latency) && r.getBandwidth(bandwidth)) {
-                        this->parent->getStorage()->addReport( Report::report_result(strIp, hardware, latency, bandwidth) );
+                    Report::report_result report;
+                    if(r.getReport(report)) {
+                        this->parent->getStorage()->addReport(report);
                     }
                 }
             }
@@ -172,7 +169,7 @@ void MasterConnections::handler(int fd, Message &m) {
                     Report::hardware_result hardware;
                     vector<Report::test_result> latency;
                     vector<Report::test_result> bandwidth;
-
+                    vector<Report::IoT> iot;
                     if(r.getHardware(hardware)) {
                         this->parent->getStorage()->addNode(strIp, hardware);
                     }
@@ -181,6 +178,9 @@ void MasterConnections::handler(int fd, Message &m) {
                     }
                     if(r.getBandwidth(bandwidth)) {
                         this->parent->getStorage()->addReportBandwidth(strIp, bandwidth);
+                    }
+                    if(r.getIot(iot)) {
+                        this->parent->getStorage()->addReportIot(strIp, iot);
                     }
                 }
             }
@@ -222,7 +222,7 @@ bool MasterConnections::sendRequestReport(std::string ip) {
                     Report::hardware_result hardware;
                     vector<Report::test_result> latency;
                     vector<Report::test_result> bandwidth;
-
+                    vector<Report::IoT> iot;
                     if(r.getHardware(hardware)) {
                         this->parent->getStorage()->addNode(ip, hardware);
                     }
@@ -231,6 +231,9 @@ bool MasterConnections::sendRequestReport(std::string ip) {
                     }
                     if(r.getBandwidth(bandwidth)) {
                         this->parent->getStorage()->addReportBandwidth(ip, bandwidth);
+                    }
+                    if(r.getIot(iot)) {
+                        this->parent->getStorage()->addReportIot(ip, iot);
                     }
                     ret = true;
                 }

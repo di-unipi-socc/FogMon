@@ -138,6 +138,7 @@ void Connections::handler(int fd, Message &m) {
                 r.setHardware(this->parent->getStorage()->getHardware());
                 r.setLatency(this->parent->getStorage()->getLatency());
                 r.setBandwidth(this->parent->getStorage()->getBandwidth());
+                r.setIot(this->parent->getStorage()->getIots());
                 res.setData(r);
 
                 //send report
@@ -273,6 +274,7 @@ bool Connections::sendUpdate(string ipS, string portS) {
     r.setHardware(this->parent->getStorage()->getHardware());
     r.setLatency(this->parent->getStorage()->getLatency());
     r.setBandwidth(this->parent->getStorage()->getBandwidth());
+    r.setIot(this->parent->getStorage()->getIots());
     m.setData(r);
 
     bool result = false;

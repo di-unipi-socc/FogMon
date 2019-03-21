@@ -60,7 +60,30 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     test.target = string(argv[0]);
     test.mean = stof(argv[1]);
     test.variance = stof(argv[2]);
-    test.lasttime = stol(argv[3]);
+    test.lasttime = stoll(argv[3]);
     r->push_back(test);
+    return 0;
+}
+
+int IStorage::VectorStringCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<string> *v = (vector<string>*)vec;
+    v->push_back(string(argv[0]));
+    return 0;
+}
+
+int IStorage::VectorIntCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<long long> *v = (vector<long long>*)vec;
+    v->push_back(stoi(argv[0]));
+    return 0;
+}
+
+int IStorage::VectorIoTCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<Report::IoT> *v = (vector<Report::IoT>*)vec;
+    Report::IoT iot;
+    iot.id = string(argv[0]);
+    iot.desc = string(argv[1]);
+    iot.latency = stoi(argv[2]);
+    v->push_back(iot);
+
     return 0;
 }

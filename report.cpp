@@ -93,11 +93,34 @@ void Report::setBandwidth(vector<test_result> bandwidth) {
 
 }
 
+void Report::setIot(vector<IoT> iots) {
+
+    Value arr(kArrayType);
+    doc.RemoveMember("iot");
+
+    Document::AllocatorType& allocator = doc.GetAllocator();
+
+    for(auto iot : iots) {
+        Value id(iot.id.c_str(), allocator);
+        Value desc(iot.desc.c_str(), allocator);
+        Value latency(iot.latency);
+        Value obj(kObjectType);
+        obj.AddMember("id",id, allocator);
+        obj.AddMember("desc",desc, allocator);
+        obj.AddMember("latency",latency, allocator);
+
+        arr.PushBack(obj, allocator);
+    }
+    
+    doc.AddMember("iot", arr, doc.GetAllocator());
+
+}
+
 void Report::setReport(report_result report) {
     this->setHardware(report.hardware);
     this->setLatency(report.latency);
     this->setBandwidth(report.bandwidth);
-
+    this->setIot(report.iot);
 }
 
 void Report::setReports(std::vector<report_result> reports) {
@@ -112,6 +135,7 @@ void Report::setReports(std::vector<report_result> reports) {
         Value hw(kObjectType);
         Value lt(kArrayType);
         Value bw(kArrayType);
+        Value th(kArrayType);
 
         {
             Report::hardware_result &hardware = test.hardware;
@@ -143,7 +167,7 @@ void Report::setReports(std::vector<report_result> reports) {
             obj.AddMember("variance",variance, allocator);
             obj.AddMember("lasttime",lasttime, allocator);
 
-            arr.PushBack(lt, allocator);
+            lt.PushBack(obj, allocator);
         }
 
         for(auto testBw : test.bandwidth) {
@@ -157,7 +181,19 @@ void Report::setReports(std::vector<report_result> reports) {
             obj.AddMember("variance",variance, allocator);
             obj.AddMember("lasttime",lasttime, allocator);
 
-            arr.PushBack(bw, allocator);
+            bw.PushBack(obj, allocator);
+        }
+
+        for(auto iot : test.iot) {
+            Value id(iot.id.c_str(), allocator);
+            Value desc(iot.desc.c_str(), allocator);
+            Value latency(iot.latency);
+            Value obj(kObjectType);
+            obj.AddMember("id",id, allocator);
+            obj.AddMember("desc",desc, allocator);
+            obj.AddMember("latency",latency, allocator);
+
+            th.PushBack(obj, allocator);
         }
 
         
@@ -167,6 +203,7 @@ void Report::setReports(std::vector<report_result> reports) {
         obj.AddMember("hardware",hw, allocator);
         obj.AddMember("latency",lt, allocator);
         obj.AddMember("bandwidth",bw, allocator);
+        obj.AddMember("iot",th, allocator);
 
         arr.PushBack(obj, allocator);
     }
@@ -248,74 +285,33 @@ bool Report::getBandwidth(vector<test_result>& bandwidth) {
     return true;
 }
 
-bool Report::getReport(report_result &report) {
-    if( !this->doc.HasMember("bandwidth") || !this->doc["bandwidth"].IsArray())
-        return false;
-    if( !this->doc.HasMember("latency") || !this->doc["latency"].IsArray())
-        return false;
-    if( !this->doc.HasMember("hardware") || !this->doc["hardware"].IsObject())
-        return false;
-
-    Value &val = doc["hardware"];
-
-    if( !val.HasMember("cores") || !val["cores"].IsInt() ||
-        !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
-        !val.HasMember("memory") || !val["memory"].IsInt() ||
-        !val.HasMember("free_memory") || !val["free_memory"].IsInt() ||
-        !val.HasMember("disk") || !val["disk"].IsInt() ||
-        !val.HasMember("free_disk") || !val["free_disk"].IsInt())
+bool Report::getIot(vector<IoT>& iots) {
+    if( !this->doc.HasMember("iot") || !this->doc["iot"].IsArray())
         return false;
     
-    {
-        report.hardware.cores = val["cores"].GetInt();
-        report.hardware.free_cpu = val["free_cpu"].GetFloat();
-        report.hardware.memory = val["memory"].GetInt();
-        report.hardware.free_memory = val["free_memory"].GetInt();
-        report.hardware.disk = val["disk"].GetInt();
-        report.hardware.free_disk = val["free_disk"].GetInt();
-    }
-
-    for (auto& v : this->doc["latency"].GetArray()) {
-        int a = !v.HasMember("target");
-        int b = !v["target"].IsString();
-        int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat();
-        int d = !v.IsObject();
+    for(auto& v: this->doc["iot"].GetArray()) {
         if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
-            !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat() ||
-            !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
+            !v.HasMember("id") || !v["id"].IsString() ||
+            !v.HasMember("desc") || !v["desc"].IsString() ||
+            !v.HasMember("latency") || !v["latency"].IsInt())
             return false;
-        test_result test;
-        test.target = string(v["target"].GetString());
-        test.mean = v["mean"].GetFloat();
-        test.variance = v["variance"].GetFloat();
-        test.lasttime = v["lasttime"].GetInt64();
+        IoT iot;
+        iot.id = string(v["id"].GetString());
+        iot.desc = string(v["desc"].GetString());
+        iot.latency = v["latency"].GetInt();
 
-        report.latency.push_back(test);
+        iots.push_back(iot);
     }
+    return true;
+}
 
-    for (auto& v : this->doc["bandwidth"].GetArray()) {
-        int a = !v.HasMember("target");
-        int b = !v["target"].IsString();
-        int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat();
-        int d = !v.IsObject();
-        if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
-            !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat() ||
-            !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
-            return false;
-        test_result test;
-        test.target = string(v["target"].GetString());
-        test.mean = v["mean"].GetFloat();
-        test.variance = v["variance"].GetFloat();
-        test.lasttime = v["lasttime"].GetInt64();
-
-        report.bandwidth.push_back(test);
-    }
+bool Report::getReport(report_result &report) {
+    
+    if( !this->getHardware(report.hardware) ||
+        !this->getLatency(report.latency) ||
+        !this->getBandwidth(report.bandwidth)||
+        !this->getIot(report.iot))
+        return false;
 
     return true;
 }
@@ -331,6 +327,7 @@ bool Report::getReports(std::vector<report_result> &reports) {
             !v.HasMember("hardware") || !v["hardware"].IsObject() ||
             !v.HasMember("latency") || !v["mean"].IsArray() ||
             !v.HasMember("bandwidth") || !v["bandwidth"].IsArray() ||
+            !v.HasMember("iot") || !v["iot"].IsArray() ||
             !v.HasMember("ip") || !v["ip"].IsString())
             return false;
         report_result result;
@@ -356,11 +353,6 @@ bool Report::getReports(std::vector<report_result> &reports) {
         }
 
         for (auto& v : v["latency"].GetArray()) {
-            int a = !v.HasMember("target");
-            int b = !v["target"].IsString();
-            int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-                !v.HasMember("variance") || !v["variance"].IsFloat();
-            int d = !v.IsObject();
             if( !v.IsObject() ||
                 !v.HasMember("target") || !v["target"].IsString() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
@@ -377,11 +369,6 @@ bool Report::getReports(std::vector<report_result> &reports) {
         }
 
         for (auto& v : v["bandwidth"].GetArray()) {
-            int a = !v.HasMember("target");
-            int b = !v["target"].IsString();
-            int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-                !v.HasMember("variance") || !v["variance"].IsFloat();
-            int d = !v.IsObject();
             if( !v.IsObject() ||
                 !v.HasMember("target") || !v["target"].IsString() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
@@ -395,6 +382,20 @@ bool Report::getReports(std::vector<report_result> &reports) {
             test.lasttime = v["lasttime"].GetInt64();
 
             result.bandwidth.push_back(test);
+        }
+
+        for (auto& v : v["iot"].GetArray()) {
+            if( !v.IsObject() ||
+                !v.HasMember("id") || !v["id"].IsString() ||
+                !v.HasMember("desc") || !v["desc"].IsString() ||
+                !v.HasMember("latency") || !v["latency"].IsInt())
+                return false;
+            IoT iot;
+            iot.id = string(v["id"].GetString());
+            iot.desc = string(v["latency"].GetString());
+            iot.latency = v["latency"].GetInt();
+
+            result.iot.push_back(iot);
         }
 
         reports.push_back(result);

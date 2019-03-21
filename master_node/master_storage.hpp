@@ -23,9 +23,11 @@ public:
     
     void addNode(std::string strIp, Report::hardware_result hardware, std::string monitored = "::1");
     void addMNode(std::string strIp);
+    void addIot(std::string strIp, Report::IoT iot);
 
     void addReportLatency(std::string strIp, std::vector<Report::test_result> latency);
     void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth);
+    void addReportIot(std::string strIp, std::vector<Report::IoT> iots);
 
     void addReport(Report::report_result result, std::string monitored = "::1");
 

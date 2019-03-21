@@ -5,15 +5,19 @@
 #include <string>
 #include <vector>
 #include "report.hpp"
+#include "ithing.hpp"
 
 class IStorage {
 protected:
     virtual void createTables() = 0;
 
-    sqlite3 *db;
-    
     static int getHardwareCallback(void *R, int argc, char **argv, char **azColName);
     static int getTestCallback(void *R, int argc, char **argv, char **azColName);
+    static int VectorStringCallback(void *vec, int argc, char **argv, char **azColName);
+    static int VectorIntCallback(void *vec, int argc, char **argv, char **azColName);
+    static int VectorIoTCallback(void *vec, int argc, char **argv, char **azColName);
+
+    sqlite3 *db;
 
 public:
     virtual ~IStorage();
@@ -35,6 +39,10 @@ public:
     
     virtual std::vector<std::string> getLRLatency(int num, int seconds) = 0;
     virtual std::vector<std::string> getLRBandwidth(int num, int seconds) = 0;
+
+    virtual std::vector<Report::IoT> getIots() = 0;
+
+    virtual void addIot(IThing *iot) = 0;
 
     //return -1 on fail
     virtual int getTestBandwidthState(std::string ip, Report::test_result &last) = 0;

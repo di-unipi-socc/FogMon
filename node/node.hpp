@@ -5,6 +5,7 @@
 #include "connections.hpp"
 #include "server.hpp"
 #include "factory.hpp"
+#include "iiotdiscoverer.hpp"
 
 class Node : virtual public INode {
 public:
@@ -66,6 +67,8 @@ protected:
     //timer for latency and bandwidth tests
     void TestTimer();
 
+    void testIoT();
+
     //test the bandwidth with another ip
     float testBandwidth(std::string ip, float old, int &state);
 
@@ -75,7 +78,8 @@ protected:
     float testBandwidthEstimate(std::string ip, int port = -1);
 
     //test the latency with another node
-    public: int testPing(std::string ip);
+    int testPing(std::string ip);
+
 
     //get the hardware of this node
     void getHardware();

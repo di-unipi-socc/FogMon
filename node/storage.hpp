@@ -2,7 +2,6 @@
 #define STORAGE_HPP_
 
 #include "istorage.hpp"
-#include "report.hpp"
 
 class Storage : virtual public IStorage {
 protected:
@@ -24,6 +23,7 @@ public:
     void saveBandwidthTest(std::string ip, float kbps, int state);
     void saveHardware(Report::hardware_result hardware);
 
+    long long getNodeId(std::string ip);
     void refreshNodes(std::vector<std::string> nodes);
     void updateNodes(std::vector<std::string> add, std::vector<std::string> rem);
 
@@ -34,6 +34,10 @@ public:
 
     //return -1 on fail
     int getTestBandwidthState(std::string ip, Report::test_result &last);
+
+    std::vector<Report::IoT> getIots();
+
+    void addIot(IThing *iot);
 
     void setToken(int duration);
     int hasToken();

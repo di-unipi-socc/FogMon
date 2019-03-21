@@ -22,6 +22,8 @@
 #include <sigar.h>
 #include "rapidjson/document.h"
 
+#include "microbit/microbit_discoverer.hpp"
+
 #include "storage.hpp"
 
 using namespace std;
@@ -336,8 +338,26 @@ void Node::timer() {
     }
 }
 
+void Node::testIoT() {
+    MicrobitDiscoverer discoverer;
+    vector<IThing*> things = discoverer.discover();
+
+    for(int i=0; i<things.size(); i++) {
+        this->getStorage()->addIot(things[i]);
+    }
+
+    for(int i=0; i<things.size(); i++) {
+        free(things[i]);
+    }
+}
+
 void Node::TestTimer() {
+    int iter=0;
     while(this->running) {
+        //monitor IoT
+        if(iter%4 == 0)
+            this->testIoT();
+
         //get list ordered by time for the latency tests
         //test the least recent
         vector<string> ips = this->storage->getLRLatency(100,30); //param: batch latency dimension
@@ -399,6 +419,7 @@ void Node::TestTimer() {
         }
 
         sleep(this->timeTimerTest);
+        iter++;
     }
 }
 

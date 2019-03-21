@@ -8,10 +8,11 @@ class IMasterStorage : virtual public IStorage {
 public:
     virtual void addNode(std::string strIp, Report::hardware_result hardware, std::string monitored = "::1") = 0;
     virtual void addMNode(std::string strIp) = 0;
+    virtual void addIot(std::string strIp, Report::IoT iot) = 0;
 
     virtual void addReportLatency(std::string strIp, std::vector<Report::test_result> latency) = 0;
     virtual void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth) = 0;
-
+    virtual void addReportIot(std::string strIp, std::vector<Report::IoT> iots) = 0;
     virtual void addReport(Report::report_result result, std::string monitored = "::1") = 0;
 
     virtual Report::report_result getReport(std::string strIp) = 0;

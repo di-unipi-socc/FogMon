@@ -146,6 +146,49 @@ TEST(StorageTest, GetLRBandwidth) {
         FAIL();
 }
 
+class TestIoT : public IThing {
+public:
+    string id;
+    string desc;
+    int latency;
+
+    TestIoT(string id, string desc, int latency) {
+        this->id = id;
+        this->desc = desc;
+        this->latency = latency;
+    }
+
+    string getId() {
+        return id;
+    }
+
+    string getDesc() {
+        return desc;
+    }
+
+    int getLatency() {
+        return latency;
+    }
+
+    void monitor() {}
+
+};
+
+TEST(StorageTest, AddGetIots) {
+    Storage storage;
+    storage.open("testA.db");
+    TestIoT iot("testid","testdesc",10);
+    storage.addIot(&iot);
+
+    vector<Report::IoT> vect = storage.getIots();
+
+    if(!vect.empty()) {
+        EXPECT_EQ(vect[0].id, "testid");
+        EXPECT_EQ(vect[0].desc, "testdesc");
+        EXPECT_EQ(vect[0].latency, 10);
+    }
+}
+
 TEST(StorageMasterTest, AddGetNode) {
     unlink("testB.db");
     MasterStorage storage;
@@ -164,6 +207,54 @@ TEST(StorageMasterTest, AddGetNode) {
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)
         EXPECT_EQ("test", res[0]);
+    else
+        FAIL();
+}
+
+TEST(StorageMasterTest, GetHardware) {
+    MasterStorage storage;
+    storage.open("testB.db");
+
+    Report::hardware_result hw;
+    hw.cores = 5;
+    hw.disk = 100*1000*1000;
+    hw.free_disk = 10*1000*1000;
+    hw.free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.free_memory = 1*1000*1000;
+    storage.addNode("testt",hw);
+    storage.addNode("testtAAA",hw,"AAA"); //node monitored by another MNode
+
+    Report::hardware_result hw1 = storage.getHardware("testt");
+
+    EXPECT_EQ(hw1.cores, hw.cores);
+    EXPECT_EQ(hw1.disk, hw.disk);
+    EXPECT_EQ(hw1.memory, hw.memory);
+    EXPECT_EQ(hw1.free_cpu, hw.free_cpu);
+    EXPECT_EQ(hw1.free_disk, hw.free_disk);
+    EXPECT_EQ(hw1.free_memory, hw.free_memory);
+
+    hw1 = storage.getHardware("testtAAA");
+
+    EXPECT_EQ(hw1.cores, hw.cores);
+    EXPECT_EQ(hw1.disk, hw.disk);
+    EXPECT_EQ(hw1.memory, hw.memory);
+    EXPECT_EQ(hw1.free_cpu, hw.free_cpu);
+    EXPECT_EQ(hw1.free_disk, hw.free_disk);
+    EXPECT_EQ(hw1.free_memory, hw.free_memory);
+}
+
+TEST(StorageMasterTest, AddGetMNode) {
+    MasterStorage storage;
+    storage.open("testB.db");
+    //defualt ::1 as MNode
+    storage.addMNode("testMNode");
+
+    std::vector<std::string> res = storage.getMNodes();
+    int dim = 2;
+    EXPECT_EQ(dim, res.size());
+    if(res.size() == dim)
+        EXPECT_EQ("testMNode", res[1]);
     else
         FAIL();
 }
@@ -204,6 +295,7 @@ TEST(StorageMasterTest, ReportGetLRLatency) {
     vector<Report::test_result> tests;
     tests.push_back(test);
     test.target = "test";
+    test.mean = 50;
     tests.push_back(test);
     storage.addReportLatency("testtt",tests);
 
@@ -252,3 +344,20 @@ TEST(StorageMasterTest, ReportGetLRBandwidth) {
         FAIL();
 }
 
+TEST(StorageMasterTest, GetLatency) {
+    MasterStorage storage;
+    storage.open("testB.db");
+
+    FAIL();
+}
+
+TEST(StorageMasterTest, GetBandiwdth) {
+    MasterStorage storage;
+    storage.open("testB.db");
+    FAIL();
+}
+
+TEST(StorageMasterTest, Complete) {
+
+    FAIL();
+}
