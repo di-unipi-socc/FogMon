@@ -16,9 +16,9 @@ void MasterStorage::createTables() {
     char *zErrMsg = 0;
     
     vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE)",
-                            "CREATE TABLE IF NOT EXISTS MNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitoredBy INTEGER REFERENCES MMNodes(id))",
-                            "CREATE TABLE IF NOT EXISTS MLinks (idA INTEGER REFERENCES MNodes(id), idB INTEGER REFERENCES MNodes(id), meanL FLOAT, varianceL FLOAT, lasttimeL TIMESTAMP, meanB FLOAT, varianceB FLOAT, lasttimeB TIMESTAMP, PRIMARY KEY(idA,idB))",
-                            "CREATE TABLE IF NOT EXISTS MIots (id STRING PRIMARY KEY, desc STRING, ms INTEGER, idNode INTEGER REFERENCES MNodes(id))",
+                            "CREATE TABLE IF NOT EXISTS MNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitoredBy INTEGER REFERENCES MMNodes(id) NOT NULL)",
+                            "CREATE TABLE IF NOT EXISTS MLinks (idA INTEGER REFERENCES MNodes(id) NOT NULL, idB INTEGER REFERENCES MNodes(id) NOT NULL, meanL FLOAT, varianceL FLOAT, lasttimeL TIMESTAMP, meanB FLOAT, varianceB FLOAT, lasttimeB TIMESTAMP, PRIMARY KEY(idA,idB))",
+                            "CREATE TABLE IF NOT EXISTS MIots (id STRING PRIMARY KEY, desc STRING, ms INTEGER, idNode INTEGER REFERENCES MNodes(id) NOT NULL)",
                             "INSERT OR IGNORE INTO MMNodes (id, ip) VALUES (1, \"::1\")"};
     
     for(string str : query) {

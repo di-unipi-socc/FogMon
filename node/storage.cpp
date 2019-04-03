@@ -18,8 +18,8 @@ void Storage::createTables() {
 
     vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
                             "CREATE TABLE IF NOT EXISTS Nodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP, bandwidthState INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, idNodeB INTEGER REFERENCES Nodes(id), ms INTEGER)",
-                            "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, idNodeB INTEGER REFERENCES Nodes(id), kbps FLOAT)",
+                            "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, idNodeB INTEGER REFERENCES Nodes(id) NOT NULL, ms INTEGER)",
+                            "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, idNodeB INTEGER REFERENCES Nodes(id) NOT NULL, kbps FLOAT)",
                             "CREATE TABLE IF NOT EXISTS IoTs (id STRING PRIMARY KEY, desc STRING, ms INTEGER)"};
     
     for(string str : query) {

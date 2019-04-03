@@ -211,9 +211,79 @@ TEST(StorageMasterTest, AddGetNode) {
         FAIL();
 }
 
+TEST(StorageMasterTest, FailNullRef) {
+    unlink("testB.db");
+    MasterStorage storage;
+    storage.open("testB.db");
+    Report::hardware_result hw;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.free_disk = 10*1000*1000;
+    hw.free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.free_memory = 1*1000*1000;
+    storage.addNode("test",hw);
+
+    std::vector<std::string> res = storage.getNodes();
+    int dim = 1;
+    EXPECT_EQ(dim, res.size());
+    if(res.size() == dim)
+        EXPECT_EQ("test", res[0]);
+    else
+        FAIL();
+    
+    Report::test_result test;
+    test.mean = 100;
+    test.variance = 0;
+    test.target = "testt";
+    test.lasttime = time(NULL);
+
+    vector<Report::test_result> tests;
+    tests.push_back(test);
+    test.target = "test";
+    test.mean = 50;
+    tests.push_back(test);
+    storage.addReportLatency("testtt",tests);
+
+    //missing test-testt
+
+    res = storage.getLRLatency(3, 10);
+    dim = 0;
+    EXPECT_EQ(dim, res.size());
+
+    storage.addReportBandwidth("testtt",tests);
+
+    tests.clear();
+    test.target = "testtt";
+    tests.push_back(test);
+    test.target = "test";
+    tests.push_back(test);
+    storage.addReportBandwidth("testt",tests);
+
+    res = storage.getLRBandwidth(4, 10);
+    dim = 0;
+    EXPECT_EQ(dim, res.size()); 
+}
+
+TEST(StorageMasterTest, AddGetMNode) {
+    MasterStorage storage;
+    storage.open("testB.db");
+    //defualt ::1 as MNode
+    storage.addMNode("testMNode");
+
+    std::vector<std::string> res = storage.getMNodes();
+    int dim = 2;
+    EXPECT_EQ(dim, res.size());
+    if(res.size() == dim)
+        EXPECT_EQ("testMNode", res[1]);
+    else
+        FAIL();
+}
+
 TEST(StorageMasterTest, GetHardware) {
     MasterStorage storage;
     storage.open("testB.db");
+
 
     Report::hardware_result hw;
     hw.cores = 5;
@@ -223,7 +293,7 @@ TEST(StorageMasterTest, GetHardware) {
     hw.memory = 10*1000*1000;
     hw.free_memory = 1*1000*1000;
     storage.addNode("testt",hw);
-    storage.addNode("testtAAA",hw,"AAA"); //node monitored by another MNode
+    storage.addNode("testtAAA",hw,"testMNode"); //node monitored by another MNode
 
     Report::hardware_result hw1 = storage.getHardware("testt");
 
@@ -242,21 +312,6 @@ TEST(StorageMasterTest, GetHardware) {
     EXPECT_EQ(hw1.free_cpu, hw.free_cpu);
     EXPECT_EQ(hw1.free_disk, hw.free_disk);
     EXPECT_EQ(hw1.free_memory, hw.free_memory);
-}
-
-TEST(StorageMasterTest, AddGetMNode) {
-    MasterStorage storage;
-    storage.open("testB.db");
-    //defualt ::1 as MNode
-    storage.addMNode("testMNode");
-
-    std::vector<std::string> res = storage.getMNodes();
-    int dim = 2;
-    EXPECT_EQ(dim, res.size());
-    if(res.size() == dim)
-        EXPECT_EQ("testMNode", res[1]);
-    else
-        FAIL();
 }
 
 TEST(StorageMasterTest, GetLRHardware) {
@@ -347,6 +402,9 @@ TEST(StorageMasterTest, ReportGetLRBandwidth) {
 TEST(StorageMasterTest, GetLatency) {
     MasterStorage storage;
     storage.open("testB.db");
+
+    storage.getLatency("test");
+
 
     FAIL();
 }

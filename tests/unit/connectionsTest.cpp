@@ -45,8 +45,9 @@ public:
         EXPECT_EQ(nodes[0], "test"); 
     }
     virtual void updateNodes(std::vector<std::string> add, std::vector<std::string> rem) {
-        EXPECT_EQ(add.size(), 1);
+        EXPECT_EQ(add.size(), 2);
         EXPECT_EQ(add[0], "test"); 
+        EXPECT_EQ(add[1], "test2");
         EXPECT_EQ(rem.size(), 1);
         EXPECT_EQ(rem[0], "test"); 
     }
@@ -84,7 +85,7 @@ public:
     virtual void addReport(std::vector<Report::report_result> results, std::string ip) {}
     virtual void complete() {}
 
-    virtual std::vector<Report::IoT> getIots() {};
+    virtual std::vector<Report::IoT> getIots() { return std::vector<Report::IoT>();}
 
     virtual void addIot(IThing *iot) {};
     virtual void addIot(std::string strIp, Report::IoT iot) {}
@@ -99,7 +100,7 @@ public:
     void setMyIp(std::string ip) {}
     std::string getMyIp() {return "";}
     int startIperf() {return 55555;}
-    int startEstimate() {return 55556;}
+    int startEstimate() {return 8365;}
     Server* getServer() {return NULL;}
 
     IMasterStorage* getStorage() {return &this->storage;}
@@ -302,6 +303,7 @@ TEST(ConnectionsTest, RGetReport) {
     r2.setHardware(((IStorage*)mNode.getStorage())->getHardware());
     r2.setLatency(((IStorage*)mNode.getStorage())->getLatency());
     r2.setBandwidth(((IStorage*)mNode.getStorage())->getBandwidth());
+    r2.setIot(((IStorage*)mNode.getStorage())->getIots());
 
     rapidjson::StringBuffer s;
     rapidjson::Writer<rapidjson::StringBuffer> writer (s);
@@ -335,17 +337,12 @@ TEST(ConnectionsTest, NUpdateNodes) {
     mess.setArgument(Message::Argument::NODES);
     vector<string> stringsA;
     stringsA.push_back("test");
+    stringsA.push_back("test2");
     vector<string> stringsB;
     stringsB.push_back("test");
     mess.setData(stringsA,stringsB);
     
     EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
-    Message res;
-    EXPECT_EQ(mConn.getMessage(pipefd[1],res), true);
-
-    EXPECT_EQ(res.getType(), Message::Type::RESPONSE);
-    EXPECT_EQ(res.getCommand(), Message::Command::UPDATE);
-    EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
 }
