@@ -49,7 +49,7 @@ void Node::initialize(Factory* fact) {
         this->factory = fact;
     }
     if(this->storage == NULL)
-        this->storage = this->factory->newStorage("node.db");
+        this->storage = this->factory->newStorage("node.db",this->ipS);
     if(this->connections == NULL) {
         this->connections = this->factory->newConnections(this->nThreads);
         this->connections->initialize(this);

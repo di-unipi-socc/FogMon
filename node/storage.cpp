@@ -5,12 +5,45 @@
 
 using namespace std;
 
-Storage::Storage() {
+Storage::Storage(string ipS) {
     startToken = time(nullptr);
     durationToken = 0;
+    this->ipS = ipS;
 }
 
+
+void Storage::filterRecv(std::vector<std::string> &list) {
+    for(int i=0; i<list.size(); i++)
+    {
+        if(list[i]==std::string("::1")||list[i]==std::string("127.0.0.1"))
+            list[i] = this->ipS;
+    }
+}
+
+void Storage::filterSend(std::vector<std::string> &list) {
+    for(int i=0; i<list.size(); i++)
+    {
+        if(list[i]==this->ipS)
+            list[i] = "::1";
+    }
+}
+
+void Storage::filterSend(std::vector<Report::test_result> &list) {
+    for(int i=0; i<list.size(); i++)
+    {
+        if(list[i].target==this->ipS)
+            list[i].target = "::1";
+    }
+}
+
+void Storage::filterSend(Report::test_result &list) {
+    if(list.target == this->ipS)
+        list.target = "::1";
+}
+
+
 Storage::~Storage() {
+
 }
 
 void Storage::createTables() {
@@ -66,6 +99,8 @@ std::vector<Report::test_result> Storage::getLatency() {
         exit(1);
     }
 
+    filterSend(tests);
+
     return tests;
 }
 
@@ -83,7 +118,7 @@ std::vector<Report::test_result> Storage::getBandwidth() {
         sqlite3_free(zErrMsg);
         exit(1);
     }
- 
+    filterSend(tests);
     return tests;
 }
 
@@ -174,6 +209,8 @@ void Storage::refreshNodes(vector<string> nodes) {
     char *zErrMsg = 0;
     char buf[1024];
 
+    filterRecv(nodes);
+
     for(auto node : nodes) {
         int id = this->getNodeId(node);
 
@@ -194,6 +231,9 @@ void Storage::refreshNodes(vector<string> nodes) {
 void Storage::updateNodes(vector<string> add, vector<string> rem) {
     char *zErrMsg = 0;
     char buf[1024];
+
+    filterRecv(add);
+    filterRecv(rem);
 
     for(auto node : add) {
         int id = this->getNodeId(node);
@@ -238,7 +278,7 @@ vector<string> Storage::getNodes() {
         sqlite3_free(zErrMsg);
         exit(1);
     }
-
+    filterSend(nodes);
     return nodes;
 }
 
@@ -310,8 +350,6 @@ int Storage::getTestBandwidthState(std::string ip, Report::test_result &last) {
 
     std::sprintf(buf,"SELECT N.ip as ip, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N where B.idNodeB = N.id AND N.ip = \"%s\" group by N.id", ip.c_str());
 
-    vector<Report::test_result> tests;
-
     err = sqlite3_exec(this->db, buf, getTest2Callback, &last, &zErrMsg);
     if( err!=SQLITE_OK )
     {
@@ -319,6 +357,8 @@ int Storage::getTestBandwidthState(std::string ip, Report::test_result &last) {
         sqlite3_free(zErrMsg);
         exit(1);
     }
+
+    filterSend(last);
 
     return val;
 }

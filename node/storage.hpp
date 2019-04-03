@@ -7,12 +7,19 @@ class Storage : virtual public IStorage {
 protected:
     virtual void createTables();
 
+    void filterRecv(std::vector<std::string> &list);
+    void filterSend(std::vector<std::string> &list);
+    void filterSend(std::vector<Report::test_result> &list);
+    void filterSend(Report::test_result &list);
     //start time of the token
     time_t startToken;
     //seconds the token lasts
     int durationToken;
+
+    std::string ipS;
+
 public:
-    Storage();
+    Storage(std::string ipS="::1");
     virtual ~Storage();
 
     virtual Report::hardware_result getHardware();
