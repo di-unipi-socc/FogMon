@@ -54,7 +54,7 @@ void Node::initialize(Factory* fact) {
         this->connections = this->factory->newConnections(this->nThreads);
         this->connections->initialize(this);
     }
-    this->server = this->factory->newServer(this->connections,5555);
+    this->server = this->factory->newServer(this->connections,5551);
 }
 
 Node::~Node() {

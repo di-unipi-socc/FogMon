@@ -88,7 +88,7 @@ public:
         while( this->queue_h )
         {
             this->queue_l = this->queue_h->next;
-            free(this->queue_h);
+            delete this->queue_h;
             this->queue_h = this->queue_l;
         }
         this->stop = true;
