@@ -32,10 +32,8 @@ int main(int argc, char *argv[]) {
     node.initialize();
     node.start();
 
-    while(true) {
-        sleep(10);
-    }
-
+    int a;
+    scanf("%d",&a);
 
     node.stop();
 
