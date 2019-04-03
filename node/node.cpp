@@ -279,7 +279,7 @@ float Node::testBandwidthIperf(string ip, int port) {
 float Node::testBandwidthEstimate(string ip, int port) {
     char command[1024];
     if(port > 0) {
-        sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(), port);
+        sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(),this->myIp.c_str(), port);
     }else
         sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 2>&1", ip.c_str(), this->myIp.c_str());
     string mode = "r";
