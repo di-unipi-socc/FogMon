@@ -198,8 +198,6 @@ bool IConnections::sendMessage(int fd, Message &m) {
 bool IConnections::notifyAll(Message &m) {
     vector<string> nodes = this->parent->getStorage()->getNodes();
     for(auto ip : nodes) {
-        if(ip == this->parent->getMyIp())
-            continue;
         int fd = this->openConnection(ip);
         if(fd >= 0 ) {
             this->sendMessage(fd,m);
