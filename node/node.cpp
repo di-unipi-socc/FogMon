@@ -172,7 +172,56 @@ int Node::startIperf() {
 }
 
 int Node::startEstimate() {
-    return -1;
+    using namespace std::chrono_literals;
+
+    int ret = -1;
+
+    int port = 8365;
+    std::packaged_task<void(int)> task1([](int port) {
+        char command[256];
+        sprintf(command, "./assolo_rcv 2>&1");
+        string mode = "r";
+
+        // Run Popen
+        FILE *in;
+
+        // Test output
+        if(!(in = popen(command, mode.c_str()))){
+            return -1;
+        }
+
+        // Close
+        int exit_code = pclose(in);
+        return -1;
+    });
+    std::packaged_task<void(int)> task2([](int port) {
+        char command[256];
+        sprintf(command, "./assolo_snd 2>&1");
+        string mode = "r";
+
+        // Run Popen
+        FILE *in;
+
+        // Test output
+        if(!(in = popen(command, mode.c_str()))){
+            return -1;
+        }
+
+        // Close
+        int exit_code = pclose(in);
+        return -1;
+    });
+
+    auto f1 = task1.get_future();
+    auto thread1 = std::thread(std::move(task1),port);
+    auto th1 = thread1.native_handle();
+    thread1.detach();
+    auto f2 = task2.get_future();
+    auto thread2 = std::thread(std::move(task2),port);
+    auto th2 = thread2.native_handle();
+    thread2.detach();
+    
+    return ret;;
 }
 
 float Node::testBandwidthIperf(string ip, int port) {
@@ -226,6 +275,40 @@ float Node::testBandwidthIperf(string ip, int port) {
 }
 
 float Node::testBandwidthEstimate(string ip, int port) {
+    char command[256];
+    if(port > 0) {
+        sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(), port);
+    }else
+        sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 2>&1", ip.c_str(), this->myIp.c_str());
+    string mode = "r";
+    string output;
+
+    std::stringstream sout;
+
+    // Run Popen
+    FILE *in;
+    char buff[512];
+
+    // Test output
+    if(!(in = popen(command, mode.c_str()))){
+        return -1;
+    }
+
+    // Parse output
+    while(fgets(buff, sizeof(buff), in)!=NULL){
+        sout << buff;
+    }
+
+    // Close
+    int exit_code = pclose(in);
+
+    // set output
+    output = sout.str();
+    if(exit_code == 0) {
+        
+
+        return -1;
+    }
     return -1;
 }
 
