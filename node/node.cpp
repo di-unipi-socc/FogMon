@@ -516,7 +516,7 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
         case 0: //base state
             port = this->connections->sendStartIperfTest(ip);
             if(port != -1) {
-                result = this->testBandwidthIperf(ip);
+                result = this->testBandwidthIperf(ip,port);
                 if(result >= 0)
                     state = 1;
             }
@@ -524,7 +524,7 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
         case 1: //a test is already done
             port = this->connections->sendStartEstimateTest(ip);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip);
+                result = this->testBandwidthEstimate(ip,port);
                 if(result >= 0 && abs(result - old)/old < 0.1) {
                     state = 2;
                 }else {
@@ -536,7 +536,7 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
         case 2: //estimate succeeded
             port = this->connections->sendStartEstimateTest(ip);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip);
+                result = this->testBandwidthEstimate(ip,port);
                 if(result >= 0 && abs(result - old)/old < 0.1) {
                     state = 0;
                 }else {
@@ -548,7 +548,7 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
         case 3: //estimate failed
             port = this->connections->sendStartIperfTest(ip);
             if(port != -1) {
-                result = this->testBandwidthIperf(ip);
+                result = this->testBandwidthIperf(ip,port);
                 if(result >= 0)
                     state = 0;
             }

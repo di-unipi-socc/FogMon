@@ -235,6 +235,7 @@ bool Connections::sendHello(string ipS, string portS) {
                 string ip;
                 vector<string> vec;
                 if(res.getData(ip, vec)) {
+                    this->parent->filterIp(vec);
                     printf("ciao4");
                     cout << ip << endl;
                     this->parent->setMyIp(ip);

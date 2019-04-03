@@ -35,8 +35,7 @@ protected:
 
     int timerReport;
 
-    //ip of the server node 
-    std::string ipS;
+    //ip of the server node ipS
     //port of the server node
     std::string portS;
 
