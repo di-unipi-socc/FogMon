@@ -5,4 +5,5 @@ RUN dnf install -y libtirpc
 RUN dnf install -y sqlite sqlite-devel
 RUN dnf install -y sigar sigar-devel
 COPY ./test/* /
-CMD ["/FTPiDiscovererServer"]
+ENTRYPOINT ["/FTPiDiscovererServer"]
+CMD []

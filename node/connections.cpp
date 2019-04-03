@@ -158,14 +158,6 @@ void Connections::handler(int fd, Message &m) {
                     return;
                 //update the nodes
                 this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
-                Message res;
-                res.setType(Message::Type::RESPONSE);
-                res.setCommand(Message::Command::UPDATE);
-                res.setArgument(Message::Argument::POSITIVE);
-                //send report
-                if(this->sendMessage(fd, res)) {
-                    
-                }
             }
         }
     }   
