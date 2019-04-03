@@ -140,7 +140,7 @@ int Node::startIperf() {
 
     int port = random()%3000 + 5600;
     std::packaged_task<void(int)> task([](int port) {
-        char command[256];
+        char command[1024];
         sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
         string mode = "r";
 
@@ -277,7 +277,7 @@ float Node::testBandwidthIperf(string ip, int port) {
 }
 
 float Node::testBandwidthEstimate(string ip, int port) {
-    char command[256];
+    char command[1024];
     if(port > 0) {
         sprintf(command, "./assolo_run -R %s -S %s -J 2 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(), port);
     }else
@@ -355,7 +355,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
 }
 
 int Node::testPing(string ip) {
-    char command[256];
+    char command[1024];
     sprintf(command, "ping -c 3 %s 2>&1", ip.c_str());
     string mode = "r";
     string output;

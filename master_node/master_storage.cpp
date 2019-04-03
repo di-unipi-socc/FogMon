@@ -86,7 +86,7 @@ vector<string> MasterStorage::getNodes() {
 
 void MasterStorage::addTest(string strIpA, string strIpB, Report::test_result test, string type) {
     char *zErrMsg = 0;
-    char buf[1024];
+    char buf[2048];
     if(type == string("Latency")) {
         std::sprintf(buf,
                         "INSERT OR IGNORE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
@@ -329,7 +329,7 @@ Report::report_result MasterStorage::getReport(string strIp) {
 
 void MasterStorage::complete() {
     char *zErrMsg = 0;
-    char buf[1024];
+    char buf[2048];
     std::sprintf(buf,
                 "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
                 " SELECT A.id as idA, B.id as idB, "
