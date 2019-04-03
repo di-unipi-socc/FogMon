@@ -117,7 +117,7 @@ void Connections::handler(int fd, Message &m) {
                 }else {
                     res.setArgument(Message::Argument::POSITIVE);
                 }
-
+                this->parent->filterIp(ips);
                 //ips now contains the ip of the nodes
                 this->parent->getStorage()->refreshNodes(ips);
 
@@ -157,6 +157,8 @@ void Connections::handler(int fd, Message &m) {
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
+                this->parent->filterIp(ipsNew);
+                this->parent->filterIp(ipsRem);
                 this->parent->getStorage()->updateNodes(ipsNew,ipsRem);
             }
         }

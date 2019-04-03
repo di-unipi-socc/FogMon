@@ -22,6 +22,16 @@ public:
     virtual int startEstimate() = 0;
     
     virtual Server* getServer() = 0;
+
+    void filterIp(std::vector<std::string> &list) {
+        for(int i=0; i<list.size(); i++)
+        {
+            if(list[i]==std::string("::1")||list[i]==std::string("127.0.0.1"))
+                list[i] = this->ipS;
+        }
+    }
+protected:
+    std::string ipS;
 };
 
 #endif
