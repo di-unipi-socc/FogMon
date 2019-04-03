@@ -5,5 +5,4 @@ RUN dnf install -y libtirpc
 RUN dnf install -y sqlite sqlite-devel
 RUN dnf install -y sigar sigar-devel
 COPY ./test/* /
-RUN libtoolize
 CMD ["/FTPiDiscovererServer"]
