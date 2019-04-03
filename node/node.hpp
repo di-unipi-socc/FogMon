@@ -9,7 +9,7 @@
 
 class Node : virtual public INode {
 public:
-    Node(std::string ip, std::string port, int nThreads, bool direct = false);
+    Node(std::string ip, std::string port, int nThreads, bool direct = true);
     ~Node();
 
     virtual void initialize(Factory* factory = NULL);

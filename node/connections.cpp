@@ -211,7 +211,7 @@ vector<string> Connections::requestMNodes(string ipS, string portS) {
 
 bool Connections::sendHello(string ipS, string portS) {
     int Socket = openConnection(ipS, portS);
-    
+    printf("ciao6");
     if(Socket < 0) {
         return false;
     }
@@ -228,7 +228,7 @@ bool Connections::sendHello(string ipS, string portS) {
     
     r.setHardware(this->parent->getStorage()->getHardware());
     m.setData(r);
-
+    printf("ciao5");
     bool result = false;
 
     //send hello message
@@ -241,15 +241,19 @@ bool Connections::sendHello(string ipS, string portS) {
                 string ip;
                 vector<string> vec;
                 if(res.getData(ip, vec)) {
+                    printf("ciao4");
                     cout << ip << endl;
                     this->parent->setMyIp(ip);
                     this->parent->getStorage()->refreshNodes(vec);
+                    printf("ciao3");
                     result = true;
                 }
             }
         }
     }
+    printf("ciao2");
     close(Socket);
+    printf("ciao1");
     return result;
 }
 

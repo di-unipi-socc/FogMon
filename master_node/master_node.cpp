@@ -28,6 +28,7 @@ void MasterNode::initialize(MasterFactory* fact) {
 
 MasterNode::~MasterNode() {
     this->stop();
+    exit(0);
 }
 
 void MasterNode::start() {

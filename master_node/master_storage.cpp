@@ -188,7 +188,7 @@ std::vector<std::string> MasterStorage::getLRBandwidth(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -206,7 +206,7 @@ std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorStringCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -270,7 +270,7 @@ Report::hardware_result MasterStorage::getHardware(std::string ip) {
     int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -288,7 +288,7 @@ std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -299,14 +299,14 @@ std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
 std::vector<Report::test_result> MasterStorage::getBandwidth(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N2.ip, M.meanB as mean, M.varianceB as variance, M.lasttimeB as time FROM MBandwidth AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
+    std::sprintf(buf,"SELECT N2.ip, M.meanB as mean, M.varianceB as variance, M.lasttimeB as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
 
     vector<Report::test_result> tests;
 
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -352,7 +352,7 @@ void MasterStorage::complete() {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }

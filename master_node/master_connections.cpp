@@ -36,7 +36,7 @@ void MasterConnections::handler(int fd, Message &m) {
     socklen_t len;
     struct sockaddr_storage addr;
     char ip[INET6_ADDRSTRLEN];
-
+    memset(ip, 0, INET6_ADDRSTRLEN);
     strcat(ip, "::1");
 
     len = sizeof(addr);
@@ -59,6 +59,8 @@ void MasterConnections::handler(int fd, Message &m) {
         return;
 #endif
     }
+    if(strcmp(ip,"127.0.0.1")==0)
+        strcpy(ip,"::1");
     string strIp = string(ip);
 
     if(m.getType() == Message::Type::MREQUEST) {

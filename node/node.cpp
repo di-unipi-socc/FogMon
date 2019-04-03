@@ -54,7 +54,7 @@ void Node::initialize(Factory* fact) {
         this->connections = this->factory->newConnections(this->nThreads);
         this->connections->initialize(this);
     }
-    this->server = this->factory->newServer(this->connections,5555);
+    this->server = this->factory->newServer(this->connections,5556);
 }
 
 Node::~Node() {
@@ -71,6 +71,7 @@ Node::~Node() {
         delete this->server;
         this->server = NULL;
     }catch(...) {}
+    exit(0);
 }
 
 void Node::start() {
@@ -94,11 +95,12 @@ void Node::start() {
         }
         this->ipS = MNodes[imin];
     }
-    
+    printf("ciao");
     this->getHardware();
     if(!this->connections->sendHello(this->ipS, this->portS)) {
         perror("Cannot connect to the main node");
         this->stop();
+        exit(0);
     }
     this->timerThread = thread(&Node::timer, this);
     this->timerTestThread = thread(&Node::TestTimer, this);

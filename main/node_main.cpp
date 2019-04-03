@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     InputParser input(argc,argv);
 
     string ip = "localhost";
-    string port = "5556";
+    string port = "5555";
     if(input.cmdOptionExists("-C"))
         ip = input.getCmdOption("-C");
 
@@ -32,9 +32,10 @@ int main(int argc, char *argv[]) {
     node.initialize();
     node.start();
 
-    int a;
-    scanf("%d",&a);
-    scanf("%d",&a);
+    while(true) {
+        sleep(10);
+    }
+
 
     node.stop();
 
