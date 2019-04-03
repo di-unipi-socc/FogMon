@@ -12,12 +12,12 @@ public:
     typedef struct hardware_result{
         int cores;
         float free_cpu;
-        int memory;
-        int free_memory;
-        int disk;
-        int free_disk;
+        int64_t memory;
+        int64_t free_memory;
+        int64_t disk;
+        int64_t free_disk;
         hardware_result() {cores = 0; free_cpu = 0; memory = 0; free_memory = 0; disk = 0; free_disk = 0;}
-        hardware_result(int cores, float free_cpu, int memory, int free_memory, int disk, int free_disk) {
+        hardware_result(int64_t cores, int64_t free_cpu, int64_t memory, int64_t free_memory, int64_t disk, int64_t free_disk) {
             this->cores = cores;
             this->free_cpu = free_cpu;
             this->memory = memory;

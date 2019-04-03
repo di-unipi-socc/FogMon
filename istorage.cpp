@@ -42,13 +42,13 @@ int IStorage::getHardwareCallback(void *R, int argc, char **argv, char **azColNa
         }else if(strcmp("free_cpu", azColName[i])==0) {
             r->free_cpu = stof(argv[i]);
         }else if(strcmp("memory", azColName[i])==0) {
-            r->memory = stoi(argv[i]);
+            r->memory = stoll(argv[i]);
         }else if(strcmp("free_memory", azColName[i])==0) {
-            r->free_memory = stoi(argv[i]);
+            r->free_memory = stoll(argv[i]);
         }else if(strcmp("disk", azColName[i])==0) {
-            r->disk = stoi(argv[i]);
+            r->disk = stoll(argv[i]);
         }else if(strcmp("free_disk", azColName[i])==0) {
-            r->free_disk = stoi(argv[i]);
+            r->free_disk = stoll(argv[i]);
         }
     }
     return 0;
