@@ -17,7 +17,6 @@ using namespace std;
 using namespace rapidjson;
 
 int main(int argc, char *argv[]) {
-
     InputParser input(argc,argv);
 
     string ip = "localhost";

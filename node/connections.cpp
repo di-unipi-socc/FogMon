@@ -57,7 +57,7 @@ void Connections::handler(int fd, Message &m) {
                 Message res;
                 res.setType(Message::Type::RESPONSE);
                 res.setCommand(Message::Command::START);
-                int port = this->parent->startEstimate();
+                int port = 8365;
                 if(port > 0) {
                     res.setArgument(Message::Argument::POSITIVE);
                     res.setData(port);

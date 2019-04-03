@@ -95,7 +95,7 @@ void Node::start() {
         }
         this->ipS = MNodes[imin];
     }
-    printf("ciao");
+    this->startEstimate();
     this->getHardware();
     if(!this->connections->sendHello(this->ipS, this->portS)) {
         perror("Cannot connect to the main node");
@@ -307,8 +307,48 @@ float Node::testBandwidthEstimate(string ip, int port) {
     // set output
     output = sout.str();
     if(exit_code == 0) {
-        
+        std::regex reg("Opening file: ([0-9a-zA-Z_\\.]*)\n");
 
+        std::smatch m;
+        
+        string file = "";
+
+        while (std::regex_search (output,m,reg)) {
+            cout<< m[1]<< endl;
+            std::cout << std::endl;
+            output = m.suffix().str();
+            
+            file = m[1];
+        }
+        if(file.empty())
+            return -1;
+        FILE *in = fopen(file.c_str(),"r");
+        if(in == NULL)
+            return -1;
+        std::stringstream sout;
+        while(fgets(buff, sizeof(buff), in)!=NULL){
+            sout << buff;
+        }
+        output = sout.str();
+        //unlink(file.c_str());
+        {
+            std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
+
+            std::smatch m;
+            
+            float mean = 0;
+            int num = 0;
+            while (std::regex_search (output,m,reg)) {
+                cout<< m[1]<< endl;
+                std::cout << std::endl;
+                output = m.suffix().str();
+                
+                mean += stof(m[2]);
+                num++;
+            }
+            mean = mean/num;
+            return mean;
+        }
         return -1;
     }
     return -1;
