@@ -373,7 +373,7 @@ TEST(StorageMasterTest, ReportGetLRBandwidth) {
 
     Report::test_result test;
     test.mean = 100;
-    test.variance = 0;
+    test.variance = 9999.0;
     test.target = "test";
     test.lasttime = time(NULL);
 
@@ -403,16 +403,27 @@ TEST(StorageMasterTest, GetLatency) {
     MasterStorage storage;
     storage.open("testB.db");
 
-    storage.getLatency("test");
+    vector<Report::test_result> tests = storage.getLatency("testtt");
 
-
-    FAIL();
+    int dim = 2;
+    EXPECT_EQ(tests.size(),dim);
+    
+    for(auto test:tests) {
+        EXPECT_EQ(test.variance,0);
+    }
 }
 
 TEST(StorageMasterTest, GetBandiwdth) {
     MasterStorage storage;
     storage.open("testB.db");
-    FAIL();
+    vector<Report::test_result> tests = storage.getBandwidth("testtt");
+
+    int dim = 2;
+    EXPECT_EQ(tests.size(),dim);
+    
+    for(auto test:tests) {
+        EXPECT_EQ(test.variance,9999.0);
+    }
 }
 
 TEST(StorageMasterTest, Complete) {

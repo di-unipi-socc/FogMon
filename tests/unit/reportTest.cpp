@@ -50,7 +50,7 @@ TEST(ReportTest, SetGetLatency) {
     Report::test_result test;
     test.lasttime = time(NULL);
     test.mean = 10;
-    test.variance = 0;
+    test.variance = 100.0;
     test.target = "ciao";
     vector<Report::test_result> tests;
     tests.push_back(test);
@@ -73,7 +73,7 @@ TEST(ReportTest, SetGetBandwidth) {
     Report::test_result test;
     test.lasttime = time(NULL);
     test.mean = 10;
-    test.variance = 0;
+    test.variance = 30.0;
     test.target = "ciao";
     vector<Report::test_result> tests;
     tests.push_back(test);
@@ -103,7 +103,7 @@ TEST(ReportTest, SetGetReport) {
 
     test.lasttime = time(NULL);
     test.mean = 10;
-    test.variance = 0;
+    test.variance = 56789.0;
     test.target = "ciao";
     vector<Report::test_result> testsB,tests2B;
     testsB.push_back(test);

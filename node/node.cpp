@@ -472,7 +472,7 @@ void Node::testIoT() {
     }
 
     for(int i=0; i<things.size(); i++) {
-        free(things[i]);
+        delete things[i];
     }
 }
 
@@ -495,32 +495,8 @@ void Node::TestTimer() {
                 this->storage->saveLatencyTest(ip, val);
             }
         }
-        /*
-        int m = this->storage->hasToken();
-        if(m > 0) {
-            cout << "start test bandwidth:" << endl;
-            ips = this->storage->getLRBandwidth(m+1,300);
-            cout << "dimension: "<<ips.size() << endl;
-            int durationTest = 1;
-            //if token then do the same for bandwidth
-            int i=0;
-            while(this->storage->hasToken() >= durationTest && i<ips.size()) {
-                //send open iperf3
-                cout << "testing: " << ips[i];
-                if(myIp == ips[i]) {
-                    i++;
-                    continue;
-                }
-                int port = this->connections->sendStartIperfTest(ips[i]);
-                if(port != -1) {
-                    cout << "stat test"<<endl;
-                    float val = this->testBandwidthIperf(ips[i], port);
-                    if(val >= 0)
-                        this->storage->saveBandwidthTest(ips[i], val, 0);
-                }
-                i++;
-            }
-        }*/
+        //test bandwidth
+        //get 10 nodes tested more than 300 seconds in the past
         ips = this->storage->getLRBandwidth(10,300);
         int i=0;
         int tested=0;
