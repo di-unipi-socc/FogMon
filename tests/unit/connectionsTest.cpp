@@ -36,6 +36,14 @@ public:
         return ret;
     }
 
+    virtual std::vector<Report::IoT> getIots() {
+        std::vector<Report::IoT> iots;
+        Report::IoT a(string("123123"),string("aaa"),11);
+        iots.push_back(a);
+        return iots;
+    }
+
+
     virtual void saveLatencyTest(std::string ip, int ms) {}
     virtual void saveBandwidthTest(std::string ip, float kbps, int state) {}
     virtual void saveHardware(Report::hardware_result hardware) {}
@@ -51,6 +59,7 @@ public:
         EXPECT_EQ(rem.size(), 1);
         EXPECT_EQ(rem[0], "test"); 
     }
+    
     
     virtual std::vector<std::string> getLRLatency(int num, int seconds) {return vector<string>();}
     virtual std::vector<std::string> getLRBandwidth(int num, int seconds) {return vector<string>();}
@@ -84,8 +93,6 @@ public:
     virtual void addReport(Report::report_result result, std::string monitored = "::1") {}
     virtual void addReport(std::vector<Report::report_result> results, std::string ip) {}
     virtual void complete() {}
-
-    virtual std::vector<Report::IoT> getIots() { return std::vector<Report::IoT>();}
 
     virtual void addIot(IThing *iot) {};
     virtual void addIot(std::string strIp, Report::IoT iot) {}

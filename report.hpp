@@ -36,10 +36,12 @@ public:
         test_result(std::string _target, float _mean, float _variance, long long _lasttime) : target(_target),mean(_mean),variance(_variance), lasttime(_lasttime) {}
     }test_result;
 
-    typedef struct {
+    typedef struct IoT{
         std::string id;
         std::string desc;
         int latency;
+        IoT() {id =""; desc =""; latency = 0;}
+        IoT(std::string _id, std::string _desc, int _latency): id(_id),desc(_desc),latency(_latency) {}
     }IoT;
 
     typedef struct report_result{

@@ -116,9 +116,18 @@ TEST(ReportTest, SetGetReport) {
     hw.memory = 10*1000*1000;
     hw.free_memory = 1*1000*1000;
 
+    Report::IoT iot("aaa","aaa",1);
+    Report::IoT iot1("aaa43r","aaa3asd",55);
+
+    vector<Report::IoT> iots;
+    vector<Report::IoT> iots2;
+    iots.push_back(iot);
+    iots.push_back(iot1);
+
     report.setLatency(testsL);
     report.setBandwidth(testsB);
     report.setHardware(hw);
+    report.setIot(iots);
 
     rapidjson::Value * val = report.getJson();
 
@@ -128,6 +137,7 @@ TEST(ReportTest, SetGetReport) {
     EXPECT_EQ(true, report2.getHardware(hw2));
     EXPECT_EQ(true, report2.getLatency(tests2L));
     EXPECT_EQ(true, report2.getBandwidth(tests2B));
+    EXPECT_EQ(true, report2.getIot(iots2));
     bool ris;
     ris = memcmp(&hw, &hw2, sizeof(Report::hardware_result));
     EXPECT_EQ(0, ris);
@@ -143,6 +153,12 @@ TEST(ReportTest, SetGetReport) {
         EXPECT_EQ(testsB[i].variance, tests2B[i].variance); 
         EXPECT_EQ(testsB[i].lasttime, tests2B[i].lasttime); 
         EXPECT_EQ(testsB[i].target, tests2B[i].target);
+    }
+
+    for(int i=0; i<iots.size(); i++) {
+        EXPECT_EQ(iots[i].desc, iots2[i].desc); 
+        EXPECT_EQ(iots[i].id, iots2[i].id); 
+        EXPECT_EQ(iots[i].latency, iots2[i].latency); 
     }
 }
 

@@ -30,7 +30,7 @@ void Microbit::monitor() {
     int retval = sp_get_port_by_name(this->port.c_str(),&port);
     this->latency = -1;
 
-    if(retval = SP_OK) {
+    if(retval == SP_OK) {
         char * desc = sp_get_port_description(port);
         if(desc != NULL) {
             this->desc = string(desc);
