@@ -1,9 +1,20 @@
-# FTPiDiscoverer
+# FogMon
 
 ```
 git submodule init
 git submodule update
 ```
+
+Two docker image representing the two nodes.
+
+```
+docker build --tag node . -f node.Dockerfile
+```
+
+```
+docker build --tag server . -f server.Dockerfile
+```
+
 
 install sqlite3 for development
 
