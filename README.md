@@ -15,10 +15,13 @@ docker build --tag node . -f node.Dockerfile
 docker build --tag server . -f server.Dockerfile
 ```
 
+The tool can be compiled outside docker (is not advised) as follow:
 
 install sqlite3 for development
 
 install libstdc++ for static linking
+
+install libserialport
 
 install sigar:
 https://github.com/hyperic/sigar
