@@ -427,6 +427,7 @@ TEST(StorageMasterTest, GetBandiwdth) {
 }
 
 TEST(StorageMasterTest, Complete) {
-
-    FAIL();
+    MasterStorage storage;
+    storage.open("testB.db");
+    storage.complete();
 }

@@ -2,6 +2,9 @@
 #include <iostream>
 #include <vector>
 
+/**
+ * a class for input parsing
+*/
 class InputParser{
     public:
         InputParser (int &argc, char **argv){

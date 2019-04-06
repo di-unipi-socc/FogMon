@@ -519,6 +519,13 @@ void Node::TestTimer() {
             i++;
         }
 
+        //every 10 iteration ask the nodes in case the server cant reach this network
+        if(iter%10 == 0) {
+            ips = this->connections->requestNodes(this->ipS,this->portS);
+            vector<string> tmp;
+            this->getStorage()->updateNodes(ips,tmp);
+        }
+
         sleep(this->timeTimerTest);
         iter++;
     }

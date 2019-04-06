@@ -22,6 +22,7 @@ public:
     void initialize(INode *parent);
 
     std::vector<std::string> requestMNodes(std::string ip, std::string portS); 
+    std::vector<std::string> requestNodes(std::string ipS, std::string portS);
     bool sendHello(std::string ipS, std::string portS);
     bool sendUpdate(std::string ipS, std::string portS);
 

@@ -5,6 +5,10 @@
 #include <mutex>
 #include <atomic>
 
+
+/**
+ * A simple thread safe FIFO queue
+*/
 template<typename E>
 class Queue {
 private:

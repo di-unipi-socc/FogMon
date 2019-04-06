@@ -261,7 +261,7 @@ int IConnections::openConnection(string ip, string port) {
                 int num = 3;
                 do {
                     struct timeval tv; 
-                    tv.tv_sec = 2; 
+                    tv.tv_sec = 5; 
                     tv.tv_usec = 0; 
                     FD_ZERO(&myset); 
                     FD_SET(Socket, &myset); 

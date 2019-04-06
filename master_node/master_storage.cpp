@@ -332,20 +332,20 @@ void MasterStorage::complete() {
     char buf[2048];
     std::sprintf(buf,
                 "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
-                " SELECT A.id as idA, B.id as idB, "
-                    "(SELECT meanL from MLinks WHERE idA = A.monitoredBy AND idB = B.monitoredBy) + "
-                    "(SELECT meanL from MLinks WHERE idA = A.id AND idB = A.monitoredBy) + "
-                    "(SELECT meanL from MLinks WHERE idA = B.monitoredBy AND idB = B.id) "
-                    "as meanL, "
-                    "(SELECT varianceL from MLinks WHERE idA = A.monitoredBy AND idB = B.monitoredBy) + "
-                    "(SELECT varianceL from MLinks WHERE idA = A.id AND idB = A.monitoredBy) + "
-                    "(SELECT varianceL from MLinks WHERE idA = B.monitoredBy AND idB = B.id) "
-                    "as varianceL, NULL as lasttimeL, "
-                    "(SELECT min(meanB) from MLinks WHERE (idA = A.id AND idB <> B.id) OR (idA <> A.id AND idB = B.id) "
-                    "as meanB, "
-                    "(SELECT max(varianceB) from MLinks WHERE (idA = A.id AND idB <> B.id) OR (idA <> A.id AND idB = B.id) "
-                    "as varianceB, NULL as lasttimeB "
-                "  FROM Nodes as A JOIN Nodes as B WHERE A.id <> B.id");
+                " SELECT A.id AS idA, B.id AS idB, "
+                    "((SELECT M.meanL from MLinks AS M WHERE M.idA = A.monitoredBy AND M.idB = B.monitoredBy) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = A.monitoredBy) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = B.monitoredBy AND M.idB = B.id)) "
+                    "AS meanL, "
+                    "((SELECT M.varianceL from MLinks AS M WHERE M.idA = A.monitoredBy AND M.idB = B.monitoredBy) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = A.id AND M.idB = A.monitoredBy) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = B.monitoredBy AND M.idB = B.id)) "
+                    "AS varianceL, NULL AS lasttimeL, "
+                    "(SELECT min(M.meanB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS meanB, "
+                    "(SELECT max(M.varianceB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS varianceB, NULL AS lasttimeB "
+                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id");
 
     vector<Report::test_result> tests;
 

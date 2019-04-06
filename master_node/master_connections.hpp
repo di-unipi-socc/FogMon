@@ -23,6 +23,7 @@ public:
 
     void initialize(IParentMaster* parent);
     
+    bool sendRemoveNodes(std::vector<std::string> ips);
     bool sendRequestReport(std::string ip);
     bool sendSetToken(std::string ip, int time);
     bool sendMReport(std::string ip, vector<Report::report_result> report);

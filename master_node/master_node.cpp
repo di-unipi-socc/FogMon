@@ -47,7 +47,6 @@ IMasterStorage* MasterNode::getStorage() {
 }
 
 void MasterNode::timerFun() {
-    try{
     while(this->running) {
         //routine for Nodes
         
@@ -80,25 +79,19 @@ void MasterNode::timerFun() {
             }
             i++;
         }
-        
-        /*
-        int batch = 5;
-        ips = this->getStorage()->getLRBandwidth(batch*2, 300);
-        vector<string> ips_save;
-        for(int i=0,j=0; i<ips.size() && i < batch + j; i++) {
-            if(this->connections->sendSetToken(ips[i], this->timeTimerFun)) {
-                ips_save.push_back(ips[i]);
-            }else
-                j++;
-        }*/
+
+        //test old nodes that do not answer since long time
+        ips = this->getStorage()->getLRHardware(100, 120);
+        vector<string> rem;
+        for(auto&& ip : ips) {
+            bool res = this->connections->sendRequestReport(ip);
+            if(!res) {
+                rem.push_back(ip);
+            }
+        }
+        //remove the nodes that failed to respond
+        this->connections->sendRemoveNodes(ips);
 
         sleep(this->timeTimerFun);
-
-        //for(auto&& ip : ips_save) {
-        //    this->connections->sendRequestReport(ip);
-        //}
-    }
-    }catch(...) {
-        int a=0;
     }
 }

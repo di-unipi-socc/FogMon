@@ -162,6 +162,40 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
+vector<string> Connections::requestNodes(std::string ipS, std::string portS) {
+    int Socket = openConnection(ipS, portS);
+    
+    if(Socket < 0) {
+        return vector<string>();
+    }
+
+    //build request message
+    Message m;
+    m.setType(Message::Type::REQUEST);
+    m.setCommand(Message::Command::GET);
+    m.setArgument(Message::Argument::NODES);
+
+    vector<string> nodes;
+    bool result = false;
+    //send request message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::NODELIST &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                if(res.getData(nodes)) {
+                    result = true;
+                }
+            }
+        }
+    }
+    close(Socket);
+    if(result)
+        return nodes;
+    return vector<string>();
+}
+
 vector<string> Connections::requestMNodes(string ipS, string portS) {
     int Socket = openConnection(ipS, portS);
     
@@ -171,9 +205,8 @@ vector<string> Connections::requestMNodes(string ipS, string portS) {
 
     printf("asking");
     fflush(stdout);
-    char buffer[10];
 
-    //build hello message
+    //build request message
     Message m;
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::GET);
@@ -181,7 +214,7 @@ vector<string> Connections::requestMNodes(string ipS, string portS) {
 
     vector<string> nodes;
     bool result = false;
-    //send hello message
+    //send request message
     if(this->sendMessage(Socket, m)) {
         Message res;
         if(this->getMessage(Socket, res)) {
@@ -293,7 +326,7 @@ int Connections::sendStartIperfTest(string ip) {
     fflush(stdout);
     char buffer[10];
 
-    //build update message
+    //build start iperf message
     Message m;
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::START);
@@ -301,7 +334,7 @@ int Connections::sendStartIperfTest(string ip) {
 
     int port = -1;
 
-    //send update message
+    //send start iperf message
     if(this->sendMessage(Socket, m)) {
         Message res;
         if(this->getMessage(Socket, res)) {
@@ -328,7 +361,7 @@ int Connections::sendStartEstimateTest(string ip) {
     fflush(stdout);
     char buffer[10];
 
-    //build update message
+    //build start estimate message
     Message m;
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::START);
@@ -336,7 +369,7 @@ int Connections::sendStartEstimateTest(string ip) {
 
     int port = -1;
 
-    //send update message
+    //send start estimate message
     if(this->sendMessage(Socket, m)) {
         Message res;
         if(this->getMessage(Socket, res)) {

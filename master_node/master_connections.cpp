@@ -192,6 +192,18 @@ void MasterConnections::handler(int fd, Message &m) {
     Connections::handler(fd, m);
 }
 
+bool MasterConnections::sendRemoveNodes(std::vector<std::string> ips) {
+    Message broadcast;
+    broadcast.setType(Message::Type::NOTIFY);
+    broadcast.setCommand(Message::Command::UPDATE);
+    broadcast.setArgument(Message::Argument::NODES);
+
+    vector<string> v;
+    broadcast.setData(v ,ips);
+
+    return this->notifyAll(broadcast);
+}
+
 bool MasterConnections::sendRequestReport(std::string ip) {
     int Socket = openConnection(ip);
     
