@@ -184,6 +184,12 @@ void MasterConnections::handler(int fd, Message &m) {
                     if(r.getIot(iot)) {
                         this->parent->getStorage()->addReportIot(strIp, iot);
                     }
+                     Message res;
+                    res.setType(Message::Type::RESPONSE);
+                    res.setCommand(Message::Command::UPDATE);
+                    res.setArgument(Message::Argument::POSITIVE);
+                    
+                    sendMessage(fd, res);
                 }
             }
         }

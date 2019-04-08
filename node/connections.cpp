@@ -309,7 +309,15 @@ bool Connections::sendUpdate(string ipS, string portS) {
 
     //send update message
     if(this->sendMessage(Socket, m)) {
-        result = true;
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::RESPONSE &&
+                res.getCommand() == Message::Command::UPDATE &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                
+                result = true;
+            }
+        }
     }
     close(Socket);
     return result;
