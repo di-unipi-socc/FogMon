@@ -62,9 +62,12 @@ void MasterConnections::handler(int fd, Message &m) {
         strcpy(ip,"::1");
     string strIp = string(ip);
 
+    bool handled = false;
+
     if(m.getType() == Message::Type::MREQUEST) {
         if(m.getCommand() == Message::Command::SET) {
             if(m.getArgument() == Message::Argument::REPORT) {
+                handled = true;
                 Report r;
                 if(m.getData(r)) {
                     vector<Report::report_result> results;
@@ -80,6 +83,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 }
             }
         }else if(m.getCommand() == Message::Command::MHELLO) {
+            handled = true;
             this->parent->getStorage()->addMNode(strIp);
             Message res;
             res.setType(Message::Type::MRESPONSE);
@@ -95,6 +99,7 @@ void MasterConnections::handler(int fd, Message &m) {
     }else if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
+                handled = true;
                 //build array of nodes
                 vector<string> nodes = this->parent->getStorage()->getNodes();
                 //send nodes
@@ -109,6 +114,7 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }else if(m.getArgument() == Message::Argument::MNODES) {
             if(m.getCommand() == Message::Command::GET) {
+                handled = true;
                 //build array of nodes
                 vector<string> nodes = this->parent->getStorage()->getMNodes();
                 //send nodes
@@ -123,6 +129,7 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::SET) {
+                handled = true;
                 //read report ---------------------------
                 Report r;
                 if(m.getData(r)) {
@@ -135,6 +142,7 @@ void MasterConnections::handler(int fd, Message &m) {
         }
     }else if(m.getType() == Message::Type::NOTIFY) {
         if(m.getCommand() == Message::Command::HELLO) {
+            handled = true;
             //get report on hardware
             Report r;
             if(m.getData(r)) {
@@ -172,6 +180,7 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }else if(m.getCommand() == Message::Command::UPDATE) {
             if(m.getArgument() == Message::Argument::REPORT) {
+                handled = true;
                 //get the report
                 //the report should be only a part of it
                 Report r;
@@ -202,8 +211,8 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }
     }
-    
-    Connections::handler(fd, m);
+    if(!handled)
+        Connections::handler(fd, m);
 }
 
 bool MasterConnections::sendRemoveNodes(std::vector<std::string> ips) {

@@ -79,14 +79,14 @@ void Node::start() {
     
     mNodes.push_back(this->ipS);
 
+    this->startEstimate();
+    this->getHardware();
+
     if(!selectServer()) {
         fprintf(stderr,"Cannot connect to the main node\n");
         this->stop();
         exit(1);
     }
-
-    this->startEstimate();
-    this->getHardware();
 
     this->timerThread = thread(&Node::timer, this);
     this->timerTestThread = thread(&Node::TestTimer, this);
