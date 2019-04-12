@@ -282,9 +282,34 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
     }
 
     for(auto node : rem) {
-        std::sprintf(buf,"DELETE FROM Nodes WHERE ip = \"%s\"", node.c_str());
+        int id = this->getNodeId(node);
+        if(id == 0) {
+            continue;
+        }
+
+        std::sprintf(buf,"DELETE FROM Nodes WHERE id = %ld", id);
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+        if( err!=SQLITE_OK )
+        {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            sqlite3_free(zErrMsg);
+            exit(1);
+        }
+
+        std::sprintf(buf,"DELETE FROM Latency WHERE idNodeB = %ld", id);
+
+        err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+        if( err!=SQLITE_OK )
+        {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            sqlite3_free(zErrMsg);
+            exit(1);
+        }
+
+        std::sprintf(buf,"DELETE FROM Bandwidth WHERE idNodeB = %ld", id);
+
+        err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
             fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
