@@ -219,18 +219,18 @@ bool Report::getHardware(hardware_result& hardware) {
     
     if( !val.HasMember("cores") || !val["cores"].IsInt() ||
         !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
-        !val.HasMember("memory") || !val["memory"].IsInt() ||
-        !val.HasMember("free_memory") || !val["free_memory"].IsInt() ||
-        !val.HasMember("disk") || !val["disk"].IsInt() ||
-        !val.HasMember("free_disk") || !val["free_disk"].IsInt())
+        !val.HasMember("memory") || !val["memory"].IsInt64() ||
+        !val.HasMember("free_memory") || !val["free_memory"].IsInt64() ||
+        !val.HasMember("disk") || !val["disk"].IsInt64() ||
+        !val.HasMember("free_disk") || !val["free_disk"].IsInt64())
         return false;
 
     hardware.cores = val["cores"].GetInt();
     hardware.free_cpu = val["free_cpu"].GetFloat();
-    hardware.memory = val["memory"].GetInt();
-    hardware.free_memory = val["free_memory"].GetInt();
-    hardware.disk = val["disk"].GetInt();
-    hardware.free_disk = val["free_disk"].GetInt();
+    hardware.memory = val["memory"].GetInt64();
+    hardware.free_memory = val["free_memory"].GetInt64();
+    hardware.disk = val["disk"].GetInt64();
+    hardware.free_disk = val["free_disk"].GetInt64();
     
     return true;
 }
@@ -337,19 +337,19 @@ bool Report::getReports(std::vector<report_result> &reports) {
 
         if( !val.HasMember("cores") || !val["cores"].IsInt() ||
             !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
-            !val.HasMember("memory") || !val["memory"].IsInt() ||
-            !val.HasMember("free_memory") || !val["free_memory"].IsInt() ||
-            !val.HasMember("disk") || !val["disk"].IsInt() ||
-            !val.HasMember("free_disk") || !val["free_disk"].IsInt())
+            !val.HasMember("memory") || !val["memory"].IsInt64() ||
+            !val.HasMember("free_memory") || !val["free_memory"].IsInt64() ||
+            !val.HasMember("disk") || !val["disk"].IsInt64() ||
+            !val.HasMember("free_disk") || !val["free_disk"].IsInt64())
             return false;
         
         {
             result.hardware.cores = val["cores"].GetInt();
             result.hardware.free_cpu = val["free_cpu"].GetFloat();
-            result.hardware.memory = val["memory"].GetInt();
-            result.hardware.free_memory = val["free_memory"].GetInt();
-            result.hardware.disk = val["disk"].GetInt();
-            result.hardware.free_disk = val["free_disk"].GetInt();
+            result.hardware.memory = val["memory"].GetInt64();
+            result.hardware.free_memory = val["free_memory"].GetInt64();
+            result.hardware.disk = val["disk"].GetInt64();
+            result.hardware.free_disk = val["free_disk"].GetInt64();
         }
 
         for (auto& v : v["latency"].GetArray()) {
