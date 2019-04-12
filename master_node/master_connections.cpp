@@ -72,12 +72,18 @@ void MasterConnections::handler(int fd, Message &m) {
                     if(r.getReports(results)) {
                         this->parent->getStorage()->addReport(results, strIp);
                     }
+                    Message res;
+                    res.setType(Message::Type::MRESPONSE);
+                    res.setCommand(Message::Command::SET);
+                    res.setArgument(Message::Argument::POSITIVE);
+
+                    sendMessage(fd, res);
                 }
             }
         }else if(m.getCommand() == Message::Command::MHELLO) {
             this->parent->getStorage()->addMNode(strIp);
             Message res;
-            res.setType(Message::Type::RESPONSE);
+            res.setType(Message::Type::MRESPONSE);
             res.setCommand(Message::Command::MHELLO);
             res.setArgument(Message::Argument::POSITIVE);
 
