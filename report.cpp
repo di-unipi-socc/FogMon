@@ -325,7 +325,7 @@ bool Report::getReports(std::vector<report_result> &reports) {
     for (auto& v : this->doc["reports"].GetArray()) {
         if( !v.IsObject() ||
             !v.HasMember("hardware") || !v["hardware"].IsObject() ||
-            !v.HasMember("latency") || !v["mean"].IsArray() ||
+            !v.HasMember("latency") || !v["latency"].IsArray() ||
             !v.HasMember("bandwidth") || !v["bandwidth"].IsArray() ||
             !v.HasMember("iot") || !v["iot"].IsArray() ||
             !v.HasMember("ip") || !v["ip"].IsString())

@@ -202,7 +202,6 @@ TEST(ReportTest, SetGetReport2) {
     report2.parseJson(*val);
 
     Report::report_result result2;
-    result2.ip = "ciao";
 
     EXPECT_EQ(true, report2.getReport(result2));
     bool ris;
@@ -225,4 +224,67 @@ TEST(ReportTest, SetGetReport2) {
 
 TEST(ReportTest, SetGetReports) {
     
+    vector<Report::report_result> results;
+
+    Report report;
+    Report::test_result test;
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> testsL,tests2L;
+    testsL.push_back(test);
+
+    test.lasttime = time(NULL);
+    test.mean = 10;
+    test.variance = 0;
+    test.target = "ciao";
+    vector<Report::test_result> testsB,tests2B;
+    testsB.push_back(test);
+
+    Report::hardware_result hw,hw2;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.free_disk = 10*1000*1000;
+    hw.free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.free_memory = 1*1000*1000;
+
+    Report::report_result result;
+
+    result.ip = "ciao";
+    result.hardware = hw;
+    result.latency = testsL;
+    result.bandwidth = testsB;
+
+    results.push_back(result);
+
+
+    report.setReports(results);
+
+    rapidjson::Value * val = report.getJson();
+
+    Report report2;
+    report2.parseJson(*val);
+
+    vector<Report::report_result> results2;
+
+    EXPECT_EQ(true, report2.getReports(results2));
+    bool ris;
+    Report::report_result result2 = results2[0];
+    ris = memcmp(&result.hardware, &result2.hardware, sizeof(Report::hardware_result));
+    EXPECT_EQ(0, ris);
+
+    for(int i=0; i<result.latency.size(); i++) {
+        EXPECT_EQ(result.latency[i].mean, result2.latency[i].mean); 
+        EXPECT_EQ(result.latency[i].variance, result2.latency[i].variance); 
+        EXPECT_EQ(result.latency[i].lasttime, result2.latency[i].lasttime); 
+        EXPECT_EQ(result.latency[i].target, result2.latency[i].target);
+    }
+    for(int i=0; i<result.bandwidth.size(); i++) {
+        EXPECT_EQ(result.bandwidth[i].mean, result2.bandwidth[i].mean); 
+        EXPECT_EQ(result.bandwidth[i].variance, result2.bandwidth[i].variance); 
+        EXPECT_EQ(result.bandwidth[i].lasttime, result2.bandwidth[i].lasttime); 
+        EXPECT_EQ(result.bandwidth[i].target, result2.bandwidth[i].target);
+    }
 }
