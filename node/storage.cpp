@@ -250,6 +250,23 @@ void Storage::refreshNodes(vector<string> nodes) {
         exit(1);
     }  
 
+    std::sprintf(buf,"DELETE FROM Latency WHERE idNodeB NOT IN (SELECT id FROM Nodes)");
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }  
+    std::sprintf(buf,"DELETE FROM Bandwidth WHERE idNodeB NOT IN (SELECT id FROM Nodes)");
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }  
+
     for(auto node : nodes) {
         int id = this->getNodeId(node);
 

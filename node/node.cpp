@@ -550,6 +550,13 @@ void Node::TestTimer() {
             this->getStorage()->updateNodes(ips,tmp);
         }
 
+        if(iter%10 == 0) {
+            vector<string> res = this->connections->requestMNodes(this->ipS);
+            if(!res.empty()) {
+                mNodes = res;
+            }
+        }
+
         sleep(this->timeTimerTest);
         iter++;
     }
