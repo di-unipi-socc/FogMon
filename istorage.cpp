@@ -39,16 +39,22 @@ int IStorage::getHardwareCallback(void *R, int argc, char **argv, char **azColNa
     for(int i=0; i<argc; i++) {
         if(strcmp("cores", azColName[i])==0) {
             r->cores = stoi(argv[i]);
-        }else if(strcmp("free_cpu", azColName[i])==0) {
-            r->free_cpu = stof(argv[i]);
+        }else if(strcmp("mean_free_cpu", azColName[i])==0) {
+            r->mean_free_cpu = stof(argv[i]);
+        }else if(strcmp("var_free_cpu", azColName[i])==0) {
+            r->var_free_cpu = stof(argv[i]);
         }else if(strcmp("memory", azColName[i])==0) {
             r->memory = stoll(argv[i]);
-        }else if(strcmp("free_memory", azColName[i])==0) {
-            r->free_memory = stoll(argv[i]);
+        }else if(strcmp("mean_free_memory", azColName[i])==0) {
+            r->mean_free_memory = stoll(argv[i]);
+        }else if(strcmp("var_free_memory", azColName[i])==0) {
+            r->var_free_memory = stof(argv[i]);
         }else if(strcmp("disk", azColName[i])==0) {
             r->disk = stoll(argv[i]);
-        }else if(strcmp("free_disk", azColName[i])==0) {
-            r->free_disk = stoll(argv[i]);
+        }else if(strcmp("mean_free_disk", azColName[i])==0) {
+            r->mean_free_disk = stoll(argv[i]);
+        }else if(strcmp("var_free_disk", azColName[i])==0) {
+            r->var_free_disk = stof(argv[i]);
         }
     }
     return 0;

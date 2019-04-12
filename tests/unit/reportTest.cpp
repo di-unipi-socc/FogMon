@@ -28,20 +28,22 @@ TEST(ReportTest, ParseGetJson) {
 TEST(ReportTest, SetGetHardware) {
     Report report;
     Report::hardware_result hw;
+    memset(&hw,0,sizeof(Report::hardware_result));
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     report.setHardware(hw);
 
     Report::hardware_result hw2;
-
+    memset(&hw2,0,sizeof(Report::hardware_result));
     int ris = report.getHardware(hw2);
     EXPECT_EQ(true, ris);
 
     ris = memcmp(&hw, &hw2, sizeof(Report::hardware_result));
+
     EXPECT_EQ(0, ris);
 }
 
@@ -109,12 +111,14 @@ TEST(ReportTest, SetGetReport) {
     testsB.push_back(test);
 
     Report::hardware_result hw,hw2;
+    memset(&hw,0,sizeof(Report::hardware_result));
+    memset(&hw2,0,sizeof(Report::hardware_result));
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
 
     Report::IoT iot("aaa","aaa",1);
     Report::IoT iot1("aaa43r","aaa3asd",55);
@@ -179,13 +183,14 @@ TEST(ReportTest, SetGetReport2) {
     vector<Report::test_result> testsB,tests2B;
     testsB.push_back(test);
 
-    Report::hardware_result hw,hw2;
+    Report::hardware_result hw;
+    memset(&hw,0,sizeof(Report::hardware_result));
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
 
     Report::report_result result;
 
@@ -202,9 +207,10 @@ TEST(ReportTest, SetGetReport2) {
     report2.parseJson(*val);
 
     Report::report_result result2;
+    memset(&result2.hardware,0,sizeof(Report::hardware_result));
 
     EXPECT_EQ(true, report2.getReport(result2));
-    bool ris;
+    int ris;
     ris = memcmp(&result.hardware, &result2.hardware, sizeof(Report::hardware_result));
     EXPECT_EQ(0, ris);
 
@@ -243,12 +249,14 @@ TEST(ReportTest, SetGetReports) {
     testsB.push_back(test);
 
     Report::hardware_result hw,hw2;
+    memset(&hw,0,sizeof(Report::hardware_result));
+    
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
 
     Report::report_result result;
 

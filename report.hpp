@@ -19,35 +19,49 @@ public:
         /**
          * number of cores
         */
-        int cores;
+        int cores = 0;
         /**
          * cpu percentage available
         */
-        float free_cpu;
+        float mean_free_cpu = 0;
+        float var_free_cpu = 0;
         /**
          * total RAM memory in bytes
         */
-        int64_t memory;
+        int64_t memory = 0;
         /**
          * available RAM
         */
-        int64_t free_memory;
+        float mean_free_memory = 0;
+        float var_free_memory = 0;
         /**
          * total disk memory in kilobyte
         */
-        int64_t disk;
+        int64_t disk = 0;
         /**
          * disk memory available
         */
-        int64_t free_disk;
-        hardware_result() {cores = 0; free_cpu = 0; memory = 0; free_memory = 0; disk = 0; free_disk = 0;}
-        hardware_result(int64_t cores, int64_t free_cpu, int64_t memory, int64_t free_memory, int64_t disk, int64_t free_disk) {
+        float mean_free_disk = 0;
+        float var_free_disk = 0;
+        hardware_result() {}
+        hardware_result(int cores, float free_cpu, int64_t memory, float free_memory, int64_t disk, float free_disk) {
             this->cores = cores;
-            this->free_cpu = free_cpu;
+            this->mean_free_cpu = free_cpu;
             this->memory = memory;
-            this->free_memory = free_memory;
+            this->mean_free_memory = free_memory;
             this->disk = disk;
-            this->free_disk = free_disk;
+            this->mean_free_disk = free_disk;
+        }
+        hardware_result(int cores, float mean_free_cpu, float var_free_cpu, int64_t memory, float mean_free_memory, float var_free_memory,  int64_t disk,  float mean_free_disk, float var_free_disk) {
+            this->cores = cores;
+            this->mean_free_cpu = mean_free_cpu;
+            this->var_free_cpu = var_free_cpu;
+            this->memory = memory;
+            this->mean_free_memory = mean_free_memory;
+            this->var_free_memory = var_free_memory;
+            this->disk = disk;
+            this->mean_free_disk = mean_free_disk;
+            this->var_free_disk = var_free_disk;
         }
     }hardware_result;
     /**

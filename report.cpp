@@ -28,18 +28,24 @@ void Report::setHardware(hardware_result hardware) {
     doc.RemoveMember("hardware");
     
     Value cores(hardware.cores);
-    Value free_cpu(hardware.free_cpu);
+    Value mean_free_cpu(hardware.mean_free_cpu);
+    Value var_free_cpu(hardware.var_free_cpu);
     Value memory(hardware.memory);
-    Value free_memory(hardware.free_memory);
+    Value mean_free_memory(hardware.mean_free_memory);
+    Value var_free_memory(hardware.var_free_memory);
     Value disk(hardware.disk);
-    Value free_disk(hardware.free_disk);
+    Value mean_free_disk(hardware.mean_free_disk);
+    Value var_free_disk(hardware.var_free_disk);
 
     obj.AddMember("cores", cores, doc.GetAllocator());
-    obj.AddMember("free_cpu", free_cpu, doc.GetAllocator());
+    obj.AddMember("mean_free_cpu", mean_free_cpu, doc.GetAllocator());
+    obj.AddMember("var_free_cpu", var_free_cpu, doc.GetAllocator());
     obj.AddMember("memory", memory, doc.GetAllocator());
-    obj.AddMember("free_memory", free_memory, doc.GetAllocator());
+    obj.AddMember("mean_free_memory", mean_free_memory, doc.GetAllocator());
+    obj.AddMember("var_free_memory", var_free_memory, doc.GetAllocator());
     obj.AddMember("disk", disk, doc.GetAllocator());
-    obj.AddMember("free_disk", free_disk, doc.GetAllocator());
+    obj.AddMember("mean_free_disk", mean_free_disk, doc.GetAllocator());
+    obj.AddMember("var_free_disk", var_free_disk, doc.GetAllocator());
 
     doc.AddMember("hardware", obj, doc.GetAllocator());
 }
@@ -142,18 +148,24 @@ void Report::setReports(std::vector<report_result> reports) {
             
         
             Value cores(hardware.cores);
-            Value free_cpu(hardware.free_cpu);
+            Value mean_free_cpu(hardware.mean_free_cpu);
+            Value var_free_cpu(hardware.var_free_cpu);
             Value memory(hardware.memory);
-            Value free_memory(hardware.free_memory);
+            Value mean_free_memory(hardware.mean_free_memory);
+            Value var_free_memory(hardware.var_free_memory);
             Value disk(hardware.disk);
-            Value free_disk(hardware.free_disk);
+            Value mean_free_disk(hardware.mean_free_disk);
+            Value var_free_disk(hardware.var_free_disk);
 
             hw.AddMember("cores", cores, doc.GetAllocator());
-            hw.AddMember("free_cpu", free_cpu, doc.GetAllocator());
+            hw.AddMember("mean_free_cpu", mean_free_cpu, doc.GetAllocator());
+            hw.AddMember("var_free_cpu", var_free_cpu, doc.GetAllocator());
             hw.AddMember("memory", memory, doc.GetAllocator());
-            hw.AddMember("free_memory", free_memory, doc.GetAllocator());
+            hw.AddMember("mean_free_memory", mean_free_memory, doc.GetAllocator());
+            hw.AddMember("var_free_memory", var_free_memory, doc.GetAllocator());
             hw.AddMember("disk", disk, doc.GetAllocator());
-            hw.AddMember("free_disk", free_disk, doc.GetAllocator());
+            hw.AddMember("mean_free_disk", mean_free_disk, doc.GetAllocator());
+            hw.AddMember("var_free_disk", var_free_disk, doc.GetAllocator());
         }
         
         for(auto testLt : test.latency) {
@@ -218,19 +230,25 @@ bool Report::getHardware(hardware_result& hardware) {
     Value &val = doc["hardware"];
     
     if( !val.HasMember("cores") || !val["cores"].IsInt() ||
-        !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
+        !val.HasMember("mean_free_cpu") || !val["mean_free_cpu"].IsFloat() ||
+        !val.HasMember("var_free_cpu") || !val["var_free_cpu"].IsFloat() ||
         !val.HasMember("memory") || !val["memory"].IsInt64() ||
-        !val.HasMember("free_memory") || !val["free_memory"].IsInt64() ||
+        !val.HasMember("mean_free_memory") || !val["mean_free_memory"].IsFloat() ||
+        !val.HasMember("var_free_memory") || !val["var_free_memory"].IsFloat() ||
         !val.HasMember("disk") || !val["disk"].IsInt64() ||
-        !val.HasMember("free_disk") || !val["free_disk"].IsInt64())
+        !val.HasMember("mean_free_disk") || !val["mean_free_disk"].IsFloat() ||
+        !val.HasMember("var_free_disk") || !val["var_free_disk"].IsFloat())
         return false;
 
     hardware.cores = val["cores"].GetInt();
-    hardware.free_cpu = val["free_cpu"].GetFloat();
+    hardware.mean_free_cpu = val["mean_free_cpu"].GetFloat();
+    hardware.var_free_cpu = val["var_free_cpu"].GetFloat();
     hardware.memory = val["memory"].GetInt64();
-    hardware.free_memory = val["free_memory"].GetInt64();
+    hardware.mean_free_memory = val["mean_free_memory"].GetFloat();
+    hardware.var_free_memory = val["var_free_memory"].GetFloat();
     hardware.disk = val["disk"].GetInt64();
-    hardware.free_disk = val["free_disk"].GetInt64();
+    hardware.mean_free_disk = val["mean_free_disk"].GetFloat();
+    hardware.var_free_disk = val["var_free_disk"].GetFloat();
     
     return true;
 }
@@ -331,25 +349,31 @@ bool Report::getReports(std::vector<report_result> &reports) {
             !v.HasMember("ip") || !v["ip"].IsString())
             return false;
         report_result result;
+        memset(&result.hardware,0,sizeof(Report::hardware_result));
         result.ip = string(v["ip"].GetString());
 
         Value &val = v["hardware"];
 
         if( !val.HasMember("cores") || !val["cores"].IsInt() ||
-            !val.HasMember("free_cpu") || !val["free_cpu"].IsFloat() ||
+            !val.HasMember("mean_free_cpu") || !val["mean_free_cpu"].IsFloat() ||
+            !val.HasMember("var_free_cpu") || !val["var_free_cpu"].IsFloat() ||
             !val.HasMember("memory") || !val["memory"].IsInt64() ||
-            !val.HasMember("free_memory") || !val["free_memory"].IsInt64() ||
+            !val.HasMember("mean_free_memory") || !val["mean_free_memory"].IsFloat() ||
+            !val.HasMember("var_free_memory") || !val["var_free_memory"].IsFloat() ||
             !val.HasMember("disk") || !val["disk"].IsInt64() ||
-            !val.HasMember("free_disk") || !val["free_disk"].IsInt64())
+            !val.HasMember("mean_free_disk") || !val["mean_free_disk"].IsFloat() ||
+            !val.HasMember("var_free_disk") || !val["var_free_disk"].IsFloat())
             return false;
-        
         {
             result.hardware.cores = val["cores"].GetInt();
-            result.hardware.free_cpu = val["free_cpu"].GetFloat();
+            result.hardware.mean_free_cpu = val["mean_free_cpu"].GetFloat();
+            result.hardware.var_free_cpu = val["var_free_cpu"].GetFloat();
             result.hardware.memory = val["memory"].GetInt64();
-            result.hardware.free_memory = val["free_memory"].GetInt64();
+            result.hardware.mean_free_memory = val["mean_free_memory"].GetFloat();
+            result.hardware.var_free_memory = val["var_free_memory"].GetFloat();
             result.hardware.disk = val["disk"].GetInt64();
-            result.hardware.free_disk = val["free_disk"].GetInt64();
+            result.hardware.mean_free_disk = val["mean_free_disk"].GetFloat();
+            result.hardware.var_free_disk = val["var_free_disk"].GetFloat();
         }
 
         for (auto& v : v["latency"].GetArray()) {

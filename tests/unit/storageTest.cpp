@@ -55,12 +55,13 @@ TEST(StorageTest, SaveGetHardware) {
     storage.open("testA.db");
 
     Report::hardware_result hw;
+    memset(&hw,0,sizeof(Report::hardware_result));
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     storage.saveHardware(hw);
 
     Report::hardware_result hw2 = storage.getHardware();
@@ -196,10 +197,10 @@ TEST(StorageMasterTest, AddGetNode) {
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     storage.addNode("test",hw);
 
     std::vector<std::string> res = storage.getNodes();
@@ -218,10 +219,10 @@ TEST(StorageMasterTest, FailNullRef) {
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     storage.addNode("test",hw);
 
     std::vector<std::string> res = storage.getNodes();
@@ -288,10 +289,10 @@ TEST(StorageMasterTest, GetHardware) {
     Report::hardware_result hw;
     hw.cores = 5;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     storage.addNode("testt",hw);
     storage.addNode("testtAAA",hw,"testMNode"); //node monitored by another MNode
 
@@ -300,18 +301,18 @@ TEST(StorageMasterTest, GetHardware) {
     EXPECT_EQ(hw1.cores, hw.cores);
     EXPECT_EQ(hw1.disk, hw.disk);
     EXPECT_EQ(hw1.memory, hw.memory);
-    EXPECT_EQ(hw1.free_cpu, hw.free_cpu);
-    EXPECT_EQ(hw1.free_disk, hw.free_disk);
-    EXPECT_EQ(hw1.free_memory, hw.free_memory);
+    EXPECT_EQ(hw1.mean_free_cpu, hw.mean_free_cpu);
+    EXPECT_EQ(hw1.mean_free_disk, hw.mean_free_disk);
+    EXPECT_EQ(hw1.mean_free_memory, hw.mean_free_memory);
 
     hw1 = storage.getHardware("testtAAA");
 
     EXPECT_EQ(hw1.cores, hw.cores);
     EXPECT_EQ(hw1.disk, hw.disk);
     EXPECT_EQ(hw1.memory, hw.memory);
-    EXPECT_EQ(hw1.free_cpu, hw.free_cpu);
-    EXPECT_EQ(hw1.free_disk, hw.free_disk);
-    EXPECT_EQ(hw1.free_memory, hw.free_memory);
+    EXPECT_EQ(hw1.mean_free_cpu, hw.mean_free_cpu);
+    EXPECT_EQ(hw1.mean_free_disk, hw.mean_free_disk);
+    EXPECT_EQ(hw1.mean_free_memory, hw.mean_free_memory);
 }
 
 TEST(StorageMasterTest, GetLRHardware) {
@@ -321,10 +322,10 @@ TEST(StorageMasterTest, GetLRHardware) {
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
-    hw.free_disk = 10*1000*1000;
-    hw.free_cpu = 0.4;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
-    hw.free_memory = 1*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
     storage.addNode("testt",hw);
     storage.addNode("testtt",hw);
 

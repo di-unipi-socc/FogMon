@@ -54,7 +54,7 @@ Storage::~Storage() {
 void Storage::createTables() {
     char *zErrMsg = 0;
 
-    vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER)",
+    vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory REAL, disk INTEGER, free_disk REAL)",
                             "CREATE TABLE IF NOT EXISTS Nodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP, bandwidthState INTEGER)",
                             "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, idNodeB INTEGER REFERENCES Nodes(id) NOT NULL, ms INTEGER)",
                             "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, idNodeB INTEGER REFERENCES Nodes(id) NOT NULL, kbps FLOAT)",
@@ -74,9 +74,12 @@ void Storage::createTables() {
 Report::hardware_result Storage::getHardware() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT * FROM Hardware ORDER BY time LIMIT 1");
+    std::sprintf(buf,   "SELECT max(cores) as cores, avg(free_cpu) AS mean_free_cpu, variance(free_cpu) AS var_free_cpu, max(memory) as memory,"
+                        "   avg(free_memory) AS mean_free_memory, variance(free_memory) AS var_free_memory, max(disk) as disk,"
+                        "   avg(free_disk) AS mean_free_disk, variance(free_disk) AS var_free_disk FROM Hardware");
 
     Report::hardware_result r;
+    memset(&r,0,sizeof(Report::hardware_result));
 
     int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -208,7 +211,7 @@ void Storage::saveBandwidthTest(string ip, float kbps, int state) {
 void Storage::saveHardware(Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Hardware (time, cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (DATETIME('now'), %ld, %f, %ld, %ld, %ld, %ld)", hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk);
+    std::sprintf(buf,"INSERT INTO Hardware (time, cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (DATETIME('now'), %ld, %f, %ld, %f, %ld, %f)", hardware.cores, hardware.mean_free_cpu, hardware.memory, hardware.mean_free_memory, hardware.disk, hardware.mean_free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )

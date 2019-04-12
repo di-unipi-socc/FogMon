@@ -16,7 +16,7 @@ void MasterStorage::createTables() {
     char *zErrMsg = 0;
     
     vector<string> query = {"CREATE TABLE IF NOT EXISTS MMNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE)",
-                            "CREATE TABLE IF NOT EXISTS MNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory INTEGER, disk INTEGER, free_disk INTEGER, lasttime TIMESTAMP, monitoredBy INTEGER REFERENCES MMNodes(id) NOT NULL)",
+                            "CREATE TABLE IF NOT EXISTS MNodes (id INTEGER PRIMARY KEY AUTOINCREMENT, ip STRING UNIQUE, cores INTEGER, mean_free_cpu REAL, var_free_cpu REAL, memory INTEGER, mean_free_memory FLOAT, var_free_memory FLOAT, disk INTEGER, mean_free_disk FLOAT, var_free_disk FLOAT, lasttime TIMESTAMP, monitoredBy INTEGER REFERENCES MMNodes(id) NOT NULL)",
                             "CREATE TABLE IF NOT EXISTS MLinks (idA INTEGER REFERENCES MNodes(id) NOT NULL, idB INTEGER REFERENCES MNodes(id) NOT NULL, meanL FLOAT, varianceL FLOAT, lasttimeL TIMESTAMP, meanB FLOAT, varianceB FLOAT, lasttimeB TIMESTAMP, PRIMARY KEY(idA,idB))",
                             "CREATE TABLE IF NOT EXISTS MIots (id STRING PRIMARY KEY, desc STRING, ms INTEGER, idNode INTEGER REFERENCES MNodes(id) NOT NULL)",
                             "INSERT OR IGNORE INTO MMNodes (id, ip) VALUES (1, \"::1\")"};
@@ -38,7 +38,8 @@ void MasterStorage::addNode(std::string ip, Report::hardware_result hardware, st
     if(ip == "") {
         return;
     }
-    std::sprintf(buf,"INSERT OR REPLACE INTO MNodes (id, ip, cores, free_cpu, memory, free_memory, disk, free_disk, lasttime, monitoredBy) VALUES ((SELECT MN.id FROM MNodes AS MN WHERE MN.ip = \"%s\") ,\"%s\", %ld, %f, %lld, %lld, %lld, %lld, DATETIME('now'), (SELECT MMN.id FROM MMNodes AS MMN WHERE MMN.ip = \"%s\"))", ip.c_str(), ip.c_str(), hardware.cores, hardware.free_cpu, hardware.memory, hardware.free_memory, hardware.disk, hardware.free_disk, monitored.c_str());
+    std::sprintf(buf,"INSERT OR REPLACE INTO MNodes (id, ip, cores, mean_free_cpu, var_free_cpu, memory, mean_free_memory, var_free_memory, disk, mean_free_disk, var_free_disk, lasttime, monitoredBy) VALUES ((SELECT MN.id FROM MNodes AS MN WHERE MN.ip = \"%s\") ,\"%s\", %ld, %f,%f, %lld, %f,%f, %lld, %f,%f , DATETIME('now'), (SELECT MMN.id FROM MMNodes AS MMN WHERE MMN.ip = \"%s\"))",
+            ip.c_str(), ip.c_str(), hardware.cores, hardware.mean_free_cpu, hardware.var_free_cpu, hardware.memory, hardware.mean_free_memory, hardware.var_free_memory, hardware.disk, hardware.mean_free_disk, hardware.var_free_disk, monitored.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -263,7 +264,7 @@ vector<Report::report_result> MasterStorage::getReport() {
 Report::hardware_result MasterStorage::getHardware(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT * FROM MNodes WHERE ip = \"%s\" ORDER BY lasttime LIMIT 1", ip.c_str());
+    std::sprintf(buf,"SELECT * FROM MNodes WHERE ip = \"%s\" GROUP BY ip", ip.c_str());
 
     Report::hardware_result r(-1,0,0,0,0,0);
 

@@ -297,7 +297,7 @@ float Node::testBandwidthIperf(string ip, int port) {
 
         float val = doc["end"]["sum_received"]["bits_per_second"].GetFloat();
 
-        cout << "iperf3" << ip << " bps " << val << " kbps " << val /1000 <<endl;
+        cout << "iperf3 " << ip << " bps " << val << " kbps " << val /1000 <<endl;
         //this->storage->saveBandwidthTest(ip, val/1000, 0);
         return val/1000;
     }
@@ -372,7 +372,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
             }
             if(num>0)  {
                 mean = mean/num;
-                cout << "estimate" << ip << " mbps " << mean << " kbps " << mean * 1000 << endl;
+                cout << "estimate " << ip << " mbps " << mean << " kbps " << mean * 1000 << endl;
                 return mean*1000;
             }    
         }
@@ -465,11 +465,11 @@ void Node::getHardware() {
 
     Report::hardware_result hardware;
     hardware.cores = cpulist.number;
-    hardware.free_cpu = ((float)diffIdle)/(totaldiff);
+    hardware.mean_free_cpu = ((float)diffIdle)/(totaldiff);
     hardware.memory = mem.total;
-    hardware.free_memory = mem.actual_free;
+    hardware.mean_free_memory = mem.actual_free;
     hardware.disk = disk.total;
-    hardware.free_disk = disk.avail;
+    hardware.mean_free_disk = disk.avail;
 
     this->storage->saveHardware(hardware);
 
@@ -561,8 +561,23 @@ void Node::TestTimer() {
         //every 10 iteration ask the nodes in case the server cant reach this network
         if(iter%10 == 0) {
             ips = this->connections->requestNodes(this->ipS);
-            vector<string> tmp;
-            this->getStorage()->updateNodes(ips,tmp);
+            vector<string> tmp = this->getStorage()->getNodes();
+            vector<string> rem;
+
+            for(auto ip : tmp) {
+                bool found = false;
+                int i=0;
+                while(!found && i<ips.size()) {
+                    if(ip == ips[i])
+                        found = true;
+                    i++;
+                }
+                if(!found) {
+                    rem.push_back(ip);
+                }
+            }
+
+            this->getStorage()->updateNodes(ips,rem);
         }
 
         if(iter%10 == 0) {
