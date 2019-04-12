@@ -491,9 +491,7 @@ void Node::timer() {
                 //change server
                 cout << "Changing server..." << endl;
                 if(!selectServer()) {
-                    fprintf(stderr,"Cannot connect to the main node\n");
-                    this->stop();
-                    exit(1);
+                    cout << "Failed to find a server!!!!!!!!" << endl;
                 }
             }
         }
