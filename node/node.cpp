@@ -393,8 +393,8 @@ int Node::testPing(string ip) {
             cout<< m[1]<< endl;
             std::cout << std::endl;
             output = m.suffix().str();
-            //this->storage->saveLatencyTest(ip, stoi(m[1]));
-            return stoi(m[1]);
+            //this->storage->saveLatencyTest(ip, stof(m[1]));
+            return stof(m[1]);
         }
     }
     return -1;
