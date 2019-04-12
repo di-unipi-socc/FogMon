@@ -297,23 +297,6 @@ bool Connections::sendUpdate(string ipS) {
     r.setBandwidth(this->parent->getStorage()->getBandwidth());
     r.setIot(this->parent->getStorage()->getIots());
 
-    Report::hardware_result hardware;
-    vector<Report::test_result> latency;
-    vector<Report::test_result> bandwidth;
-    vector<Report::IoT> iot;
-    if(r.getHardware(hardware)) {
-        int a=2;
-    }
-    if(r.getLatency(latency)) {
-        int a=2;
-    }
-    if(r.getBandwidth(bandwidth)) {
-        int a=2;
-    }
-    if(r.getIot(iot)) {
-        int a=2;
-    }
-
     m.setData(r);
 
     

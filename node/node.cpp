@@ -76,6 +76,8 @@ void Node::start() {
     this->running = true;
     this->server->start();
     srandom(time(nullptr));
+    
+    mNodes.push_back(this->ipS);
 
     selectServer();
 
@@ -110,7 +112,6 @@ void Node::stop() {
 
 void Node::selectServer() {
     //ask the MNodes list and select one MNode with the min latency
-    mNodes.push_back(this->ipS);
     vector<string> res;
     int i=0;
     while(res.empty() && i<mNodes.size()) {
@@ -122,19 +123,25 @@ void Node::selectServer() {
         }
         i++;
     }
-
-    mNodes = res;
-    
-    int imin=0;
-    unsigned int min = (unsigned int)this->testPing(mNodes[imin]);
-    for(int i=1; i<mNodes.size(); i++) {
-        unsigned int tmp = (unsigned int)this->testPing(mNodes[imin]);
-        if(tmp < min) {
-            imin = i;
-            min = tmp;
+    if(!res.empty())
+        mNodes = res;
+    while(!mNodes.empty()) {
+        int imin=0;
+        unsigned int min = (unsigned int)this->testPing(mNodes[imin]);
+        for(int i=1; i<mNodes.size(); i++) {
+            unsigned int tmp = (unsigned int)this->testPing(mNodes[imin]);
+            if(tmp < min) {
+                imin = i;
+                min = tmp;
+            }
         }
+        this->ipS = mNodes[imin];
+        if(!this->connections->sendHello(this->ipS)) {
+            mNodes.erase(mNodes.begin()+imin);
+        }else
+            break;
+        
     }
-    this->ipS = mNodes[imin];
 }
 
 IConnections* Node::getConnections() {

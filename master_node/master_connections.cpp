@@ -152,14 +152,6 @@ void MasterConnections::handler(int fd, Message &m) {
                 broadcast.setCommand(Message::Command::UPDATE);
                 broadcast.setArgument(Message::Argument::NODES);
 
-                vector<string> v;
-                v.push_back(strIp);
-                vector<string> v2;
-                broadcast.setData(v ,v2);
-
-                this->notifyAll(broadcast);
-                //
-
                 vector<string> vec = this->parent->getStorage()->getNodes();
 
                 //get nodelist
@@ -171,6 +163,13 @@ void MasterConnections::handler(int fd, Message &m) {
                 res.setData(strIp, vec);
                 
                 sendMessage(fd, res);
+
+                vector<string> v;
+                v.push_back(strIp);
+                vector<string> v2;
+                broadcast.setData(v ,v2);
+
+                this->notifyAll(broadcast);
             }
         }else if(m.getCommand() == Message::Command::UPDATE) {
             if(m.getArgument() == Message::Argument::REPORT) {
