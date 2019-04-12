@@ -8,7 +8,7 @@
 
 using namespace std;
 
-MasterNode::MasterNode(int nThreads) : Node("::1", "5555", nThreads) {
+MasterNode::MasterNode(int nThreads) : Node("::1", nThreads) {
     timeTimerFun = 20;
 }
 

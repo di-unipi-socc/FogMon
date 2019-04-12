@@ -20,18 +20,14 @@ int main(int argc, char *argv[]) {
     InputParser input(argc,argv);
 
     string ip = "localhost";
-    string port = "5555";
     int threads = 2;
     if(input.cmdOptionExists("-C"))
         ip = input.getCmdOption("-C");
 
-    if(input.cmdOptionExists("-p"))
-        port = input.getCmdOption("-p");
-
     if(input.cmdOptionExists("-t"))
         threads = stoi(input.getCmdOption("-t"));
 
-    Node node(ip, port, threads);
+    Node node(ip, threads);
     node.initialize();
     node.start();
 

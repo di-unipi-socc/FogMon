@@ -162,8 +162,8 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
-vector<string> Connections::requestNodes(std::string ipS, std::string portS) {
-    int Socket = openConnection(ipS, portS);
+vector<string> Connections::requestNodes(std::string ipS) {
+    int Socket = openConnection(ipS);
     
     if(Socket < 0) {
         return vector<string>();
@@ -196,8 +196,8 @@ vector<string> Connections::requestNodes(std::string ipS, std::string portS) {
     return vector<string>();
 }
 
-vector<string> Connections::requestMNodes(string ipS, string portS) {
-    int Socket = openConnection(ipS, portS);
+vector<string> Connections::requestMNodes(string ipS) {
+    int Socket = openConnection(ipS);
     
     if(Socket < 0) {
         return vector<string>();
@@ -233,9 +233,8 @@ vector<string> Connections::requestMNodes(string ipS, string portS) {
     return vector<string>();
 }
 
-bool Connections::sendHello(string ipS, string portS) {
-    int Socket = openConnection(ipS, portS);
-    printf("ciao6");
+bool Connections::sendHello(string ipS) {
+    int Socket = openConnection(ipS);
     if(Socket < 0) {
         return false;
     }
@@ -275,8 +274,8 @@ bool Connections::sendHello(string ipS, string portS) {
     return result;
 }
 
-bool Connections::sendUpdate(string ipS, string portS) {
-    int Socket = openConnection(ipS, portS);
+bool Connections::sendUpdate(string ipS) {
+    int Socket = openConnection(ipS);
     
     if(Socket < 0) {
         return false;
@@ -314,7 +313,7 @@ bool Connections::sendUpdate(string ipS, string portS) {
     if(r.getIot(iot)) {
         int a=2;
     }
-    
+
     m.setData(r);
 
     

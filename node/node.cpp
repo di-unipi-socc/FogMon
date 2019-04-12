@@ -29,17 +29,15 @@
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(string ip, string port, int nThreads, bool direct) {
+Node::Node(string ip, int nThreads) {
     this->nThreads = nThreads;
     this->running = false;
     this->timerReport = 5;
     this->timeTimerTest = 5;
     this->ipS = ip;
-    this->portS = port;
     this->storage = NULL;
     this->connections = NULL;
     this->server = NULL;
-    this->direct = direct;
 }
 
 void Node::initialize(Factory* fact) {
@@ -79,25 +77,11 @@ void Node::start() {
     this->server->start();
     srandom(time(nullptr));
 
-    if(!this->direct) {
-        //ask the MNodes list and select one MNode with the min latency
-        vector<string> MNodes = this->connections->requestMNodes(this->ipS, this->portS);
-        MNodes.push_back(this->ipS);
-        
-        int imin=0;
-        unsigned int min = (unsigned int)this->testPing(MNodes[imin]);
-        for(int i=1; i<MNodes.size(); i++) {
-            unsigned int tmp = (unsigned int)this->testPing(MNodes[imin]);
-            if(tmp < min) {
-                imin = i;
-                min = tmp;
-            }
-        }
-        this->ipS = MNodes[imin];
-    }
+    selectServer();
+
     this->startEstimate();
     this->getHardware();
-    if(!this->connections->sendHello(this->ipS, this->portS)) {
+    if(!this->connections->sendHello(this->ipS)) {
         perror("Cannot connect to the main node");
         this->stop();
         exit(1);
@@ -122,6 +106,34 @@ void Node::stop() {
         this->connections->stop();
     if(this->storage)
         this->storage->close();
+}
+
+void Node::selectServer() {
+    //ask the MNodes list and select one MNode with the min latency
+    mNodes.push_back(this->ipS);
+    vector<string> res;
+    int i=0;
+    while(res.empty() && i<mNodes.size()) {
+        res = this->connections->requestMNodes(mNodes[i]);
+        for(int j=0; j<res.size(); j++)
+        {
+            if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
+                res[j] = mNodes[i];
+        }
+    }
+
+    mNodes = res;
+    
+    int imin=0;
+    unsigned int min = (unsigned int)this->testPing(mNodes[imin]);
+    for(int i=1; i<mNodes.size(); i++) {
+        unsigned int tmp = (unsigned int)this->testPing(mNodes[imin]);
+        if(tmp < min) {
+            imin = i;
+            min = tmp;
+        }
+    }
+    this->ipS = mNodes[imin];
 }
 
 IConnections* Node::getConnections() {
@@ -459,7 +471,15 @@ void Node::timer() {
         //generate hardware report and send it
         this->getHardware();
 
-        this->connections->sendUpdate(this->ipS,this->portS);
+        bool ris = this->connections->sendUpdate(this->ipS);
+
+        if(ris == false) {
+            ris = this->connections->sendUpdate(this->ipS);
+            if(ris == false) {
+                //change mnode
+                this->selectServer();
+            }
+        }
 
         sleep(this->timerReport);
     }
@@ -523,7 +543,7 @@ void Node::TestTimer() {
 
         //every 10 iteration ask the nodes in case the server cant reach this network
         if(iter%10 == 0) {
-            ips = this->connections->requestNodes(this->ipS,this->portS);
+            ips = this->connections->requestNodes(this->ipS);
             vector<string> tmp;
             this->getStorage()->updateNodes(ips,tmp);
         }

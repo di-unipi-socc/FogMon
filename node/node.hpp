@@ -9,7 +9,7 @@
 
 class Node : virtual public INode {
 public:
-    Node(std::string ip, std::string port, int nThreads, bool direct = true);
+    Node(std::string ip, int nThreads);
     ~Node();
 
     virtual void initialize(Factory* factory = NULL);
@@ -35,11 +35,7 @@ protected:
 
     int timerReport;
 
-    //ip of the server node ipS
-    //port of the server node
-    std::string portS;
-
-    bool direct;
+    std::vector<std::string> mNodes;
 
     //ip to differentiate between other nodes in the list and self
     std::string myIp;
@@ -79,6 +75,8 @@ protected:
     //test the latency with another node
     int testPing(std::string ip);
 
+    //from ipS and mNodes select the closest server
+    void selectServer();
 
     //get the hardware of this node
     void getHardware();
