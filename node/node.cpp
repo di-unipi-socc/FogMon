@@ -477,11 +477,9 @@ void Node::timer() {
         if(ris == false) {
             ris = this->connections->sendUpdate(this->ipS);
             if(ris == false) {
-                //change mnode
-                vector<string> tmp;
-                vector<string> rem = this->storage->getNodes();
-                this->storage->updateNodes(tmp,rem);
+                //change server
                 this->selectServer();
+                this->connections->sendHello(this->ipS);
             }
         }
 

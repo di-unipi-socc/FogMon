@@ -241,13 +241,22 @@ void Storage::refreshNodes(vector<string> nodes) {
 
     filterRecv(nodes);
 
+    std::sprintf(buf,"DELETE FROM Nodes");
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }  
+
     for(auto node : nodes) {
         int id = this->getNodeId(node);
 
         if(id == 0) {
             //does not exists then insert
             std::sprintf(buf,"INSERT INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
-            int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+            err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
                 fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
