@@ -137,7 +137,7 @@ bool Node::selectServer() {
         unsigned int min = (unsigned int)this->testPing(res[imin]);
 
         for(int i=1; i<res.size(); i++) {
-            unsigned int tmp = (unsigned int)this->testPing(res[imin]);
+            unsigned int tmp = (unsigned int)this->testPing(res[i]);
             if(tmp < min) {
                 imin = i;
                 min = tmp;

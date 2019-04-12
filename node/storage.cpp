@@ -220,6 +220,16 @@ void Storage::saveHardware(Report::hardware_result hardware) {
         sqlite3_free(zErrMsg);
         exit(1);
     }
+
+    std::sprintf(buf,"DELETE FROM Hardware WHERE time <= (SELECT time FROM Hardware ORDER BY time DESC LIMIT 1 OFFSET 20)");
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
 }
 
 long long Storage::getNodeId(std::string ip) {
@@ -280,7 +290,7 @@ void Storage::refreshNodes(vector<string> nodes) {
 
         if(id == 0) {
             //does not exists then insert
-            std::sprintf(buf,"INSERT INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
+            std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
             err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
@@ -304,7 +314,7 @@ void Storage::updateNodes(vector<string> add, vector<string> rem) {
 
         if(id == 0) {
             //does not exists then insert
-            std::sprintf(buf,"INSERT INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
+            std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (id,ip, latencyTime, bandwidthTime, bandwidthState) VALUES (NULL, \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.c_str());
             int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
