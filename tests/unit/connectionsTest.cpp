@@ -15,6 +15,11 @@ protected:
     void createTables() {}
 
 public:
+
+    void setFilter(string ip) {
+        
+    }
+
     virtual std::vector<std::string> getNodes() {
         vector<string> ret;
         ret.push_back("test1");

@@ -114,6 +114,11 @@ public:
     virtual int getTestBandwidthState(std::string ip, Report::test_result &last) = 0;
 
     /**
+     * set the ip to filter the localhost
+    */
+    virtual void setFilter(std::string ipS) = 0;
+
+    /**
      * save the token
      * @param duration the number of seconds the token will last
     */

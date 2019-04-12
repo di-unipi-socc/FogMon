@@ -76,7 +76,7 @@ protected:
     int testPing(std::string ip);
 
     //from ipS and mNodes select the closest server
-    void selectServer();
+    bool selectServer();
 
     //get the hardware of this node
     void getHardware();

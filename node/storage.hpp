@@ -19,8 +19,10 @@ protected:
     std::string ipS;
 
 public:
-    Storage(std::string ipS="::1");
+    Storage();
     virtual ~Storage();
+
+    void setFilter(std::string ipS);
 
     virtual Report::hardware_result getHardware();
     virtual std::vector<Report::test_result> getLatency();

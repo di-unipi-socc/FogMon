@@ -47,7 +47,7 @@ void Node::initialize(Factory* fact) {
         this->factory = fact;
     }
     if(this->storage == NULL)
-        this->storage = this->factory->newStorage("node.db",this->ipS);
+        this->storage = this->factory->newStorage("node.db");
     if(this->connections == NULL) {
         this->connections = this->factory->newConnections(this->nThreads);
         this->connections->initialize(this);
@@ -79,15 +79,15 @@ void Node::start() {
     
     mNodes.push_back(this->ipS);
 
-    selectServer();
-
-    this->startEstimate();
-    this->getHardware();
-    if(!this->connections->sendHello(this->ipS)) {
-        perror("Cannot connect to the main node");
+    if(!selectServer()) {
+        fprintf(stderr,"Cannot connect to the main node\n");
         this->stop();
         exit(1);
     }
+
+    this->startEstimate();
+    this->getHardware();
+
     this->timerThread = thread(&Node::timer, this);
     this->timerTestThread = thread(&Node::TestTimer, this);
 }
@@ -110,8 +110,9 @@ void Node::stop() {
         this->storage->close();
 }
 
-void Node::selectServer() {
+bool Node::selectServer() {
     //ask the MNodes list and select one MNode with the min latency
+    cout << "Selecting server..." << endl;
     vector<string> res;
     int i=0;
     while(res.empty() && i<mNodes.size()) {
@@ -125,23 +126,31 @@ void Node::selectServer() {
     }
     if(!res.empty())
         mNodes = res;
-    while(!mNodes.empty()) {
+    else {
+        //try connecting anyway
+        res = mNodes;
+    }
+
+    //try every element of res for a server and select the closest
+    while(!res.empty()) {
         int imin=0;
-        unsigned int min = (unsigned int)this->testPing(mNodes[imin]);
-        for(int i=1; i<mNodes.size(); i++) {
-            unsigned int tmp = (unsigned int)this->testPing(mNodes[imin]);
+        unsigned int min = (unsigned int)this->testPing(res[imin]);
+
+        for(int i=1; i<res.size(); i++) {
+            unsigned int tmp = (unsigned int)this->testPing(res[imin]);
             if(tmp < min) {
                 imin = i;
                 min = tmp;
             }
         }
-        this->ipS = mNodes[imin];
+        this->ipS = res[imin];
         if(!this->connections->sendHello(this->ipS)) {
-            mNodes.erase(mNodes.begin()+imin);
+            res.erase(res.begin()+imin);
         }else
-            break;
+            return true;
         
     }
+    return false;
 }
 
 IConnections* Node::getConnections() {
@@ -184,9 +193,8 @@ int Node::startIperf() {
 
     // Print status.
     if (status == std::future_status::ready) {
-        std::cout << "Thread finished" << std::endl;
+        
     } else {
-        std::cout << "Thread still running" << std::endl;
         ret = port;
     }
     
@@ -289,7 +297,7 @@ float Node::testBandwidthIperf(string ip, int port) {
 
         float val = doc["end"]["sum_received"]["bits_per_second"].GetFloat();
 
-        cout << "bps " << val << " kbps " << val /1000 << endl;
+        cout << "iperf3" << ip << " bps " << val << " kbps " << val /1000 <<endl;
         //this->storage->saveBandwidthTest(ip, val/1000, 0);
         return val/1000;
     }
@@ -334,8 +342,6 @@ float Node::testBandwidthEstimate(string ip, int port) {
         string file = "";
 
         while (std::regex_search (output,m,reg)) {
-            cout<< m[1]<< endl;
-            std::cout << std::endl;
             output = m.suffix().str();
             
             file = m[1];
@@ -359,8 +365,6 @@ float Node::testBandwidthEstimate(string ip, int port) {
             float mean = 0;
             int num = 0;
             while (std::regex_search (output,m,reg)) {
-                cout<< m[1]<< endl;
-                std::cout << std::endl;
                 output = m.suffix().str();
                 
                 mean += stof(m[2]);
@@ -368,7 +372,8 @@ float Node::testBandwidthEstimate(string ip, int port) {
             }
             if(num>0)  {
                 mean = mean/num;
-                return mean;
+                cout << "estimate" << ip << " mbps " << mean << " kbps " << mean * 1000 << endl;
+                return mean*1000;
             }    
         }
         return -1;
@@ -410,10 +415,9 @@ int Node::testPing(string ip) {
         std::smatch m;
         
         while (std::regex_search (output,m,reg)) {
-            cout<< m[1]<< endl;
-            std::cout << std::endl;
             output = m.suffix().str();
             //this->storage->saveLatencyTest(ip, stoi(m[1]));
+            cout << ip << " ms " << stoi(m[1]) << endl;
             return stoi(m[1]);
         }
     }
@@ -485,8 +489,12 @@ void Node::timer() {
             ris = this->connections->sendUpdate(this->ipS);
             if(ris == false) {
                 //change server
-                this->selectServer();
-                this->connections->sendHello(this->ipS);
+                cout << "Changing server..." << endl;
+                if(!selectServer()) {
+                    fprintf(stderr,"Cannot connect to the main node\n");
+                    this->stop();
+                    exit(1);
+                }
             }
         }
 
@@ -560,6 +568,11 @@ void Node::TestTimer() {
         if(iter%10 == 0) {
             vector<string> res = this->connections->requestMNodes(this->ipS);
             if(!res.empty()) {
+                for(int j=0; j<res.size(); j++)
+                {
+                    if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
+                        res[j] = this->ipS;
+                }
                 mNodes = res;
             }
         }

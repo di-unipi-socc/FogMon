@@ -8,7 +8,7 @@
 
 class Factory : public IFactory {
 public:
-    virtual IStorage* newStorage(std::string path, std::string ipS);
+    virtual IStorage* newStorage(std::string path);
     virtual Connections* newConnections(int nThread);
     virtual Server* newServer(IConnections* conn, int port);
 };

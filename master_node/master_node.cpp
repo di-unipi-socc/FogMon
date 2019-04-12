@@ -35,7 +35,7 @@ void MasterNode::start(std::string ip) {
 
     if(ip != string("::1")) {
         if(!this->connections->sendMHello(ip)) {
-            perror("cannot connect to the network");
+            fprintf(stderr,"cannot connect to the network\n");
             this->stop();
             exit(1);
         }

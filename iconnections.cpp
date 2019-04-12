@@ -281,14 +281,14 @@ int IConnections::openConnection(string ip, string port) {
                         } 
                         // Check the value returned... 
                         if (valopt) { 
-                            fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt)); 
+                            //error with the connection
                             break; 
                         } 
                         ris = true;
                         break;
                     } 
                     else { 
-                        fprintf(stderr, "Timeout in select() - Cancelling!\n");
+                        //timeout
                         if(num>0) {
                             num--;
                             continue;
@@ -299,13 +299,13 @@ int IConnections::openConnection(string ip, string port) {
                 } while (1); 
             } 
             else { 
-                fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                //fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
             } 
         }
         if(ris == false) {
             close(Socket);
             Socket = -1;
-            fprintf(stdout, "retry connection %s", ip.c_str());
+            //fprintf(stdout, "retry connection %s", ip.c_str());
             continue;
         }
 

@@ -1,14 +1,15 @@
 #include "storage.hpp"
+#include "inode.hpp"
 #include <string.h>
 
 #include <ctime>
 
 using namespace std;
 
-Storage::Storage(string ipS) {
+Storage::Storage() {
     startToken = time(nullptr);
     durationToken = 0;
-    this->ipS = ipS;
+    this->ipS = "::1";
 }
 
 
@@ -39,6 +40,10 @@ void Storage::filterSend(std::vector<Report::test_result> &list) {
 void Storage::filterSend(Report::test_result &list) {
     if(list.target == this->ipS)
         list.target = "::1";
+}
+
+void Storage::setFilter(string ipS) {
+    this->ipS = ipS;
 }
 
 

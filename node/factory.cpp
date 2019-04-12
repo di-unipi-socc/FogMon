@@ -1,7 +1,7 @@
 #include "factory.hpp"
 
-IStorage* Factory::newStorage(std::string path, std::string ipS) {
-    IStorage* ret = new Storage(ipS);
+IStorage* Factory::newStorage(std::string path) {
+    IStorage* ret = new Storage();
     ret->open(path);
     return ret;
 }

@@ -203,7 +203,6 @@ vector<string> Connections::requestMNodes(string ipS) {
         return vector<string>();
     }
 
-    printf("asking");
     fflush(stdout);
 
     //build request message
@@ -234,6 +233,7 @@ vector<string> Connections::requestMNodes(string ipS) {
 }
 
 bool Connections::sendHello(string ipS) {
+    cout << "Trying server " << ipS<<endl;
     int Socket = openConnection(ipS);
     if(Socket < 0) {
         return false;
@@ -262,10 +262,12 @@ bool Connections::sendHello(string ipS) {
                 string ip;
                 vector<string> vec;
                 if(res.getData(ip, vec)) {
-                    cout << ip << endl;
+                    cout << "My ip: " << ip << endl;
                     this->parent->setMyIp(ip);
+                    this->parent->getStorage()->setFilter(ipS);
                     this->parent->getStorage()->refreshNodes(vec);
                     result = true;
+                    cout << "Server: " << ipS << endl;
                 }
             }
         }
@@ -281,7 +283,6 @@ bool Connections::sendUpdate(string ipS) {
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -326,7 +327,6 @@ int Connections::sendStartIperfTest(string ip) {
         return -1;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -361,7 +361,6 @@ int Connections::sendStartEstimateTest(string ip) {
         return -1;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 

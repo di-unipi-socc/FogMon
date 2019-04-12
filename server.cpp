@@ -146,7 +146,6 @@ void Server::listener() {
             
             if(fds[i].revents&POLLIN != POLLIN)
             {
-                printf("  Error! revents = %d\n", fds[i].revents);
                 running = false;
                 break;
             }
@@ -172,7 +171,6 @@ void Server::listener() {
                         break;
                     }
 
-                    printf("  New incoming connection - %d\n", new_sd);
                     fds[nfds].fd = new_sd;
                     fds[nfds].events = POLLIN;
                     nfds++;

@@ -49,12 +49,11 @@ void MasterConnections::handler(int fd, Message &m) {
         struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
         if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr)) {
             inet_ntop(AF_INET, &(((in_addr*)(s->sin6_addr.s6_addr+12))->s_addr), ip, sizeof(ip));
-            cout << ip << endl;
         }
         else
             inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
     }else {
-        cout << "error socket family" << endl;
+        cerr << "error socket family" << endl;
 #ifndef ENABLE_TESTS
         return;
 #endif
@@ -145,12 +144,6 @@ void MasterConnections::handler(int fd, Message &m) {
                 //set new node online                
                 this->parent->getStorage()->addNode(strIp, hardware);
                 
-                //inform all the other nodes about it
-                //
-                Message broadcast;
-                broadcast.setType(Message::Type::NOTIFY);
-                broadcast.setCommand(Message::Command::UPDATE);
-                broadcast.setArgument(Message::Argument::NODES);
 
                 vector<string> vec = this->parent->getStorage()->getNodes();
 
@@ -164,6 +157,12 @@ void MasterConnections::handler(int fd, Message &m) {
                 
                 sendMessage(fd, res);
 
+                //inform all the other nodes about it
+                //
+                Message broadcast;
+                broadcast.setType(Message::Type::NOTIFY);
+                broadcast.setCommand(Message::Command::UPDATE);
+                broadcast.setArgument(Message::Argument::NODES);
                 vector<string> v;
                 v.push_back(strIp);
                 vector<string> v2;
@@ -226,7 +225,6 @@ bool MasterConnections::sendRequestReport(std::string ip) {
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -280,7 +278,6 @@ bool MasterConnections::sendSetToken(std::string ip, int time) {
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -314,7 +311,6 @@ bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -351,7 +347,6 @@ bool MasterConnections::sendMHello(std::string ip) {
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
