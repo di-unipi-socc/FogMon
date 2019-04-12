@@ -31,7 +31,15 @@ MasterNode::~MasterNode() {
     exit(0);
 }
 
-void MasterNode::start() {
+void MasterNode::start(std::string ip) {
+
+    if(ip != string("::1")) {
+        if(!this->connections->sendMHello(ip)) {
+            perror("cannot connect to the network");
+            this->stop();
+            exit(1);
+        }
+    }
     Node::start();
     this->timerFunThread = thread(&MasterNode::timerFun, this);
 }
@@ -91,6 +99,8 @@ void MasterNode::timerFun() {
         }
         //remove the nodes that failed to respond
         this->connections->sendRemoveNodes(ips);
+        vector<string> tmp;
+        this->getStorage()->updateNodes(tmp,rem);
 
         sleep(this->timeTimerFun);
     }

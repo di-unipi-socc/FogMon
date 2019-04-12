@@ -100,7 +100,7 @@ void Node::start() {
     if(!this->connections->sendHello(this->ipS, this->portS)) {
         perror("Cannot connect to the main node");
         this->stop();
-        exit(0);
+        exit(1);
     }
     this->timerThread = thread(&Node::timer, this);
     this->timerTestThread = thread(&Node::TestTimer, this);
@@ -330,7 +330,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
             sout << buff;
         }
         output = sout.str();
-        //unlink(file.c_str());
+        unlink(file.c_str());
         {
             std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
 
@@ -346,8 +346,10 @@ float Node::testBandwidthEstimate(string ip, int port) {
                 mean += stof(m[2]);
                 num++;
             }
-            mean = mean/num;
-            return mean;
+            if(num>0)  {
+                mean = mean/num;
+                return mean;
+            }    
         }
         return -1;
     }
@@ -485,7 +487,7 @@ void Node::TestTimer() {
 
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<string> ips = this->storage->getLRLatency(100,30); //param: batch latency dimension
+        vector<string> ips = this->storage->getLRLatency(100,30);
 
         for(auto ip : ips) {
             if(myIp == ip)

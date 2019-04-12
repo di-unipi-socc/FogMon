@@ -106,7 +106,7 @@ void Connections::handler(int fd, Message &m) {
                     
                 }
             }else if(m.getCommand() == Message::Command::SET) {
-                Message res;
+                Message res; //--------------------------------
                 res.setType(Message::Type::RESPONSE);
                 res.setCommand(Message::Command::SET);
 
@@ -240,7 +240,6 @@ bool Connections::sendHello(string ipS, string portS) {
         return false;
     }
 
-    printf("ready");
     fflush(stdout);
     char buffer[10];
 
@@ -252,7 +251,6 @@ bool Connections::sendHello(string ipS, string portS) {
     
     r.setHardware(this->parent->getStorage()->getHardware());
     m.setData(r);
-    printf("ciao5");
     bool result = false;
 
     //send hello message
@@ -265,19 +263,15 @@ bool Connections::sendHello(string ipS, string portS) {
                 string ip;
                 vector<string> vec;
                 if(res.getData(ip, vec)) {
-                    printf("ciao4");
                     cout << ip << endl;
                     this->parent->setMyIp(ip);
                     this->parent->getStorage()->refreshNodes(vec);
-                    printf("ciao3");
                     result = true;
                 }
             }
         }
     }
-    printf("ciao2");
     close(Socket);
-    printf("ciao1");
     return result;
 }
 

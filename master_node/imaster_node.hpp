@@ -4,7 +4,7 @@
 #include "inode.hpp"
 #include "imaster_storage.hpp"
 
-class IParentMaster : virtual public INode {
+class IMasterNode : virtual public INode {
 public:
     virtual IMasterStorage* getStorage() = 0;
 };

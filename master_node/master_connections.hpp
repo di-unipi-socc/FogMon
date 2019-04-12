@@ -7,7 +7,7 @@ class IParentMaster;
 #include "queue.hpp"
 #include "message.hpp"
 #include "master_storage.hpp"
-#include "iparent_master.hpp"
+#include "imaster_node.hpp"
 
 #include <thread>
 
@@ -15,14 +15,16 @@ class MasterConnections : public Connections {
 protected:
     void handler(int fd, Message &m);
 
-    IParentMaster* parent;
+    IMasterNode* parent;
     
 public:
     MasterConnections(int nThread);
     ~MasterConnections();
 
-    void initialize(IParentMaster* parent);
+    void initialize(IMasterNode* parent);
     
+    bool sendMHello(std::string ip);
+
     bool sendRemoveNodes(std::vector<std::string> ips);
     bool sendRequestReport(std::string ip);
     bool sendSetToken(std::string ip, int time);

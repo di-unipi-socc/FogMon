@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "master_connections.hpp"
-#include "iparent_master.hpp"
+#include "imaster_node.hpp"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -98,7 +98,7 @@ public:
     virtual void addIot(std::string strIp, Report::IoT iot) {}
 };
 
-class MParent : virtual public IParentMaster {
+class MParent : virtual public IMasterNode {
 public:
     void start() {};
     void stop() {};

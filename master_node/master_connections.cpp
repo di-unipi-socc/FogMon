@@ -27,7 +27,7 @@ MasterConnections::MasterConnections(int nThread) : Connections(nThread) {
 MasterConnections::~MasterConnections() {
 }
 
-void MasterConnections::initialize(IParentMaster* parent) {
+void MasterConnections::initialize(IMasterNode* parent) {
     Connections::initialize(parent);
     this->parent = parent;
 }
@@ -74,12 +74,16 @@ void MasterConnections::handler(int fd, Message &m) {
                     }
                 }
             }
-        }else if(m.getCommand() == Message::Command::START) {
+        }else if(m.getCommand() == Message::Command::MHELLO) {
             this->parent->getStorage()->addMNode(strIp);
             Message res;
             res.setType(Message::Type::RESPONSE);
-            res.setCommand(Message::Command::START);
+            res.setCommand(Message::Command::MHELLO);
             res.setArgument(Message::Argument::POSITIVE);
+
+            vector<string> nodes = this->parent->getStorage()->getMNodes();
+
+            res.setData(nodes);
 
             sendMessage(fd, res);
         }
@@ -114,7 +118,7 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }else if(m.getArgument() == Message::Argument::REPORT) {
             if(m.getCommand() == Message::Command::SET) {
-                //read report
+                //read report ---------------------------
                 Report r;
                 if(m.getData(r)) {
                     Report::report_result report;
@@ -329,6 +333,47 @@ bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result
                 res.getCommand() == Message::Command::SET &&
                 res.getArgument() == Message::Argument::POSITIVE) {
                 ret = true;
+            }
+        }
+    }
+    close(Socket);
+    return ret;
+}
+
+bool MasterConnections::sendMHello(std::string ip) {
+    int Socket = this->openConnection(ip);
+    if(Socket < 0) {
+        return false;
+    }
+
+    printf("ready");
+    fflush(stdout);
+    char buffer[10];
+
+    //build message
+    Message m;
+    m.setType(Message::Type::MREQUEST);//TODO
+    m.setCommand(Message::Command::MHELLO);
+    m.setArgument(Message::Argument::REPORT);
+
+    bool ret = false;
+
+    //send message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::MRESPONSE &&
+                res.getCommand() == Message::Command::MHELLO &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+                
+                vector<string> vec;
+                if(res.getData(vec)) {
+                    for(auto node : vec) {
+                        this->parent->getStorage()->addMNode(node);
+                    }
+                    this->parent->getStorage()->addMNode(ip);
+                    ret = true;
+                }
             }
         }
     }

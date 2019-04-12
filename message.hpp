@@ -19,7 +19,7 @@ public:
     /**
      * possible commands for the messages
     */
-    enum Command {GET, SET, HELLO, NODELIST, MNODELIST, UPDATE, START};
+    enum Command {GET, SET, HELLO, MHELLO, NODELIST, MNODELIST, UPDATE, START};
     /**
      * possible arguments for the messages
     */

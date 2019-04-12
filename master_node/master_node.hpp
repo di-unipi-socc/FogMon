@@ -8,16 +8,16 @@ class MasterFactory;
 #include "master_storage.hpp"
 #include "server.hpp"
 #include "master_factory.hpp"
-#include "iparent_master.hpp"
+#include "imaster_node.hpp"
 
-class MasterNode : virtual public IParentMaster, public Node {
+class MasterNode : virtual public IMasterNode, public Node {
 public:
     MasterNode(int nThreads);
     ~MasterNode();
 
     virtual void initialize(MasterFactory* factory = NULL);
 
-    void start();
+    void start(std::string ip="::1");
     void stop();
 
     IMasterStorage* getStorage();

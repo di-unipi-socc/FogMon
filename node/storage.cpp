@@ -123,9 +123,14 @@ std::vector<Report::test_result> Storage::getBandwidth() {
 }
 
 void Storage::saveLatencyTest(string ip, int ms) {
+    int id = this->getNodeId(ip);
+
+    if(id == 0)
+        return;
+
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Latency (time ,idNodeB, ms) SELECT DATETIME('now') AS time, id AS idNodeB, %ld AS ms FROM Nodes WHERE ip = \"%s\"", ms, ip.c_str());
+    std::sprintf(buf,"INSERT INTO Latency (time ,idNodeB, ms) VALUES (DATETIME('now'), %ld, %ld)", id,ms);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -135,7 +140,17 @@ void Storage::saveLatencyTest(string ip, int ms) {
         exit(1);
     }
 
-    std::sprintf(buf,"UPDATE Nodes SET latencyTime = DATETIME('now') WHERE ip = \"%s\"", ip.c_str());
+    std::sprintf(buf,"UPDATE Nodes SET latencyTime = DATETIME('now') WHERE id = %ld", id);
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    std::sprintf(buf,"DELETE FROM Latency WHERE time <= (SELECT time FROM Latency WHERE idNodeB = %ld ORDER BY time DESC LIMIT 1 OFFSET 20)",id);
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -147,9 +162,14 @@ void Storage::saveLatencyTest(string ip, int ms) {
 }
 
 void Storage::saveBandwidthTest(string ip, float kbps, int state) {
+     int id = this->getNodeId(ip);
+
+    if(id == 0)
+        return;
+
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Bandwidth (time, idNodeB, kbps) SELECT DATETIME('now') AS time, id AS idNodeB, %f AS kbps FROM Nodes WHERE ip = \"%s\"", kbps, ip.c_str());
+    std::sprintf(buf,"INSERT INTO Bandwidth (time, idNodeB, kbps) VALUES (DATETIME('now'), %ld, %f)", id, kbps);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -159,7 +179,17 @@ void Storage::saveBandwidthTest(string ip, float kbps, int state) {
         exit(1);
     }
 
-    std::sprintf(buf,"UPDATE Nodes SET bandwidthTime = DATETIME('now'), bandwidthState = %ld WHERE ip = \"%s\"", state, ip.c_str());
+    std::sprintf(buf,"UPDATE Nodes SET bandwidthTime = DATETIME('now'), bandwidthState = %ld WHERE id = %ld", state, id);
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    std::sprintf(buf,"DELETE FROM Bandwidth WHERE time <= (SELECT time FROM Bandwidth WHERE idNodeB = %ld ORDER BY time DESC LIMIT 1 OFFSET 20)",id);
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
