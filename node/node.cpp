@@ -120,6 +120,7 @@ void Node::selectServer() {
             if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
                 res[j] = mNodes[i];
         }
+        i++;
     }
 
     mNodes = res;
