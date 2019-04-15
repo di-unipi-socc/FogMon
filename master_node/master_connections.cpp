@@ -102,6 +102,13 @@ void MasterConnections::handler(int fd, Message &m) {
                 handled = true;
                 //build array of nodes
                 vector<string> nodes = this->parent->getStorage()->getNodes();
+                
+                //local node needs to monitor also the other mnodes
+                if(strIp == "::1") {
+                    vector<string> mnodes = this->parent->getStorage()->getMNodes();
+                    nodes.insert(nodes.end(), mnodes.begin(), mnodes.end());
+                }
+                
                 //send nodes
                 Message res;
                 res.setType(Message::Type::RESPONSE);
@@ -143,6 +150,18 @@ void MasterConnections::handler(int fd, Message &m) {
     }else if(m.getType() == Message::Type::NOTIFY) {
         if(m.getCommand() == Message::Command::HELLO) {
             handled = true;
+
+            int max_group = 30;
+            if(this->parent->getStorage()->getNodes().size() >= max_group) {
+                //refuse, max number of nodes exceded
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::HELLO);
+                res.setArgument(Message::Argument::NEGATIVE);
+                
+                sendMessage(fd, res);
+            }
+
             //get report on hardware
             Report r;
             if(m.getData(r)) {

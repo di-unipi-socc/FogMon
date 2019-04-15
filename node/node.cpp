@@ -32,8 +32,8 @@ using namespace rapidjson;
 Node::Node(string ip, int nThreads) {
     this->nThreads = nThreads;
     this->running = false;
-    this->timerReport = 5;
-    this->timeTimerTest = 5;
+    this->timerReport = 30;
+    this->timeTimerTest = 60;
     this->ipS = ip;
     this->storage = NULL;
     this->connections = NULL;
@@ -356,7 +356,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
             sout << buff;
         }
         output = sout.str();
-        unlink(file.c_str());
+        //unlink(file.c_str());
         {
             std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
 
@@ -534,7 +534,7 @@ void Node::TestTimer() {
         }
         //test bandwidth
         //get 10 nodes tested more than 300 seconds in the past
-        ips = this->storage->getLRBandwidth(10,300);
+        ips = this->storage->getLRBandwidth(10,600);
         int i=0;
         int tested=0;
         while(i < ips.size() && tested < 1) {
