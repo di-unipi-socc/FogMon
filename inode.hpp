@@ -12,6 +12,8 @@ public:
     //stop everything
     virtual void stop() = 0;
 
+    virtual bool setParam(std::string name, int value) = 0;
+
     virtual IConnections* getConnections() = 0;
     virtual IStorage* getStorage() = 0;
 

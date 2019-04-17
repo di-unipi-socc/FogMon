@@ -151,17 +151,6 @@ void MasterConnections::handler(int fd, Message &m) {
         if(m.getCommand() == Message::Command::HELLO) {
             handled = true;
 
-            int max_group = 30;
-            if(this->parent->getStorage()->getNodes().size() >= max_group) {
-                //refuse, max number of nodes exceded
-                Message res;
-                res.setType(Message::Type::RESPONSE);
-                res.setCommand(Message::Command::HELLO);
-                res.setArgument(Message::Argument::NEGATIVE);
-                
-                sendMessage(fd, res);
-            }
-
             //get report on hardware
             Report r;
             if(m.getData(r)) {

@@ -6,5 +6,5 @@ RUN dnf install -y sqlite sqlite-devel
 RUN dnf install -y sigar sigar-devel
 RUN dnf install -y iputils
 COPY ./test/* /
-ENTRYPOINT ["/FTPiDiscovererServer"]
+ENTRYPOINT ["/FogMonServer"]
 CMD []

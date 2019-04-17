@@ -15,6 +15,8 @@ public:
     MasterNode(int nThreads);
     ~MasterNode();
 
+    bool setParam(std::string name, int value);
+
     virtual void initialize(MasterFactory* factory = NULL);
 
     void start(std::string ip="::1");
@@ -29,7 +31,8 @@ protected:
 
     std::thread timerFunThread;
 
-    unsigned int timeTimerFun;
+    int timeheartbeat;
+    int timePropagation;
 
     MasterConnections *connections;
     IMasterStorage* storage;

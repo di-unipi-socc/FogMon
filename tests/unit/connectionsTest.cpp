@@ -108,6 +108,7 @@ public:
     void start() {};
     void stop() {};
 
+    bool setParam(string name, int value) {}
     IConnections* getConnections() {return NULL;}
     void setMyIp(std::string ip) {}
     std::string getMyIp() {return "";}

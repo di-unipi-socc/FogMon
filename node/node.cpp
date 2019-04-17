@@ -32,8 +32,12 @@ using namespace rapidjson;
 Node::Node(string ip, int nThreads) {
     this->nThreads = nThreads;
     this->running = false;
-    this->timerReport = 30;
-    this->timeTimerTest = 60;
+    this->timeReport = 30;
+    this->timeTests = 30;
+    this->timeLatency = 30;
+    this->maxPerLatency = 100;
+    this->timeBandwidth = 600;
+    this->maxPerBandwidth = 1; 
     this->ipS = ip;
     this->storage = NULL;
     this->connections = NULL;
@@ -496,7 +500,7 @@ void Node::timer() {
             }
         }
 
-        sleep(this->timerReport);
+        sleep(this->timeReport);
     }
 }
 
@@ -522,7 +526,7 @@ void Node::TestTimer() {
 
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<string> ips = this->storage->getLRLatency(100,30);
+        vector<string> ips = this->storage->getLRLatency(this->maxPerLatency, this->timeLatency);
 
         for(auto ip : ips) {
             if(myIp == ip)
@@ -534,7 +538,7 @@ void Node::TestTimer() {
         }
         //test bandwidth
         //get 10 nodes tested more than 300 seconds in the past
-        ips = this->storage->getLRBandwidth(10,600);
+        ips = this->storage->getLRBandwidth(this->maxPerBandwidth, this->timeBandwidth);
         int i=0;
         int tested=0;
         while(i < ips.size() && tested < 1) {
@@ -578,6 +582,7 @@ void Node::TestTimer() {
             this->getStorage()->updateNodes(ips,rem);
         }
 
+        //every 10 iteration update the MNodes
         if(iter%10 == 0) {
             vector<string> res = this->connections->requestMNodes(this->ipS);
             if(!res.empty()) {
@@ -590,7 +595,7 @@ void Node::TestTimer() {
             }
         }
 
-        sleep(this->timeTimerTest);
+        sleep(this->timeTests);
         iter++;
     }
 }
@@ -653,4 +658,27 @@ std::string Node::getMyIp() {
 
 Server* Node::getServer() {
     return this->server;
+}
+
+bool Node::setParam(std::string name, int value) {
+    if(value <= 0)
+        return false;
+
+    if(name == string("time-report")) {
+        this->timeReport = value;
+    }else if(name == string("time-tests")) {
+        this->timeTests = value;
+    }else if(name == string("time-latency")) {
+        this->timeLatency = value;
+    }else if(name == string("time-bandwidth")) {
+        this->timeBandwidth = value;
+    }else if(name == string("max-per-latency")) {
+        this->maxPerLatency = value;
+    }else if(name == string("max-per-bandwidth")) {
+        this->maxPerBandwidth = value;
+    }else{
+        return false;
+    }
+    printf("Param %s: %d\n",name.c_str(),value);
+    return true;
 }

@@ -9,7 +9,8 @@
 using namespace std;
 
 MasterNode::MasterNode(int nThreads) : Node("::1", nThreads) {
-    timeTimerFun = 20;
+    timePropagation = 20;
+    timeheartbeat = 120;
 }
 
 void MasterNode::initialize(MasterFactory* fact) {
@@ -55,21 +56,24 @@ IMasterStorage* MasterNode::getStorage() {
 }
 
 void MasterNode::timerFun() {
+    int iter = 0;
     while(this->running) {
         //routine for Nodes
         
         //check database for reports
-        vector<string> ips = this->getStorage()->getLRHardware(10, 30);
-        int n = ips.size();
-        n++;
+        vector<string> ips = this->getStorage()->getLRHardware(100, this->timeheartbeat);
+        vector<string> rem;
         for(auto&& ip : ips) {
-            this->connections->sendRequestReport(ip);
+            bool res = this->connections->sendRequestReport(ip);
+            if(!res) {
+                printf("Removing node from this group: %s\n",ip.c_str());
+                rem.push_back(ip);
+            }
         }
-
-        ips = this->getStorage()->getLRLatency(10, 30);
-        for(auto&& ip : ips) {
-            this->connections->sendRequestReport(ip);
-        }
+        //remove the nodes that failed to respond
+        this->connections->sendRemoveNodes(ips);
+        vector<string> tmp;
+        this->getStorage()->updateNodes(tmp,rem);
 
         //routine for MasterNodes
         ips = this->getStorage()->getMNodes();
@@ -88,20 +92,29 @@ void MasterNode::timerFun() {
             i++;
         }
 
-        //test old nodes that do not answer since long time
-        ips = this->getStorage()->getLRHardware(100, 120);
-        vector<string> rem;
-        for(auto&& ip : ips) {
-            bool res = this->connections->sendRequestReport(ip);
-            if(!res) {
-                rem.push_back(ip);
-            }
+        if(iter % 5 == 0) {
+            this->getStorage()->complete();
         }
-        //remove the nodes that failed to respond
-        this->connections->sendRemoveNodes(ips);
-        vector<string> tmp;
-        this->getStorage()->updateNodes(tmp,rem);
-
-        sleep(this->timeTimerFun);
+        
+        iter++;
+        sleep(this->timePropagation);
     }
+}
+
+bool MasterNode::setParam(std::string name, int value) {
+    if(value <= 0)
+        return false;
+    
+    if(Node::setParam(name,value))
+        return true;
+    
+    if(name == string("heartbeat")) {
+        this->timeheartbeat = value;
+    }else if(name == string("time-propagation")) {
+        this->timePropagation = value;
+    }else{
+        return false;
+    }
+    printf("Param %s: %d\n",name.c_str(),value);
+    return true;
 }

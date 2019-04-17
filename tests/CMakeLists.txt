@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.0)
-project(FTPiDiscoverer_Tests CXX)
+project(FogMon_Tests CXX)
 
 ADD_SUBDIRECTORY (googletest)
 enable_testing()

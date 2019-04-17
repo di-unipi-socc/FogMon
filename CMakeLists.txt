@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.0)
-project(FTPiDiscoverer CXX)
+project(FogMon CXX)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/node ${CMAKE_CURRENT_SOURCE_DIR}/master_node ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include ${CMAKE_CURRENT_SOURCE_DIR}/sigar/include)
 
@@ -16,32 +16,32 @@ file(GLOB HDRS_NODE "node/*.hpp")
 file(GLOB SRCS_MICROBIT "microbit/*.cpp")
 file(GLOB HDRS_MICROBIT "microbit/*.hpp")
 
-add_executable(FTPiDiscovererNode main/node_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
+add_executable(FogMonNode main/node_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
 
 file(GLOB SRCS_MASTER "master_node/*.cpp")
 file(GLOB HDRS_MASTER "master_node/*.hpp")
 
-add_executable(FTPiDiscovererServer main/master_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_MASTER} ${HDRS_MASTER} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
+add_executable(FogMonServer main/master_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_MASTER} ${HDRS_MASTER} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
 
 include_directories(/usr/include)
 link_directories(/usr/lib)
 
 if(${LINK_TIRPC})
-	target_link_libraries(FTPiDiscovererNode tirpc)
-	target_link_libraries(FTPiDiscovererServer tirpc)
+	target_link_libraries(FogMonNode tirpc)
+	target_link_libraries(FogMonServer tirpc)
 endif()
 
-target_link_libraries(FTPiDiscovererNode ${SQLITE_LIBRARY})
-target_link_libraries(FTPiDiscovererNode ${PTHREAD_LIBRARY})
-target_link_libraries(FTPiDiscovererNode libsigar.a)
-target_link_libraries(FTPiDiscovererNode -static-libstdc++)
-target_link_libraries(FTPiDiscovererNode ${SERIALPORT_LIBRARY})
+target_link_libraries(FogMonNode ${SQLITE_LIBRARY})
+target_link_libraries(FogMonNode ${PTHREAD_LIBRARY})
+target_link_libraries(FogMonNode libsigar.a)
+target_link_libraries(FogMonNode -static-libstdc++)
+target_link_libraries(FogMonNode ${SERIALPORT_LIBRARY})
 
-target_link_libraries(FTPiDiscovererServer ${SQLITE_LIBRARY})
-target_link_libraries(FTPiDiscovererServer ${PTHREAD_LIBRARY})
-target_link_libraries(FTPiDiscovererServer libsigar.a)
-target_link_libraries(FTPiDiscovererServer -static-libstdc++)
-target_link_libraries(FTPiDiscovererServer ${SERIALPORT_LIBRARY})
+target_link_libraries(FogMonServer ${SQLITE_LIBRARY})
+target_link_libraries(FogMonServer ${PTHREAD_LIBRARY})
+target_link_libraries(FogMonServer libsigar.a)
+target_link_libraries(FogMonServer -static-libstdc++)
+target_link_libraries(FogMonServer ${SERIALPORT_LIBRARY})
 
 add_subdirectory(sqlite3)
 if(${ENABLE_TESTS})

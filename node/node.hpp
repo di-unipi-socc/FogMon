@@ -12,6 +12,8 @@ public:
     Node(std::string ip, int nThreads);
     ~Node();
 
+    bool setParam(std::string name, int value);
+
     virtual void initialize(Factory* factory = NULL);
 
     //start listener for incoming ping and directions
@@ -33,14 +35,17 @@ public:
     virtual Server* getServer();
 protected:
 
-    int timerReport;
-
     std::vector<std::string> mNodes;
 
     //ip to differentiate between other nodes in the list and self
     std::string myIp;
 
-    int timeTimerTest;
+    int timeReport;
+    int timeTests;
+    int timeLatency;
+    int timeBandwidth;
+    int maxPerLatency;
+    int maxPerBandwidth;
 
     bool running;
 
@@ -56,7 +61,7 @@ protected:
 
     int nThreads;
 
-    //timer for hearthbeat
+    //timer for heartbeat
     void timer();
 
     //timer for latency and bandwidth tests
