@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     string ip = "localhost";
     int threads = 2;
     int time_report = 30;
-    int time_tests = 60;
+    int time_tests = 30;
     int time_latency = 30;
     int max_latency = 100;
     int time_bandwidth = 600;

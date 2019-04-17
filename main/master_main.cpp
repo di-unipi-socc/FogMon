@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         time_propagation = stoi(input.getCmdOption("--time-propagation"));
 
     int time_report = 30;
-    int time_tests = 60;
+    int time_tests = 30;
     int time_latency = 30;
     int max_latency = 100;
     int time_bandwidth = 600;
