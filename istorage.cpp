@@ -64,7 +64,7 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     vector<Report::test_result> *r = (vector<Report::test_result>*)R;
     Report::test_result test;
     test.target = string(argv[0]);
-    if(argv[1] == NULL) {
+    if(argv[1] == NULL ||argv[2] == NULL ||argv[3] == NULL) {
         return 0;
     }
     test.mean = stof(argv[1]);
