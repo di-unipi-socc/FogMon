@@ -282,7 +282,7 @@ Report::hardware_result MasterStorage::getHardware(std::string ip) {
 std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N2.ip, M.meanL as mean, M.varianceL as variance, M.lasttimeL as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
+    std::sprintf(buf,"SELECT N2.ip, M.meanL as mean, M.varianceL as variance, strftime('%%s',M.lasttimeL) as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
 
     vector<Report::test_result> tests;
 
@@ -300,7 +300,7 @@ std::vector<Report::test_result> MasterStorage::getLatency(std::string ip) {
 std::vector<Report::test_result> MasterStorage::getBandwidth(std::string ip) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N2.ip, M.meanB as mean, M.varianceB as variance, M.lasttimeB as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
+    std::sprintf(buf,"SELECT N2.ip, M.meanB as mean, M.varianceB as variance, strftime('%%s',M.lasttimeB) as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.ip = \"%s\" group by N2.ip", ip.c_str());
 
     vector<Report::test_result> tests;
 
