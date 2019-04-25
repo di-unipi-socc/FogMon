@@ -64,12 +64,18 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     vector<Report::test_result> *r = (vector<Report::test_result>*)R;
     Report::test_result test;
     test.target = string(argv[0]);
-    if(argv[1] == NULL ||argv[2] == NULL ||argv[3] == NULL) {
-        return 0;
-    }
-    test.mean = stof(argv[1]);
-    test.variance = stof(argv[2]);
-    test.lasttime = stoll(argv[3]);
+    if(argv[1] == NULL)
+        test.mean = 0;
+    else
+        test.mean = stof(argv[1]);
+    if(argv[2] == NULL)
+        test.variance = 0;
+    else
+        test.variance = stof(argv[2]);
+    if(argv[3] == NULL)
+        test.lasttime = 0;
+    else
+        test.lasttime = stoll(argv[3]);
     r->push_back(test);
     return 0;
 }

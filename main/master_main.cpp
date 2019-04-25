@@ -6,9 +6,9 @@
 //sudo docker run -it --net=host server -C 54.93.78.224
 //sudo docker run -it --net=host node -C 54.93.78.224
 
-//sudo docker run -it --net=host server --time-report 5 --time-tests 10 --time-latency 20 --time-bandwidth 60 --heartbeat 10
-//sudo docker run -it --net=host server -C 54.93.78.224 --time-report 5 --time-tests 10 --time-latency 20 --time-bandwidth 60 --heartbeat 10
-//sudo docker run -it --net=host node -C 54.93.78.224 --time-report 5 --time-tests 10 --time-latency 20 --time-bandwidth 60 --heartbeat 10
+//sudo docker run -it --net=host server --time-report 15 --time-tests 30 --time-latency 40 --time-bandwidth 300 --heartbeat 30
+//sudo docker run -it --net=host server -C 54.93.78.224 --time-report 15 --time-tests 30 --time-latency 40 --time-bandwidth 300 --heartbeat 30
+//sudo docker run -it --net=host node -C 54.93.78.224 --time-report 15 --time-tests 30 --time-latency 40 --time-bandwidth 300 --heartbeat 30
 
 
 // --time-report 5 --time-tests 10 --time-latency 20 --time-bandwidth 60 --heartbeat 10
