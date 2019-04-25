@@ -56,7 +56,7 @@ IMasterStorage* MasterNode::getStorage() {
 }
 
 void MasterNode::timerFun() {
-    int iter = 0;
+    int iter = 1;
     while(this->running) {
         //routine for Nodes
         
