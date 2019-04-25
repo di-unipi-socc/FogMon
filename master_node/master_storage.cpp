@@ -346,7 +346,7 @@ void MasterStorage::complete() {
                     "AS meanB, "
                     "(SELECT max(M.varianceB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
                     "AS varianceB, NULL AS lasttimeB "
-                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id");
+                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy");
 
     vector<Report::test_result> tests;
 
