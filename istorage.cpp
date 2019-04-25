@@ -64,6 +64,9 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     vector<Report::test_result> *r = (vector<Report::test_result>*)R;
     Report::test_result test;
     test.target = string(argv[0]);
+    if(argv[1] == NULL) {
+        return 0;
+    }
     test.mean = stof(argv[1]);
     test.variance = stof(argv[2]);
     test.lasttime = stoll(argv[3]);
