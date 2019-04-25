@@ -218,7 +218,7 @@ std::vector<std::string> MasterStorage::getLRHardware(int num, int seconds) {
 vector<string> MasterStorage::getMNodes() {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT ip FROM MMNodes");
+    std::sprintf(buf,"SELECT ip FROM MMNodes ORDER BY RANDOM()");
 
     vector<string> nodes;
 

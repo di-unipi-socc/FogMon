@@ -171,7 +171,7 @@ int Node::startIperf() {
 
     int ret = -1;
 
-    int port = random()%3000 + 5600;
+    int port = random()%1000 + 5600;
     std::packaged_task<void(int)> task([](int port) {
         char command[1024];
         sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
@@ -483,6 +483,7 @@ void Node::getHardware() {
 }
 
 void Node::timer() {
+    int iter=0;
     while(this->running) {
         //generate hardware report and send it
         this->getHardware();
@@ -500,7 +501,43 @@ void Node::timer() {
             }
         }
 
+        //every 10 iteration ask the nodes in case the server cant reach this network
+        if(iter%10 == 0) {
+            vector<string> ips = this->connections->requestNodes(this->ipS);
+            vector<string> tmp = this->getStorage()->getNodes();
+            vector<string> rem;
+
+            for(auto ip : tmp) {
+                bool found = false;
+                int i=0;
+                while(!found && i<ips.size()) {
+                    if(ip == ips[i])
+                        found = true;
+                    i++;
+                }
+                if(!found) {
+                    rem.push_back(ip);
+                }
+            }
+
+            this->getStorage()->updateNodes(ips,rem);
+        }
+
+        //every 10 iteration update the MNodes
+        if(iter%10 == 0) {
+            vector<string> res = this->connections->requestMNodes(this->ipS);
+            if(!res.empty()) {
+                for(int j=0; j<res.size(); j++)
+                {
+                    if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
+                        res[j] = this->ipS;
+                }
+                mNodes = res;
+            }
+        }
+
         sleep(this->timeReport);
+        iter++;
     }
 }
 
@@ -558,41 +595,6 @@ void Node::TestTimer() {
                 tested++;
             }
             i++;
-        }
-
-        //every 10 iteration ask the nodes in case the server cant reach this network
-        if(iter%10 == 0) {
-            ips = this->connections->requestNodes(this->ipS);
-            vector<string> tmp = this->getStorage()->getNodes();
-            vector<string> rem;
-
-            for(auto ip : tmp) {
-                bool found = false;
-                int i=0;
-                while(!found && i<ips.size()) {
-                    if(ip == ips[i])
-                        found = true;
-                    i++;
-                }
-                if(!found) {
-                    rem.push_back(ip);
-                }
-            }
-
-            this->getStorage()->updateNodes(ips,rem);
-        }
-
-        //every 10 iteration update the MNodes
-        if(iter%10 == 0) {
-            vector<string> res = this->connections->requestMNodes(this->ipS);
-            if(!res.empty()) {
-                for(int j=0; j<res.size(); j++)
-                {
-                    if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
-                        res[j] = this->ipS;
-                }
-                mNodes = res;
-            }
         }
 
         sleep(this->timeTests);

@@ -197,7 +197,7 @@ void Storage::saveBandwidthTest(string ip, float kbps, int state) {
         exit(1);
     }
 
-    std::sprintf(buf,"DELETE FROM Bandwidth WHERE time <= (SELECT time FROM Bandwidth WHERE idNodeB = %ld ORDER BY time DESC LIMIT 1 OFFSET 20)",id);
+    std::sprintf(buf,"DELETE FROM Bandwidth WHERE time <= (SELECT time FROM Bandwidth WHERE idNodeB = %ld ORDER BY time DESC LIMIT 1 OFFSET 5)",id);
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )

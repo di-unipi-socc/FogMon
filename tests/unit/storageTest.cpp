@@ -276,7 +276,13 @@ TEST(StorageMasterTest, AddGetMNode) {
     int dim = 2;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)
-        EXPECT_EQ("testMNode", res[1]);
+        if(res[1] != "testMNode") {
+            EXPECT_EQ("testMNode", res[0]);
+        }else
+        {
+            EXPECT_EQ("testMNode", res[1]);
+        }
+        
     else
         FAIL();
 }
