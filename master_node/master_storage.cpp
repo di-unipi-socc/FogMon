@@ -143,6 +143,19 @@ void MasterStorage::addReport(Report::report_result result, string monitored) {
 }
 
 void MasterStorage::addReport(std::vector<Report::report_result> results, string ip) {
+    for(auto &result : results) {
+        if(result.ip == string("::1"))
+            result.ip = ip;
+        for(auto &test : result.latency) {
+            if(test.target == string("::1"))
+                test.target = ip;
+        }
+        for(auto &test : result.bandwidth) {
+            if(test.target == string("::1"))
+                test.target = ip;
+        }
+        this->addNode(result.ip, result.hardware, ip);
+    }
     for(auto result : results) {
         this->addReport(result, ip);
     }
@@ -334,26 +347,71 @@ void MasterStorage::complete() {
     std::sprintf(buf,
                 "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
                 " SELECT A.id AS idA, B.id AS idB, "
-                    "((SELECT M.meanL from MLinks AS M WHERE M.idA = A.monitoredBy AND M.idB = B.monitoredBy) + "
-                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = A.monitoredBy) + "
-                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = B.monitoredBy AND M.idB = B.id)) "
+                    "((SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy)) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy) AND M.idB = B.id)) "
                     "AS meanL, "
-                    "((SELECT M.varianceL from MLinks AS M WHERE M.idA = A.monitoredBy AND M.idB = B.monitoredBy) + "
-                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = A.id AND M.idB = A.monitoredBy) + "
-                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = B.monitoredBy AND M.idB = B.id)) "
+                    "((SELECT M.varianceL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy)) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy) AND M.idB = B.id)) "
                     "AS varianceL, NULL AS lasttimeL, "
                     "(SELECT min(M.meanB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
                     "AS meanB, "
                     "(SELECT max(M.varianceB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
                     "AS varianceB, NULL AS lasttimeB "
-                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy");
-
-    vector<Report::test_result> tests;
+                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy AND A.ip IN (SELECT ip FROM MMNodes) AND A.ip NOT IN (SELECT ip FROM MMNodes)");
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error1: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+        std::sprintf(buf,
+                "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
+                " SELECT A.id AS idA, B.id AS idB, "
+                    "((SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy)) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy) AND M.idB = B.id)) "
+                    "AS meanL, "
+                    "((SELECT M.varianceL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy)) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy) AND M.idB = B.id)) "
+                    "AS varianceL, NULL AS lasttimeL, "
+                    "(SELECT min(M.meanB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS meanB, "
+                    "(SELECT max(M.varianceB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS varianceB, NULL AS lasttimeB "
+                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy AND A.ip NOT IN (SELECT ip FROM MMNodes) AND A.ip IN (SELECT ip FROM MMNodes)");
+
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error2: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+        std::sprintf(buf,
+                "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
+                " SELECT A.id AS idA, B.id AS idB, "
+                    "((SELECT M.meanL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy) AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy)) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy)) + "
+                    "(SELECT M.meanL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy) AND M.idB = B.id)) "
+                    "AS meanL, "
+                    "((SELECT M.varianceL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy) AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy)) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = A.monitoredBy)) + "
+                    "(SELECT M.varianceL from MLinks AS M WHERE M.idA = (SELECT MN.id FROM MMNodes AS MMN JOIN MNodes AS MN WHERE MN.ip=MMN.ip AND MMN.id = B.monitoredBy) AND M.idB = B.id)) "
+                    "AS varianceL, NULL AS lasttimeL, "
+                    "(SELECT min(M.meanB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS meanB, "
+                    "(SELECT max(M.varianceB) from MLinks AS M WHERE (M.idA = A.id AND M.idB <> B.id) OR (M.idA <> A.id AND M.idB = B.id)) "
+                    "AS varianceB, NULL AS lasttimeB "
+                "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy AND A.ip NOT IN (SELECT ip FROM MMNodes) AND A.ip NOT IN (SELECT ip FROM MMNodes)");
+
+    err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error3: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
