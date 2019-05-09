@@ -89,10 +89,12 @@ void Node::start() {
 
     if(this->startEstimate() != 0) {
         fprintf(stderr,"Cannot start the estimate\n");
+        this->stop();
         exit(1);
     }
     if(this->startIperf() != 0) {
         fprintf(stderr,"Cannot start iperf3\n");
+        this->stop();
         exit(1);
     }
 
@@ -117,6 +119,10 @@ void Node::stop() {
         delete this->pAssoloSnd;
     if(this->pTest)
         delete this->pTest;
+    this->pIperf = NULL;
+    this->pAssoloRcv = NULL;
+    this->pAssoloSnd = NULL;
+    this->pTest = NULL;
     this->running = false;
     if(this->timerThread.joinable())
     {
@@ -190,9 +196,9 @@ int Node::startIperf() {
     int port = random()%1000 + 5600;
 
     char command[1024];
-    sprintf(command, "-s -p %d -1", port);
+    sprintf(command, "%d", port);
 
-    char *args[] = {"/bin/iperf3", command, NULL };
+    char *args[] = {"/bin/iperf3", "-s","-p",command, NULL };
     ReadProc *proc = new ReadProc(args);
     usleep(50*1000);
     int res = proc->nowaitproc();
@@ -202,6 +208,7 @@ int Node::startIperf() {
         this->pIperf = proc;
         return 0;
     }
+    cout << proc->readoutput();
     return -1;
 }
 
@@ -289,11 +296,13 @@ float Node::testBandwidthEstimate(string ip, int port) {
     
     char command[1024];
     if(port > 0) {
-        sprintf(command, "-R %s -S %s -J 3 -t 30 -u 100 -l 1 -U %d", ip.c_str(),this->myIp.c_str(), port);
-    }else
-        sprintf(command, "-R %s -S %s -J 3 -t 30 -u 100 -l 1", ip.c_str(), this->myIp.c_str());
+        sprintf(command, "%d", port);
+    }else {
+        cerr << "Error port not valid" << endl;
+        exit(1);
+    }
 
-    char *args[] = {"./assolo_run", command, NULL };
+    char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)this->myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
 

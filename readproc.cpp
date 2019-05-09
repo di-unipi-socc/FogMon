@@ -37,7 +37,6 @@ ReadProc::ReadProc(char** args) {
 
 ReadProc::~ReadProc() {
     this->killproc();
-
     posix_spawn_file_actions_destroy(&action);
 }
 
