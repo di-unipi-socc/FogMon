@@ -19,7 +19,7 @@ using namespace rapidjson;
 #include "readproc.hpp"
 
 int main(int argc, char *argv[]) {
-    char *args[] = {"/bin/sh", "-c", "iperf3 -s 2>&1", NULL };
+    char *args[] = {"/bin/iperf3","-s", NULL };
     ReadProc proc(args);
 sleep(5);
     cout << proc.readoutput();
@@ -32,7 +32,7 @@ sleep(5);
     string ip = "localhost";
     int threads = 2;
     int time_report = 30;
-    int time_tests = 30;
+     int time_tests = 30;
     int time_latency = 30;
     int max_latency = 100;
     int time_bandwidth = 600;

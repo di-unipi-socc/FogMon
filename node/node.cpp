@@ -190,9 +190,9 @@ int Node::startIperf() {
     int port = random()%1000 + 5600;
 
     char command[1024];
-    sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
+    sprintf(command, "-s -p %d -1", port);
 
-    char *args[] = {"/bin/sh", "-c", command, NULL };
+    char *args[] = {"/bin/iperf3", command, NULL };
     ReadProc *proc = new ReadProc(args);
     usleep(50*1000);
     int res = proc->nowaitproc();
@@ -210,13 +210,13 @@ int Node::startEstimate() {
     
     int port = random()%2000 + 5600;
 
-    char *args1[] = {"/bin/sh", "-c", "./assolo_rcv 2>&1", NULL };
+    char *args1[] = {"./assolo_rcv", NULL };
     ReadProc *proc1 = new ReadProc(args1);
 
     char command[256];
-    sprintf(command, "./assolo_snd -U %d 2>&1", port);
+    sprintf(command, "-U %d", port);
 
-    char *args2[] = {"/bin/sh", "-c", command, NULL };
+    char *args2[] = {"./assolo_snd", command, NULL };
     ReadProc *proc2 = new ReadProc(args2);
 
     usleep(50*1000);
@@ -289,11 +289,11 @@ float Node::testBandwidthEstimate(string ip, int port) {
     
     char command[1024];
     if(port > 0) {
-        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(),this->myIp.c_str(), port);
+        sprintf(command, "-R %s -S %s -J 3 -t 30 -u 100 -l 1 -U %d", ip.c_str(),this->myIp.c_str(), port);
     }else
-        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 30 -u 100 -l 1 2>&1", ip.c_str(), this->myIp.c_str());
+        sprintf(command, "-R %s -S %s -J 3 -t 30 -u 100 -l 1", ip.c_str(), this->myIp.c_str());
 
-    char *args[] = {"/bin/sh", "-c", command, NULL };
+    char *args[] = {"./assolo_run", command, NULL };
     ReadProc *proc = new ReadProc(args);
 
 

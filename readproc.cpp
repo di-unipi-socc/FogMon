@@ -24,6 +24,7 @@ ReadProc::ReadProc(char** args) {
     pipe(out);
 
     posix_spawn_file_actions_adddup2(&action, out[1], STDOUT_FILENO);
+    posix_spawn_file_actions_adddup2(&action, out[1], STDERR_FILENO);
     posix_spawn_file_actions_addclose(&action, out[0]);
 
     status = posix_spawn(&pid, args[0], &action, NULL, args, environ);
