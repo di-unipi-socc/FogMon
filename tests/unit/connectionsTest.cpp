@@ -112,8 +112,11 @@ public:
     IConnections* getConnections() {return NULL;}
     void setMyIp(std::string ip) {}
     std::string getMyIp() {return "";}
-    int startIperf() {return 55555;}
-    int startEstimate() {return 8365;}
+    int startIperf() {return 0;}
+    int startEstimate() {return 0;}
+
+    int getIperfPort() {return 55555;}
+    int getEstimatePort() {return 8365;}
     Server* getServer() {return NULL;}
 
     IMasterStorage* getStorage() {return &this->storage;}

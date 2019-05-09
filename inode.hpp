@@ -20,12 +20,15 @@ public:
     virtual void setMyIp(std::string ip) = 0;
     virtual std::string getMyIp() = 0;
     
-    virtual int startIperf() = 0;
-    virtual int startEstimate() = 0;
+    virtual int getIperfPort() = 0;
+    virtual int getEstimatePort() = 0;
     
     virtual Server* getServer() = 0;
 protected:
     std::string ipS;
+
+    virtual int startIperf() = 0;
+    virtual int startEstimate() = 0;
 };
 
 #endif

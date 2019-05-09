@@ -16,7 +16,17 @@ using namespace std;
 
 using namespace rapidjson;
 
+#include "readproc.hpp"
+
 int main(int argc, char *argv[]) {
+    char *args[] = {"/bin/sh", "-c", "iperf3 -s 2>&1", NULL };
+    ReadProc proc(args);
+sleep(5);
+    cout << proc.readoutput();
+    proc.killproc();
+    cout << proc.readoutput();
+
+    return 0;
     InputParser input(argc,argv);
 
     string ip = "localhost";

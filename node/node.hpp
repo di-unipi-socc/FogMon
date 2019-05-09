@@ -6,6 +6,7 @@
 #include "server.hpp"
 #include "factory.hpp"
 #include "iiotdiscoverer.hpp"
+#include "readproc.hpp"
 
 class Node : virtual public INode {
 public:
@@ -28,9 +29,9 @@ public:
     virtual std::string getMyIp();
 
     //start iperf command line server and return the port it is open in
-    virtual int startIperf();
+    virtual int getIperfPort();
     //start estimate tool (assolo) server and return the port it is open in
-    virtual int startEstimate();
+    virtual int getEstimatePort();
 
     virtual Server* getServer();
 protected:
@@ -47,6 +48,15 @@ protected:
     int maxPerLatency;
     int maxPerBandwidth;
 
+    int portIperf;
+    int portAssolo;
+    ReadProc *pIperf;
+    ReadProc *pAssoloRcv;
+    ReadProc *pAssoloSnd;
+
+    ReadProc *pTest;
+    std::mutex mTest;
+
     bool running;
 
     std::thread timerThread;
@@ -60,6 +70,12 @@ protected:
     Factory * factory;
 
     int nThreads;
+
+
+    //start iperf command line server
+    virtual int startIperf();
+    //start estimate tool (assolo) server
+    virtual int startEstimate();
 
     //timer for heartbeat
     void timer();

@@ -42,6 +42,10 @@ Node::Node(string ip, int nThreads) {
     this->storage = NULL;
     this->connections = NULL;
     this->server = NULL;
+    this->pIperf = NULL;
+    this->pAssoloRcv = NULL;
+    this->pAssoloSnd = NULL;
+    this->pTest = NULL;
 }
 
 void Node::initialize(Factory* fact) {
@@ -83,7 +87,15 @@ void Node::start() {
     
     mNodes.push_back(this->ipS);
 
-    this->startEstimate();
+    if(this->startEstimate() != 0) {
+        fprintf(stderr,"Cannot start the estimate\n");
+        exit(1);
+    }
+    if(this->startIperf() != 0) {
+        fprintf(stderr,"Cannot start iperf3\n");
+        exit(1);
+    }
+
     this->getHardware();
 
     if(!selectServer()) {
@@ -97,6 +109,14 @@ void Node::start() {
 }
 
 void Node::stop() {
+    if(this->pIperf)
+        delete this->pIperf;
+    if(this->pAssoloRcv)
+        delete this->pAssoloRcv;
+    if(this->pAssoloSnd)
+        delete this->pAssoloSnd;
+    if(this->pTest)
+        delete this->pTest;
     this->running = false;
     if(this->timerThread.joinable())
     {
@@ -166,96 +186,53 @@ IStorage* Node::getStorage() {
 }
 
 int Node::startIperf() {
-    
-    using namespace std::chrono_literals;
-
-    int ret = -1;
 
     int port = random()%1000 + 5600;
-    std::packaged_task<void(int)> task([](int port) {
-        char command[1024];
-        sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
-        string mode = "r";
 
-        // Run Popen
-        FILE *in;
+    char command[1024];
+    sprintf(command, "iperf3 -s -p %d -1 2>&1", port);
 
-        // Test output
-        if(!(in = popen(command, mode.c_str()))){
-            return -1;
-        }
+    char *args[] = {"/bin/sh", "-c", command, NULL };
+    ReadProc *proc = new ReadProc(args);
+    usleep(50*1000);
+    int res = proc->nowaitproc();
 
-        // Close
-        int exit_code = pclose(in);
-        return -1;
-    });
-    auto f1 = task.get_future();
-    std::thread(std::move(task),port).detach();
-
-    // Use wait_for() with zero milliseconds to check thread status.
-    auto status = f1.wait_for(50ms);
-
-    // Print status.
-    if (status == std::future_status::ready) {
-        
-    } else {
-        ret = port;
+    if(res != 0) {
+        this->portIperf = port;
+        this->pIperf = proc;
+        return 0;
     }
-    
-    return ret;
+    return -1;
 }
 
 int Node::startEstimate() {
-    using namespace std::chrono_literals;
-
-    int ret = -1;
-
-    int port = 8365;
-    std::packaged_task<void(int)> task1([](int port) {
-        char command[256];
-        sprintf(command, "./assolo_rcv 2>&1");
-        string mode = "r";
-
-        // Run Popen
-        FILE *in;
-
-        // Test output
-        if(!(in = popen(command, mode.c_str()))){
-            return -1;
-        }
-
-        // Close
-        int exit_code = pclose(in);
-        return -1;
-    });
-    std::packaged_task<void(int)> task2([](int port) {
-        char command[256];
-        sprintf(command, "./assolo_snd 2>&1");
-        string mode = "r";
-
-        // Run Popen
-        FILE *in;
-
-        // Test output
-        if(!(in = popen(command, mode.c_str()))){
-            return -1;
-        }
-
-        // Close
-        int exit_code = pclose(in);
-        return -1;
-    });
-
-    auto f1 = task1.get_future();
-    auto thread1 = std::thread(std::move(task1),port);
-    auto th1 = thread1.native_handle();
-    thread1.detach();
-    auto f2 = task2.get_future();
-    auto thread2 = std::thread(std::move(task2),port);
-    auto th2 = thread2.native_handle();
-    thread2.detach();
     
-    return ret;;
+    
+    int port = random()%2000 + 5600;
+
+    char *args1[] = {"/bin/sh", "-c", "./assolo_rcv 2>&1", NULL };
+    ReadProc *proc1 = new ReadProc(args1);
+
+    char command[256];
+    sprintf(command, "./assolo_snd -U %d 2>&1", port);
+
+    char *args2[] = {"/bin/sh", "-c", command, NULL };
+    ReadProc *proc2 = new ReadProc(args2);
+
+    usleep(50*1000);
+    int res1 = proc1->nowaitproc();
+    int res2 = proc2->nowaitproc();
+
+    if(res1 != 0 && res2 != 0) {
+        this->pAssoloRcv = proc1;
+        this->pAssoloSnd = proc2;
+        this->portAssolo = port;
+        return 0;
+    }else {
+        proc1->killproc();
+        proc2->killproc();
+    }
+    return -1;
 }
 
 float Node::testBandwidthIperf(string ip, int port) {
@@ -309,35 +286,35 @@ float Node::testBandwidthIperf(string ip, int port) {
 }
 
 float Node::testBandwidthEstimate(string ip, int port) {
+    
     char command[1024];
     if(port > 0) {
-        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 20 -u 100 -l 1 -U %d 2>&1", ip.c_str(),this->myIp.c_str(), port);
+        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 30 -u 100 -l 1 -U %d 2>&1", ip.c_str(),this->myIp.c_str(), port);
     }else
-        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 20 -u 100 -l 1 2>&1", ip.c_str(), this->myIp.c_str());
-    string mode = "r";
-    string output;
+        sprintf(command, "./assolo_run -R %s -S %s -J 3 -t 30 -u 100 -l 1 2>&1", ip.c_str(), this->myIp.c_str());
 
-    std::stringstream sout;
+    char *args[] = {"/bin/sh", "-c", command, NULL };
+    ReadProc *proc = new ReadProc(args);
 
-    // Run Popen
-    FILE *in;
-    char buff[512];
 
-    // Test output
-    if(!(in = popen(command, mode.c_str()))){
-        return -1;
+    {
+        std::unique_lock<std::mutex> lock(this->mTest);
+        if(this->pTest)
+            delete this->pTest;
+        this->pTest = proc;
+    }
+    
+
+    while(proc->nowaitproc() != 0) {
+        usleep(100*1000);
     }
 
-    // Parse output
-    while(fgets(buff, sizeof(buff), in)!=NULL){
-        sout << buff;
-    }
-
-    // Close
-    int exit_code = pclose(in);
+    int exit_code = 0;
 
     // set output
-    output = sout.str();
+    string output = proc->readoutput();
+    char buff[512];
+
     if(exit_code == 0) {
         std::regex reg("Opening file: ([0-9a-zA-Z_\\.]*)\n");
 
@@ -683,4 +660,12 @@ bool Node::setParam(std::string name, int value) {
     }
     printf("Param %s: %d\n",name.c_str(),value);
     return true;
+}
+
+int Node::getIperfPort() {
+    return this->portIperf;
+}
+
+int Node::getEstimatePort() {
+    return this->portAssolo;
 }
