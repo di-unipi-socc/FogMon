@@ -19,14 +19,6 @@ using namespace rapidjson;
 #include "readproc.hpp"
 
 int main(int argc, char *argv[]) {
-    char *args[] = {"/bin/iperf3","-s", NULL };
-    ReadProc proc(args);
-sleep(5);
-    cout << proc.readoutput();
-    proc.killproc();
-    cout << proc.readoutput();
-
-    return 0;
     InputParser input(argc,argv);
 
     string ip = "localhost";

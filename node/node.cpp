@@ -117,12 +117,15 @@ void Node::stop() {
         delete this->pAssoloRcv;
     if(this->pAssoloSnd)
         delete this->pAssoloSnd;
-    if(this->pTest)
-        delete this->pTest;
+    {
+        std::unique_lock<std::mutex> lock(this->mTest);
+        if(this->pTest)
+            delete this->pTest;
+        this->pTest = NULL;
+    }
     this->pIperf = NULL;
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
-    this->pTest = NULL;
     this->running = false;
     if(this->timerThread.joinable())
     {
@@ -299,17 +302,17 @@ float Node::testBandwidthEstimate(string ip, int port) {
         sprintf(command, "%d", port);
     }else {
         cerr << "Error port not valid" << endl;
-        exit(1);
+        return -1;
     }
 
-    char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)this->myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
+    char *args[] = {"./assolo_run","-S",(char*)ip.c_str(),"-R",(char*)this->myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
 
     {
         std::unique_lock<std::mutex> lock(this->mTest);
         if(this->pTest)
-            delete this->pTest;
+            return -1;
         this->pTest = proc;
     }
     
@@ -323,7 +326,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
     // set output
     string output = proc->readoutput();
     char buff[512];
-
+    float ret = -1;
     if(exit_code == 0) {
         std::regex reg("Opening file: ([0-9a-zA-Z_\\.]*)\n");
 
@@ -336,39 +339,47 @@ float Node::testBandwidthEstimate(string ip, int port) {
             
             file = m[1];
         }
-        if(file.empty())
-            return -1;
-        FILE *in = fopen(file.c_str(),"r");
-        if(in == NULL)
-            return -1;
-        std::stringstream sout;
-        while(fgets(buff, sizeof(buff), in)!=NULL){
-            sout << buff;
-        }
-        output = sout.str();
-        //unlink(file.c_str());
+        if(!file.empty())
         {
-            std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
+            FILE *in = fopen(file.c_str(),"r");
+            if(in != NULL)
+            {
+                std::stringstream sout;
+                while(fgets(buff, sizeof(buff), in)!=NULL){
+                    sout << buff;
+                }
+                output = sout.str();
+                //unlink(file.c_str());
+                {
+                    std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
 
-            std::smatch m;
-            
-            float mean = 0;
-            int num = 0;
-            while (std::regex_search (output,m,reg)) {
-                output = m.suffix().str();
-                
-                mean += stof(m[2]);
-                num++;
+                    std::smatch m;
+                    
+                    float mean = 0;
+                    int num = 0;
+                    while (std::regex_search (output,m,reg)) {
+                        output = m.suffix().str();
+                        
+                        mean += stof(m[2]);
+                        num++;
+                    }
+                    if(num>0)  {
+                        mean = mean/num;
+                        cout << "estimate " << ip << " mbps " << mean << " kbps " << mean * 1000 << endl;
+                        ret = mean*1000;
+                    }    
+                }
             }
-            if(num>0)  {
-                mean = mean/num;
-                cout << "estimate " << ip << " mbps " << mean << " kbps " << mean * 1000 << endl;
-                return mean*1000;
-            }    
         }
-        return -1;
     }
-    return -1;
+
+    {
+        std::unique_lock<std::mutex> lock(this->mTest);
+        if(this->pTest)
+            delete this->pTest;
+        this->pTest = NULL;
+    }
+    return ret;
 }
 
 int Node::testPing(string ip) {

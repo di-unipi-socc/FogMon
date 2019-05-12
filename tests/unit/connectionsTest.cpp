@@ -188,7 +188,7 @@ TEST(ConnectionsTest, RStartIperf) {
     EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
     int port = -1;
     EXPECT_EQ(res.getData(port), true);
-    EXPECT_EQ(port, mNode.startIperf());
+    EXPECT_EQ(port, mNode.getIperfPort());
     
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
@@ -219,7 +219,7 @@ TEST(ConnectionsTest, RStartEstimate) {
     EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
     int port = -1;
     EXPECT_EQ(res.getData(port), true);
-    EXPECT_EQ(port, mNode.startEstimate());
+    EXPECT_EQ(port, mNode.getEstimatePort());
     
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
