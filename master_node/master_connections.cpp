@@ -372,6 +372,7 @@ bool MasterConnections::sendMHello(std::string ip) {
     m.setType(Message::Type::MREQUEST);//TODO
     m.setCommand(Message::Command::MHELLO);
     m.setArgument(Message::Argument::REPORT);
+    m.setData(this->parent->getStorage()->getNode());
 
     bool ret = false;
 
@@ -383,7 +384,7 @@ bool MasterConnections::sendMHello(std::string ip) {
                 res.getCommand() == Message::Command::MHELLO &&
                 res.getArgument() == Message::Argument::POSITIVE) {
                 
-                vector<string> vec;
+                vector<Message::node> vec;
                 if(res.getData(vec)) {
                     for(auto node : vec) {
                         this->parent->getStorage()->addMNode(node);

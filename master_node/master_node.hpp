@@ -12,7 +12,7 @@ class MasterFactory;
 
 class MasterNode : virtual public IMasterNode, public Node {
 public:
-    MasterNode(int nThreads);
+    MasterNode(std::string name, int nThreads);
     ~MasterNode();
 
     bool setParam(std::string name, int value);
@@ -28,6 +28,7 @@ public:
 protected:
 
     void timerFun();
+    std::string name;
 
     std::thread timerFunThread;
 

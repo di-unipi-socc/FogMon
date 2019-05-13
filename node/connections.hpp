@@ -21,8 +21,8 @@ public:
 
     void initialize(INode *parent);
 
-    std::vector<std::string> requestMNodes(std::string ip); 
-    std::vector<std::string> requestNodes(std::string ipS);
+    std::vector<Message::node> requestMNodes(std::string ip); 
+    std::vector<Message::node> requestNodes(std::string ipS);
     bool sendHello(std::string ipS);
     bool sendUpdate(std::string ipS);
 

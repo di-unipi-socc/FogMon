@@ -3,6 +3,7 @@
 
 #include "storage.hpp"
 #include "imaster_storage.hpp"
+#include "message.hpp"
 #include "report.hpp"
 
 class MasterStorage : public Storage, virtual public IMasterStorage {
@@ -10,36 +11,40 @@ protected:
     virtual void createTables();
     void addTest(std::string strIpA, std::string strIpB, Report::test_result test, std::string type);
 
+    Message::node node;
+
 public:
-    MasterStorage();
+    MasterStorage(Message::node node);
     virtual ~MasterStorage();
 
-    std::vector<std::string> getNodes();
-    std::vector<std::string> getMNodes();
+    Message::node getNode();
+
+    std::vector<Message::node> getNodes();
+    std::vector<Message::node> getMNodes();
     std::vector<Report::report_result> getReport();
-    Report::report_result getReport(std::string strIp);
+    Report::report_result getReport(Message::node node);
 
-    void addReport(std::vector<Report::report_result> results, std::string ip);
+    void addReport(std::vector<Report::report_result> results, Message::node node);
     
-    void addNode(std::string strIp, Report::hardware_result hardware, std::string monitored = "::1");
-    void addMNode(std::string strIp);
-    void addIot(std::string strIp, Report::IoT iot);
+    void addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored = NULL);
+    void addMNode(Message::node node);
+    void addIot(Message::node node, Report::IoT iot);
 
-    void addReportLatency(std::string strIp, std::vector<Report::test_result> latency);
-    void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth);
-    void addReportIot(std::string strIp, std::vector<Report::IoT> iots);
+    void addReportLatency(Message::node node, std::vector<Report::test_result> latency);
+    void addReportBandwidth(Message::node node, std::vector<Report::test_result> bandwidth);
+    void addReportIot(Message::node node, std::vector<Report::IoT> iots);
 
-    void addReport(Report::report_result result, std::string monitored = "::1");
+    void addReport(Report::report_result result, Message::node *monitored = NULL);
 
-    std::vector<std::string> getLRHardware(int num, int seconds);
-    std::vector<std::string> getLRLatency(int num, int seconds);
-    std::vector<std::string> getLRBandwidth(int num, int seconds);
+    std::vector<Message::node> getLRHardware(int num, int seconds);
+    std::vector<Message::node> getLRLatency(int num, int seconds);
+    std::vector<Message::node> getLRBandwidth(int num, int seconds);
 
     void complete();
 
-    virtual Report::hardware_result getHardware(std::string ip);
-    virtual std::vector<Report::test_result> getLatency(std::string ip);
-    virtual std::vector<Report::test_result> getBandwidth(std::string ip);
+    virtual Report::hardware_result getHardware(Message::node node);
+    virtual std::vector<Report::test_result> getLatency(Message::node node);
+    virtual std::vector<Report::test_result> getBandwidth(Message::node node);
 };
 
 #endif

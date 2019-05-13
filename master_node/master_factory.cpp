@@ -1,7 +1,7 @@
 #include "master_factory.hpp"
 
-IMasterStorage* MasterFactory::newStorage(std::string path) {
-    IMasterStorage* ret = new MasterStorage();
+IMasterStorage* MasterFactory::newStorage(std::string path, Message::node node) {
+    IMasterStorage* ret = new MasterStorage(node);
     ret->open(path);
     return ret;
 }

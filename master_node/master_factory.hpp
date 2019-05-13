@@ -8,7 +8,7 @@
 
 class MasterFactory : public Factory {
 public:
-    virtual IMasterStorage* newStorage(std::string path);
+    virtual IMasterStorage* newStorage(std::string path, Message::node node);
     virtual MasterConnections* newConnections(int nThread);
     virtual Server* newServer(IConnections* conn, int port);
 };

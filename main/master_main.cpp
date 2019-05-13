@@ -1,3 +1,5 @@
+
+
 #include "inputParser.hpp"
 #include "master_node.hpp"
 
@@ -40,7 +42,14 @@
 // --time-report 30 --time-tests 60 --time-latency 100 --time-bandwidth 600 --heartbeat 60 
 
 int main(int argc, char *argv[]) {
-    InputParser input(argc,argv);
+    if(argc % 2 != 0) {
+        cout << "Usage: ./program [OPTIONS]... node_name" << endl;
+        return 0;
+    }
+    InputParser input(argc-1,argv);
+
+    string name = string(argv[argc-1]);
+    
 
     string ip = "::1";
     int threads = 2;
@@ -85,7 +94,7 @@ int main(int argc, char *argv[]) {
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
 
 
-    MasterNode node(threads);
+    MasterNode node(name, threads);
 
     node.setParam(string("heartbeat"), time_heartbeat);
     node.setParam(string("time-propagation"), time_propagation);

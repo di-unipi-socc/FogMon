@@ -162,11 +162,11 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
-vector<string> Connections::requestNodes(std::string ipS) {
+vector<Message::node> Connections::requestNodes(std::string ipS) {
     int Socket = openConnection(ipS);
     
     if(Socket < 0) {
-        return vector<string>();
+        return vector<Message::node>();
     }
 
     //build request message
@@ -175,7 +175,7 @@ vector<string> Connections::requestNodes(std::string ipS) {
     m.setCommand(Message::Command::GET);
     m.setArgument(Message::Argument::NODES);
 
-    vector<string> nodes;
+    vector<Message::node> nodes;
     bool result = false;
     //send request message
     if(this->sendMessage(Socket, m)) {
@@ -193,14 +193,14 @@ vector<string> Connections::requestNodes(std::string ipS) {
     close(Socket);
     if(result)
         return nodes;
-    return vector<string>();
+    return vector<Message::node>();
 }
 
-vector<string> Connections::requestMNodes(string ipS) {
+vector<Message::node> Connections::requestMNodes(string ipS) {
     int Socket = openConnection(ipS);
     
     if(Socket < 0) {
-        return vector<string>();
+        return vector<Message::node>();
     }
 
     fflush(stdout);
@@ -211,7 +211,7 @@ vector<string> Connections::requestMNodes(string ipS) {
     m.setCommand(Message::Command::GET);
     m.setArgument(Message::Argument::MNODES);
 
-    vector<string> nodes;
+    vector<Message::node> nodes;
     bool result = false;
     //send request message
     if(this->sendMessage(Socket, m)) {
@@ -229,7 +229,7 @@ vector<string> Connections::requestMNodes(string ipS) {
     close(Socket);
     if(result)
         return nodes;
-    return vector<string>();
+    return vector<Message::node>();
 }
 
 bool Connections::sendHello(string ipS) {
@@ -259,11 +259,11 @@ bool Connections::sendHello(string ipS) {
             if( res.getType()==Message::Type::RESPONSE &&
                 res.getCommand() == Message::Command::HELLO &&
                 res.getArgument() == Message::Argument::POSITIVE) {
-                string ip;
-                vector<string> vec;
-                if(res.getData(ip, vec)) {
-                    cout << "My ip: " << ip << endl;
-                    this->parent->setMyIp(ip);
+                Message::node node;
+                vector<Message::node> vec;
+                if(res.getData(node, vec)) {
+                    cout << "My ip: " << node.ip << " " << node.id << endl;
+                    this->parent->setMyIp(node);
                     this->parent->getStorage()->setFilter(ipS);
                     this->parent->getStorage()->refreshNodes(vec);
                     result = true;

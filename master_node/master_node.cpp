@@ -8,7 +8,8 @@
 
 using namespace std;
 
-MasterNode::MasterNode(int nThreads) : Node("::1", nThreads) {
+MasterNode::MasterNode(std::string name, int nThreads) : Node("::1", nThreads) {
+    this->name = name;
     timePropagation = 20;
     timeheartbeat = 120;
 }

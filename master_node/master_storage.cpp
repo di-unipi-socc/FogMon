@@ -5,7 +5,8 @@
 
 using namespace std;
 
-MasterStorage::MasterStorage() : Storage() {
+MasterStorage::MasterStorage(Message::node node) : Storage() {
+    this->node = node;
 }
 
 MasterStorage::~MasterStorage() {
@@ -30,6 +31,10 @@ void MasterStorage::createTables() {
             exit(1);
         }
     }
+}
+
+Message::node MasterStorage::getNode() {
+    return this->node;
 }
 
 void MasterStorage::addNode(std::string ip, Report::hardware_result hardware, string monitored) {

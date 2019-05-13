@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 #include "rapidjson/document.h"
-#include "report.hpp"
 
+class Report;
 /**
  * The actual message builder for communications
 */
@@ -29,6 +29,16 @@ public:
         std::string id;
         std::string ip;
         std::string port;
+        node() {
+            id = "";
+            ip = "";
+            port = "";
+        }
+        node(std::string id, std::string ip, std::string port) {
+            this->id = id;
+            this->ip = ip;
+            this->port = port;
+        }
 
         rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) {
             rapidjson::Value obj(rapidjson::kObjectType);
@@ -95,6 +105,11 @@ public:
     */
     void setData(float f);
     /**
+     * set the data as a node
+     * @param nodes
+    */
+    void setData(node node);
+    /**
      * set the data as a vector of nodes
      * @param nodes
     */
@@ -129,6 +144,12 @@ public:
      * @return true if successful, else failed to interpreter the data or other errors
     */
     bool getData(float& f);
+    /**
+     * get the data expecting an integer
+     * @param i
+     * @return true if successful, else failed to interpreter the data or other errors
+    */
+    bool getData(node& node);
     /**
      * get the data expecting a vector of nodes
      * @param nodes

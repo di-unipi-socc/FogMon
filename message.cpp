@@ -1,5 +1,6 @@
 #include "message.hpp"
 
+#include "report.hpp"
 #include "rapidjson/reader.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -82,6 +83,10 @@ bool Message::getData(float& f) {
     return true;
 }
 
+bool Message::getData(node& node) {
+    return node.setJson(this->data);
+}
+
 bool Message::getData(vector<node>& nodes) {
     if(!this->data.IsArray())
         return false;
@@ -148,6 +153,11 @@ void Message::setData(float f) {
     Value val(f);                                                                                                                                                                                                                                                                                                                                                                                                                             
     
     this->data = val;
+}
+
+void Message::setData(node node) {                                                                                                                                                                                                                                                                                                                                                                                                                      
+    
+    this->data = node.getJson(doc.GetAllocator());
 }
 
 void Message::setData(std::vector<node> nodes) {
