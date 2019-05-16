@@ -14,11 +14,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <arpa/inet.h>
+
+#include <netdb.h>
+#include <iostream>
 
 #include <sys/types.h>
 #include <sys/un.h>
 #include <string>
-#include <netdb.h>
 
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -196,9 +199,9 @@ bool IConnections::sendMessage(int fd, Message &m) {
 }
 
 bool IConnections::notifyAll(Message &m) {
-    vector<string> nodes = this->parent->getStorage()->getNodes();
-    for(auto ip : nodes) {
-        int fd = this->openConnection(ip);
+    vector<Message::node> nodes = this->parent->getStorage()->getNodes();
+    for(auto node : nodes) {
+        int fd = this->openConnection(node.ip);
         if(fd >= 0 ) {
             this->sendMessage(fd,m);
             close(fd);
@@ -330,4 +333,44 @@ int IConnections::openConnection(string ip, string port) {
         return -1;
     }
     return Socket;
+}
+
+std::string IConnections::getSource(int fd, Message &m) {
+    socklen_t len;
+    struct sockaddr_storage addr;
+    char ip[INET6_ADDRSTRLEN];
+    memset(ip, 0, INET6_ADDRSTRLEN);
+    strcat(ip, "::1");
+
+    len = sizeof(addr);
+    getpeername(fd, (struct sockaddr*)&addr, &len);
+                
+    if(addr.ss_family == AF_INET) {
+        struct sockaddr_in *s = (struct sockaddr_in*)&addr;
+        inet_ntop(AF_INET, &s->sin_addr, ip, sizeof(ip));
+    }else if(addr.ss_family == AF_INET6) {
+        struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
+        if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr)) {
+            inet_ntop(AF_INET, &(((in_addr*)(s->sin6_addr.s6_addr+12))->s_addr), ip, sizeof(ip));
+        }
+        else
+            inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
+    }else {
+        cerr << "error socket family" << endl;
+#ifndef ENABLE_TESTS
+        return;
+#endif
+        strcpy(ip, "::1");
+    }
+    if(strcmp(ip,"127.0.0.1")==0)
+        strcpy(ip,"::1");
+    string strIp = string(ip);
+    
+    //change the ip of the sender
+    {
+        Message::node node = m.getSender();
+        node.ip = ip;
+        m.setSender(node);
+    }
+    return strIp;
 }

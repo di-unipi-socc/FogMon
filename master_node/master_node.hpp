@@ -12,23 +12,21 @@ class MasterFactory;
 
 class MasterNode : virtual public IMasterNode, public Node {
 public:
-    MasterNode(std::string name, int nThreads);
+    MasterNode(Message::node node, int nThreads);
     ~MasterNode();
 
     bool setParam(std::string name, int value);
 
     virtual void initialize(MasterFactory* factory = NULL);
 
-    void start(std::string ip="::1");
+    void start(Message::node *ip=NULL);
     void stop();
 
     IMasterStorage* getStorage();
-
+    Message::node getMyNode();
 
 protected:
-
     void timerFun();
-    std::string name;
 
     std::thread timerFunThread;
 

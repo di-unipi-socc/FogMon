@@ -33,6 +33,7 @@ bool Message::parseJson(char *json) {
         !doc.HasMember("argument") || !doc["argument"].IsInt())
         return false;
     
+    this->sender.setJson(doc["sender"]);
     this->type = (Type)doc["type"].GetInt();
     this->command = (Command)doc["command"].GetInt();
     this->argument = (Argument)doc["argument"].GetInt();
@@ -43,6 +44,14 @@ bool Message::parseJson(char *json) {
     this->data = doc["data"]; 
 
     return true;
+}
+
+void Message::setSender(Message::node s) {
+    this->sender = s;
+}
+
+Message::node Message::getSender() {
+    return this->sender;
 }
 
 void Message::setType(Type t) {
@@ -100,7 +109,7 @@ bool Message::getData(vector<node>& nodes) {
 }
 
 bool Message::getData(node& nodeA, vector<node>& nodesB) {
-    if( !this->data.HasMember("A") || !this->data["A"].IsString() ||
+    if( !this->data.HasMember("A") || !this->data["A"].IsObject() ||
         !this->data.HasMember("B") || !this->data["B"].IsArray())
         return false;
 
@@ -217,6 +226,7 @@ void Message::setData(Report& report) {
 void Message::buildString() {
     doc.RemoveAllMembers();
     
+    doc.AddMember("sender",this->sender.getJson(doc.GetAllocator()),doc.GetAllocator());
     doc.AddMember("type", this->type, doc.GetAllocator());
     doc.AddMember("command", this->command, doc.GetAllocator());
     doc.AddMember("argument", this->argument, doc.GetAllocator());

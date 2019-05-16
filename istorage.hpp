@@ -117,18 +117,7 @@ public:
     /**
      * set the ip to filter the localhost
     */
-    virtual void setFilter(Message::node node) = 0;
-
-    /**
-     * save the token
-     * @param duration the number of seconds the token will last
-    */
-    virtual void setToken(int duration) = 0;
-    /**
-     * get if has the token
-     * @return the number of seconds the token will still lasts, if the token is expired the number is negative
-    */
-    virtual int hasToken() = 0;
+    virtual void setFilter(std::string ip) = 0;
 
 protected:
 
@@ -139,7 +128,7 @@ protected:
 
     static int getHardwareCallback(void *R, int argc, char **argv, char **azColName);
     static int getTestCallback(void *R, int argc, char **argv, char **azColName);
-    static int VectorStringCallback(void *vec, int argc, char **argv, char **azColName);
+    static int VectorNodeCallback(void *vec, int argc, char **argv, char **azColName);
     static int VectorIntCallback(void *vec, int argc, char **argv, char **azColName);
     static int VectorIoTCallback(void *vec, int argc, char **argv, char **azColName);
 

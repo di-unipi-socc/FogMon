@@ -9,7 +9,7 @@ class IMasterStorage : virtual public IStorage {
 public:
     virtual Message::node getNode() = 0;
 
-    virtual void addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored = NULL) = 0;
+    virtual std::string addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored = NULL) = 0;
     virtual void addMNode(Message::node node) = 0;
     virtual void addIot(Message::node node, Report::IoT iot) = 0;
 

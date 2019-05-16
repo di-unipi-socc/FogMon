@@ -23,7 +23,7 @@ public:
     /**
      * possible arguments for the messages
     */
-    enum Argument {NONE, NODES, MNODES, REPORT, POSITIVE, NEGATIVE, TOKEN, IPERF, ESTIMATE, LATENCY, BANDWIDTH};
+    enum Argument {NONE, NODES, MNODES, REPORT, POSITIVE, NEGATIVE, IPERF, ESTIMATE, LATENCY, BANDWIDTH};
 
     typedef struct node {
         std::string id;
@@ -40,13 +40,17 @@ public:
             this->port = port;
         }
 
+        bool operator==(node const &a) const {
+            return (a.id == this->id) && (a.ip == this->ip) && (a.port == this->port);
+        }
+
         rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) {
             rapidjson::Value obj(rapidjson::kObjectType);
             rapidjson::Value id(this->id.c_str(), allocator);
             rapidjson::Value ip(this->ip.c_str(), allocator);
             rapidjson::Value port(this->port.c_str(), allocator);
 
-            obj.AddMember("id", ip, allocator);
+            obj.AddMember("id", id, allocator);
             obj.AddMember("ip", ip, allocator);
             obj.AddMember("port", port, allocator);
             return obj;
@@ -86,10 +90,12 @@ public:
     */
     std::string getString();
 
+    void setSender(Message::node s);
     void setType(Type t);
     void setCommand(Command c);
     void setArgument(Argument a);
 
+    Message::node getSender();
     Type getType();
     Command getCommand();
     Argument getArgument();
@@ -192,6 +198,7 @@ private:
     */
     Argument argument;
 
+    Message::node sender;
     /**
      * the rapidjson document that holds the message
     */

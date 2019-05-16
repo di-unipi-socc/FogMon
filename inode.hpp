@@ -1,6 +1,7 @@
 #ifndef INODE_HPP_
 #define INODE_HPP_
 
+#include "message.hpp"
 #include "server.hpp"
 #include "istorage.hpp"
 #include <string>
@@ -17,15 +18,15 @@ public:
     virtual IConnections* getConnections() = 0;
     virtual IStorage* getStorage() = 0;
 
-    virtual void setMyIp(std::string ip) = 0;
-    virtual std::string getMyIp() = 0;
-    
+    virtual void setMyId(std::string id) = 0;    
+    virtual Message::node getMyNode() = 0;
+
     virtual int getIperfPort() = 0;
     virtual int getEstimatePort() = 0;
     
     virtual Server* getServer() = 0;
 protected:
-    std::string ipS;
+    Message::node nodeS;
 
     virtual int startIperf() = 0;
     virtual int startEstimate() = 0;

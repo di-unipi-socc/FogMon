@@ -31,6 +31,7 @@ void Connections::initialize(INode *parent) {
 }
 
 void Connections::handler(int fd, Message &m) {
+    string strIp = this->getSource(fd,m);
 
     if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::IPERF) {
@@ -58,9 +59,12 @@ void Connections::handler(int fd, Message &m) {
                 res.setType(Message::Type::RESPONSE);
                 res.setCommand(Message::Command::START);
                 int port = this->parent->getEstimatePort();
+                string a = string(" ");
+                string port_ = to_string(port);
+                Message::node val(a,strIp,port_);
                 if(port > 0) {
                     res.setArgument(Message::Argument::POSITIVE);
-                    res.setData(port);
+                    res.setData(val);
                 }else {
                     res.setArgument(Message::Argument::NEGATIVE);
                 }
@@ -69,30 +73,10 @@ void Connections::handler(int fd, Message &m) {
                     
                 }
             }
-        }else if(m.getArgument() == Message::Argument::TOKEN) {
-            if(m.getCommand() == Message::Command::SET) {
-                
-                //send reponse
-                Message res;
-                res.setType(Message::Type::RESPONSE);
-                res.setCommand(Message::Command::SET);
-
-                int d;
-                if(m.getData(d)) {
-                    this->parent->getStorage()->setToken(d);
-                    res.setArgument(Message::Argument::POSITIVE);
-                }else {
-                    res.setArgument(Message::Argument::NEGATIVE);
-                }
-
-                if(this->sendMessage(fd, res)) {
-                    
-                }
-            }
         }else if(m.getArgument() == Message::Argument::NODES) {
             if(m.getCommand() == Message::Command::GET) {
                 //build array of nodes
-                vector<string> nodes = this->parent->getStorage()->getNodes();
+                vector<Message::node> nodes = this->parent->getStorage()->getNodes();
 
                 //send nodes
                 Message res;
@@ -111,7 +95,7 @@ void Connections::handler(int fd, Message &m) {
                 res.setCommand(Message::Command::SET);
 
                 //refresh all the nodes with the array of nodes
-                vector<string> ips;
+                vector<Message::node> ips;
                 if(!m.getData(ips)) {
                     res.setArgument(Message::Argument::NEGATIVE);
                 }else {
@@ -151,8 +135,8 @@ void Connections::handler(int fd, Message &m) {
         if(m.getCommand() == Message::Command::UPDATE) {
             if(m.getArgument() == Message::Argument::NODES) {
                 //data contains 2 array: new and deleted nodes
-                vector<string> ipsNew;
-                vector<string> ipsRem;
+                vector<Message::node> ipsNew;
+                vector<Message::node> ipsRem;
                 if(!m.getData(ipsNew,ipsRem))
                     return;
                 //update the nodes
@@ -162,8 +146,8 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
-vector<Message::node> Connections::requestNodes(std::string ipS) {
-    int Socket = openConnection(ipS);
+vector<Message::node> Connections::requestNodes(Message::node ipS) {
+    int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
         return vector<Message::node>();
@@ -171,6 +155,7 @@ vector<Message::node> Connections::requestNodes(std::string ipS) {
 
     //build request message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::GET);
     m.setArgument(Message::Argument::NODES);
@@ -196,8 +181,8 @@ vector<Message::node> Connections::requestNodes(std::string ipS) {
     return vector<Message::node>();
 }
 
-vector<Message::node> Connections::requestMNodes(string ipS) {
-    int Socket = openConnection(ipS);
+vector<Message::node> Connections::requestMNodes(Message::node ipS) {
+    int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
         return vector<Message::node>();
@@ -207,6 +192,7 @@ vector<Message::node> Connections::requestMNodes(string ipS) {
 
     //build request message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::GET);
     m.setArgument(Message::Argument::MNODES);
@@ -232,9 +218,9 @@ vector<Message::node> Connections::requestMNodes(string ipS) {
     return vector<Message::node>();
 }
 
-bool Connections::sendHello(string ipS) {
-    cout << "Trying server " << ipS<<endl;
-    int Socket = openConnection(ipS);
+bool Connections::sendHello(Message::node ipS) {
+    cout << "Trying server " << ipS.id << " " << ipS.ip << ":" << ipS.port <<endl;
+    int Socket = openConnection(ipS.ip, ipS.port);
     if(Socket < 0) {
         return false;
     }
@@ -244,6 +230,7 @@ bool Connections::sendHello(string ipS) {
 
     //build hello message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::NOTIFY);
     m.setCommand(Message::Command::HELLO);
     Report r;
@@ -262,12 +249,12 @@ bool Connections::sendHello(string ipS) {
                 Message::node node;
                 vector<Message::node> vec;
                 if(res.getData(node, vec)) {
-                    cout << "My ip: " << node.ip << " " << node.id << endl;
-                    this->parent->setMyIp(node);
-                    this->parent->getStorage()->setFilter(ipS);
+                    cout << "My id: " << node.id << " " << node.ip << ":" << node.port << endl;
+                    this->parent->setMyId(node.id);
+                    this->parent->getStorage()->setFilter(ipS.ip);
                     this->parent->getStorage()->refreshNodes(vec);
                     result = true;
-                    cout << "Server: " << ipS << endl;
+                    cout << "Server: " << ipS.id << " " << ipS.ip << ":" << ipS.port << endl;
                 }
             }
         }
@@ -276,8 +263,8 @@ bool Connections::sendHello(string ipS) {
     return result;
 }
 
-bool Connections::sendUpdate(string ipS) {
-    int Socket = openConnection(ipS);
+bool Connections::sendUpdate(Message::node ipS) {
+    int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
         return false;
@@ -288,6 +275,7 @@ bool Connections::sendUpdate(string ipS) {
 
     //build update message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::NOTIFY);
     m.setCommand(Message::Command::UPDATE);
     m.setArgument(Message::Argument::REPORT);
@@ -320,8 +308,8 @@ bool Connections::sendUpdate(string ipS) {
     return result;
 }
 
-int Connections::sendStartIperfTest(string ip) {
-    int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
+int Connections::sendStartIperfTest(Message::node ip) {
+    int Socket = openConnection(ip.ip, ip.port);
     
     if(Socket < 0) {
         return -1;
@@ -332,6 +320,7 @@ int Connections::sendStartIperfTest(string ip) {
 
     //build start iperf message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::START);
     m.setArgument(Message::Argument::IPERF);
@@ -354,8 +343,8 @@ int Connections::sendStartIperfTest(string ip) {
     return port;
 }
 
-int Connections::sendStartEstimateTest(string ip) {
-    int Socket = openConnection(ip, to_string(this->parent->getServer()->getPort()));
+int Connections::sendStartEstimateTest(Message::node ip, std::string &myIp) {
+    int Socket = openConnection(ip.ip, ip.port);
     
     if(Socket < 0) {
         return -1;
@@ -366,6 +355,7 @@ int Connections::sendStartEstimateTest(string ip) {
 
     //build start estimate message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::START);
     m.setArgument(Message::Argument::ESTIMATE);
@@ -379,8 +369,10 @@ int Connections::sendStartEstimateTest(string ip) {
             if( res.getType()==Message::Type::RESPONSE &&
                 res.getCommand() == Message::Command::START &&
                 res.getArgument() == Message::Argument::POSITIVE) {
-                
-                res.getData(port);
+                Message::node val;
+                res.getData(val);
+                port = stol(val.port);
+                myIp = val.ip;
             }
         }
     }

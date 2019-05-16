@@ -10,6 +10,9 @@
 
 using namespace std;
 
+Message::node nodeM("idM","","");
+Message::node nodeN("sender","","");
+
 class MStorage : virtual public IMasterStorage {
 protected:
     void createTables() {}
@@ -20,10 +23,14 @@ public:
         
     }
 
-    virtual std::vector<std::string> getNodes() {
-        vector<string> ret;
-        ret.push_back("test1");
-        ret.push_back("test2");
+    Message::node getNode() {
+        return nodeM;
+    }
+
+    virtual std::vector<Message::node> getNodes() {
+        vector<Message::node> ret;
+        ret.push_back(Message::node("test1","",""));
+        ret.push_back(Message::node("test2","",""));
         return ret;
     }
 
@@ -49,27 +56,27 @@ public:
     }
 
 
-    virtual void saveLatencyTest(std::string ip, int ms) {}
-    virtual void saveBandwidthTest(std::string ip, float kbps, int state) {}
+    virtual void saveLatencyTest(Message::node ip, int ms) {}
+    virtual void saveBandwidthTest(Message::node ip, float kbps, int state) {}
     virtual void saveHardware(Report::hardware_result hardware) {}
 
-    virtual void refreshNodes(std::vector<std::string> nodes) {
+    virtual void refreshNodes(std::vector<Message::node> nodes) {
         EXPECT_EQ(nodes.size(), 1);
-        EXPECT_EQ(nodes[0], "test"); 
+        EXPECT_EQ(nodes[0].id, "test"); 
     }
-    virtual void updateNodes(std::vector<std::string> add, std::vector<std::string> rem) {
+    virtual void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem) {
         EXPECT_EQ(add.size(), 2);
-        EXPECT_EQ(add[0], "test"); 
-        EXPECT_EQ(add[1], "test2");
+        EXPECT_EQ(add[0].id, "test"); 
+        EXPECT_EQ(add[1].id, "test2");
         EXPECT_EQ(rem.size(), 1);
-        EXPECT_EQ(rem[0], "test"); 
+        EXPECT_EQ(rem[0].id, "test"); 
     }
     
     
-    virtual std::vector<std::string> getLRLatency(int num, int seconds) {return vector<string>();}
-    virtual std::vector<std::string> getLRBandwidth(int num, int seconds) {return vector<string>();}
+    virtual std::vector<Message::node> getLRLatency(int num, int seconds) {return vector<Message::node>();}
+    virtual std::vector<Message::node> getLRBandwidth(int num, int seconds) {return vector<Message::node>();}
 
-    virtual int getTestBandwidthState(std::string ip, Report::test_result &last) { return 0;}
+    virtual int getTestBandwidthState(Message::node ip, Report::test_result &last) { return 0;}
 
     virtual void setToken(int duration) {
         EXPECT_EQ(duration, 10);
@@ -77,30 +84,30 @@ public:
     virtual int hasToken() {return 0;}
 
 
-    virtual void addNode(std::string strIp, Report::hardware_result) {}
+    virtual void addNode(Message::node strIp, Report::hardware_result) {}
 
-    virtual void addReportLatency(std::string strIp, std::vector<Report::test_result> latency) {}
-    virtual void addReportBandwidth(std::string strIp, std::vector<Report::test_result> bandwidth) {}
-    virtual void addReportIot(std::string strIp, std::vector<Report::IoT> iots) {}
-    virtual void addReport(std::string strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth) {}
+    virtual void addReportLatency(Message::node strIp, std::vector<Report::test_result> latency) {}
+    virtual void addReportBandwidth(Message::node strIp, std::vector<Report::test_result> bandwidth) {}
+    virtual void addReportIot(Message::node strIp, std::vector<Report::IoT> iots) {}
+    virtual void addReport(Message::node strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth) {}
 
-    virtual std::vector<std::string> getLRHardware(int num, int seconds) {return vector<string>();}
+    virtual std::vector<Message::node> getLRHardware(int num, int seconds) {return vector<Message::node>();}
 
-    virtual void addMNode(string ip) {}
-    virtual Report::report_result getReport(string ip) {}
-    virtual vector<string> getMNodes() {}
+    virtual void addMNode(Message::node ip) {}
+    virtual Report::report_result getReport(Message::node ip) {}
+    virtual vector<Message::node> getMNodes() {}
     virtual vector<Report::report_result> getReport() {}
 
-    virtual Report::hardware_result getHardware(string ip) {}
-    virtual std::vector<Report::test_result> getLatency(string ip) {}
-    virtual std::vector<Report::test_result> getBandwidth(string ip) {}
-    virtual void addNode(std::string strIp, Report::hardware_result hardware, std::string monitored = "::1") {}
-    virtual void addReport(Report::report_result result, std::string monitored = "::1") {}
-    virtual void addReport(std::vector<Report::report_result> results, std::string ip) {}
+    virtual Report::hardware_result getHardware(Message::node ip) {}
+    virtual std::vector<Report::test_result> getLatency(Message::node ip) {}
+    virtual std::vector<Report::test_result> getBandwidth(Message::node ip) {}
+    virtual std::string addNode(Message::node strIp, Report::hardware_result hardware, Message::node *monitored = NULL) {}
+    virtual void addReport(Report::report_result result, Message::node *monitored = NULL) {}
+    virtual void addReport(std::vector<Report::report_result> results, Message::node ip) {}
     virtual void complete() {}
 
     virtual void addIot(IThing *iot) {};
-    virtual void addIot(std::string strIp, Report::IoT iot) {}
+    virtual void addIot(Message::node strIp, Report::IoT iot) {}
 };
 
 class MParent : virtual public IMasterNode {
@@ -110,8 +117,8 @@ public:
 
     bool setParam(string name, int value) {}
     IConnections* getConnections() {return NULL;}
-    void setMyIp(std::string ip) {}
-    std::string getMyIp() {return "";}
+    void setMyId(std::string ip) {}
+    Message::node getMyNode() {return nodeM;}
     int startIperf() {return 0;}
     int startEstimate() {return 0;}
 
@@ -134,35 +141,6 @@ public:
     void handler(int,Message &) {}
 };
 
-
-TEST(ConnectionsTest, RSetToken) {
-    int pipefd[2];
-    MConn mConn;
-
-    EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
-    MParent mNode;
-    Connections conn(1);
-    conn.initialize(&mNode);
-    conn.start();
-    conn.request(pipefd[0]);
-
-    Message mess;
-    mess.setType(Message::Type::REQUEST);
-    mess.setCommand(Message::Command::SET);
-    mess.setArgument(Message::Argument::TOKEN);
-    mess.setData(10);
-    
-    EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
-    Message res;
-    EXPECT_EQ(mConn.getMessage(pipefd[1],res), true);
-
-    EXPECT_EQ(res.getType(), Message::Type::RESPONSE);
-    EXPECT_EQ(res.getCommand(), Message::Command::SET);
-    EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
-    EXPECT_EQ(close(pipefd[1]), 0);
-    conn.stop();
-}
-
 TEST(ConnectionsTest, RStartIperf) {
     int pipefd[2];
     MConn mConn;
@@ -175,6 +153,7 @@ TEST(ConnectionsTest, RStartIperf) {
     conn.request(pipefd[0]);
 
     Message mess;
+    mess.setSender(nodeN);
     mess.setType(Message::Type::REQUEST);
     mess.setCommand(Message::Command::START);
     mess.setArgument(Message::Argument::IPERF);
@@ -206,6 +185,7 @@ TEST(ConnectionsTest, RStartEstimate) {
     conn.request(pipefd[0]);
 
     Message mess;
+    mess.setSender(nodeN);
     mess.setType(Message::Type::REQUEST);
     mess.setCommand(Message::Command::START);
     mess.setArgument(Message::Argument::ESTIMATE);
@@ -217,9 +197,10 @@ TEST(ConnectionsTest, RStartEstimate) {
     EXPECT_EQ(res.getType(), Message::Type::RESPONSE);
     EXPECT_EQ(res.getCommand(), Message::Command::START);
     EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
-    int port = -1;
-    EXPECT_EQ(res.getData(port), true);
-    EXPECT_EQ(port, mNode.getEstimatePort());
+    Message::node val;
+    EXPECT_EQ(res.getData(val), true);
+    EXPECT_EQ(stol(val.port), mNode.getEstimatePort());
+    EXPECT_EQ(val.ip, string("::1"));
     
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
@@ -237,11 +218,12 @@ TEST(ConnectionsTest, RSetNodes) {
     conn.request(pipefd[0]);
 
     Message mess;
+    mess.setSender(nodeN);
     mess.setType(Message::Type::REQUEST);
     mess.setCommand(Message::Command::SET);
     mess.setArgument(Message::Argument::NODES);
-    vector<string> strings;
-    strings.push_back("test");
+    vector<Message::node> strings;
+    strings.push_back(Message::node("test","",""));
     mess.setData(strings);
     
     EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
@@ -267,6 +249,7 @@ TEST(ConnectionsTest, RGetNodes) {
     conn.request(pipefd[0]);
 
     Message mess;
+    mess.setSender(nodeN);
     mess.setType(Message::Type::REQUEST);
     mess.setCommand(Message::Command::GET);
     mess.setArgument(Message::Argument::NODES);
@@ -278,7 +261,7 @@ TEST(ConnectionsTest, RGetNodes) {
     EXPECT_EQ(res.getType(), Message::Type::RESPONSE);
     EXPECT_EQ(res.getCommand(), Message::Command::GET);
     EXPECT_EQ(res.getArgument(), Message::Argument::POSITIVE);
-    vector<string> strings;
+    vector<Message::node> strings;
     EXPECT_EQ(res.getData(strings), true);
     EXPECT_EQ(strings, mNode.getStorage()->getNodes());
     
@@ -298,6 +281,7 @@ TEST(ConnectionsTest, RGetReport) {
     conn.request(pipefd[0]);
 
     Message mess;
+    mess.setSender(nodeN);
     mess.setType(Message::Type::REQUEST);
     mess.setCommand(Message::Command::GET);
     mess.setArgument(Message::Argument::REPORT);
@@ -351,11 +335,11 @@ TEST(ConnectionsTest, NUpdateNodes) {
     mess.setType(Message::Type::NOTIFY);
     mess.setCommand(Message::Command::UPDATE);
     mess.setArgument(Message::Argument::NODES);
-    vector<string> stringsA;
-    stringsA.push_back("test");
-    stringsA.push_back("test2");
-    vector<string> stringsB;
-    stringsB.push_back("test");
+    vector<Message::node> stringsA;
+    stringsA.push_back(Message::node("test","",""));
+    stringsA.push_back(Message::node("test2","",""));
+    vector<Message::node> stringsB;
+    stringsB.push_back(Message::node("test","",""));
     mess.setData(stringsA,stringsB);
     
     EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);

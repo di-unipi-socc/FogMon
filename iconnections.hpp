@@ -41,6 +41,8 @@ protected:
     int writeS(long fd, const char *data, int len);
 
     int openConnection(std::string ipS, std::string port="5555");
+
+    std::string getSource(int fd, Message &m);
 public:
     IConnections(int nThread);
     ~IConnections();

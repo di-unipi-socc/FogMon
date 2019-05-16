@@ -253,13 +253,8 @@ bool Report::getLatency(vector<test_result>& latency) {
         return false;
 
     for (auto& v : this->doc["latency"].GetArray()) {
-        int a = !v.HasMember("target");
-        int b = !v["target"].IsString();
-        int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat();
-        int d = !v.IsObject();
         if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("target") || !v["target"].IsObject() ||
             !v.HasMember("mean") || !v["mean"].IsFloat() ||
             !v.HasMember("variance") || !v["variance"].IsFloat() ||
             !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
@@ -282,7 +277,7 @@ bool Report::getBandwidth(vector<test_result>& bandwidth) {
 
     for (auto& v : this->doc["bandwidth"].GetArray()) {
         if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("target") || !v["target"].IsObject() ||
             !v.HasMember("mean") || !v["mean"].IsFloat() ||
             !v.HasMember("variance") || !v["variance"].IsFloat() ||
             !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
@@ -341,7 +336,7 @@ bool Report::getReports(std::vector<report_result> &reports) {
             !v.HasMember("latency") || !v["latency"].IsArray() ||
             !v.HasMember("bandwidth") || !v["bandwidth"].IsArray() ||
             !v.HasMember("iot") || !v["iot"].IsArray() ||
-            !v.HasMember("source") || !v["source"].IsString())
+            !v.HasMember("source") || !v["source"].IsObject())
             return false;
         report_result result;
         memset(&result.hardware,0,sizeof(Report::hardware_result));
@@ -373,7 +368,7 @@ bool Report::getReports(std::vector<report_result> &reports) {
 
         for (auto& v : v["latency"].GetArray()) {
             if( !v.IsObject() ||
-                !v.HasMember("target") || !v["target"].IsString() ||
+                !v.HasMember("target") || !v["target"].IsObject() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
                 !v.HasMember("variance") || !v["variance"].IsFloat() ||
                 !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
@@ -389,7 +384,7 @@ bool Report::getReports(std::vector<report_result> &reports) {
 
         for (auto& v : v["bandwidth"].GetArray()) {
             if( !v.IsObject() ||
-                !v.HasMember("target") || !v["target"].IsString() ||
+                !v.HasMember("target") || !v["target"].IsObject() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
                 !v.HasMember("variance") || !v["variance"].IsFloat() ||
                 !v.HasMember("lasttime") || !v["lasttime"].IsInt64())

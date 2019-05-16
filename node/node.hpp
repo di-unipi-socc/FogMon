@@ -10,7 +10,7 @@
 
 class Node : virtual public INode {
 public:
-    Node(std::string ip, int nThreads);
+    Node(Message::node node, std::string port, int nThreads);
     ~Node();
 
     bool setParam(std::string name, int value);
@@ -25,8 +25,8 @@ public:
     virtual IConnections* getConnections();
     virtual IStorage* getStorage();
 
-    virtual void setMyIp(std::string ip);
-    virtual std::string getMyIp();
+    virtual void setMyId(std::string id);
+    virtual Message::node getMyNode();
 
     //start iperf command line server and return the port it is open in
     virtual int getIperfPort();
@@ -36,10 +36,10 @@ public:
     virtual Server* getServer();
 protected:
 
-    std::vector<std::string> mNodes;
+    std::vector<Message::node> mNodes;
 
-    //ip to differentiate between other nodes in the list and self
-    std::string myIp;
+    //id and port saved here
+    Message::node myNode;
 
     int timeReport;
     int timeTests;
@@ -86,12 +86,12 @@ protected:
     void testIoT();
 
     //test the bandwidth with another ip
-    float testBandwidth(std::string ip, float old, int &state);
+    float testBandwidth(Message::node node, float old, int &state);
 
     //test the bandwidth using iperf3
     float testBandwidthIperf(std::string ip, int port = -1);
     //test the bandwidth using an estimation tool (assolo)
-    float testBandwidthEstimate(std::string ip, int port = -1);
+    float testBandwidthEstimate(std::string ip, std::string myIp, int port = -1);
 
     //test the latency with another node
     int testPing(std::string ip);

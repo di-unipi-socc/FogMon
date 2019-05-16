@@ -21,16 +21,16 @@ public:
 
     void initialize(INode *parent);
 
-    std::vector<Message::node> requestMNodes(std::string ip); 
-    std::vector<Message::node> requestNodes(std::string ipS);
-    bool sendHello(std::string ipS);
-    bool sendUpdate(std::string ipS);
+    std::vector<Message::node> requestMNodes(Message::node ipS); 
+    std::vector<Message::node> requestNodes(Message::node ipS);
+    bool sendHello(Message::node ipS);
+    bool sendUpdate(Message::node ipS);
 
     //return the port for the test
     //ip = ip
     //port = port of this server TODO change it
-    int sendStartIperfTest(std::string ip);
-    int sendStartEstimateTest(std::string ip);
+    int sendStartIperfTest(Message::node ip);
+    int sendStartEstimateTest(Message::node ip, std::string &myIp);
 };
 
 #endif

@@ -7,22 +7,18 @@ class Storage : virtual public IStorage {
 protected:
     virtual void createTables();
 
-    void filterRecv(std::vector<std::string> &list);
-    void filterSend(std::vector<std::string> &list);
+    void filterRecv(std::vector<Message::node> &list);
+    void filterSend(std::vector<Message::node> &list);
     void filterSend(std::vector<Report::test_result> &list);
     void filterSend(Report::test_result &list);
-    //start time of the token
-    time_t startToken;
-    //seconds the token lasts
-    int durationToken;
 
-    Message::node node;
+    std::string ip;
 
 public:
     Storage();
     virtual ~Storage();
 
-    void setFilter(Message::node node);
+    void setFilter(std::string ip);
 
     virtual Report::hardware_result getHardware();
     virtual std::vector<Report::test_result> getLatency();
@@ -32,7 +28,6 @@ public:
     void saveBandwidthTest(Message::node node, float kbps, int state);
     void saveHardware(Report::hardware_result hardware);
 
-    long long getNodeId(std::string ip);
     void refreshNodes(std::vector<Message::node> nodes);
     void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem);
 
@@ -47,9 +42,6 @@ public:
     std::vector<Report::IoT> getIots();
 
     void addIot(IThing *iot);
-
-    void setToken(int duration);
-    int hasToken();
 };
 
 

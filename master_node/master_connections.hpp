@@ -23,12 +23,11 @@ public:
 
     void initialize(IMasterNode* parent);
     
-    bool sendMHello(std::string ip);
+    bool sendMHello(Message::node ip);
 
-    bool sendRemoveNodes(std::vector<std::string> ips);
-    bool sendRequestReport(std::string ip);
-    bool sendSetToken(std::string ip, int time);
-    bool sendMReport(std::string ip, vector<Report::report_result> report);
+    bool sendRemoveNodes(std::vector<Message::node> ips);
+    bool sendRequestReport(Message::node ip);
+    bool sendMReport(Message::node ip, vector<Report::report_result> report);
 };
 
 #endif

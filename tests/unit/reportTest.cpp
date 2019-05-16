@@ -53,7 +53,7 @@ TEST(ReportTest, SetGetLatency) {
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 100.0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> tests;
     tests.push_back(test);
     report.setLatency(tests);
@@ -76,7 +76,7 @@ TEST(ReportTest, SetGetBandwidth) {
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 30.0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> tests;
     tests.push_back(test);
     report.setBandwidth(tests);
@@ -99,14 +99,14 @@ TEST(ReportTest, SetGetReport) {
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsL,tests2L;
     testsL.push_back(test);
 
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 56789.0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsB,tests2B;
     testsB.push_back(test);
 
@@ -172,14 +172,14 @@ TEST(ReportTest, SetGetReport2) {
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsL,tests2L;
     testsL.push_back(test);
 
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsB,tests2B;
     testsB.push_back(test);
 
@@ -194,7 +194,7 @@ TEST(ReportTest, SetGetReport2) {
 
     Report::report_result result;
 
-    result.ip = "ciao";
+    result.source = Message::node("ciao","::1","1234");
     result.hardware = hw;
     result.latency = testsL;
     result.bandwidth = testsB;
@@ -237,14 +237,14 @@ TEST(ReportTest, SetGetReports) {
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsL,tests2L;
     testsL.push_back(test);
 
     test.lasttime = time(NULL);
     test.mean = 10;
     test.variance = 0;
-    test.target = "ciao";
+    test.target = Message::node("ciao","::1","1234");
     vector<Report::test_result> testsB,tests2B;
     testsB.push_back(test);
 
@@ -260,7 +260,7 @@ TEST(ReportTest, SetGetReports) {
 
     Report::report_result result;
 
-    result.ip = "ciao";
+    result.source = Message::node("ciao","::1","1234");
     result.hardware = hw;
     result.latency = testsL;
     result.bandwidth = testsB;

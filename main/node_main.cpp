@@ -19,9 +19,16 @@ using namespace rapidjson;
 #include "readproc.hpp"
 
 int main(int argc, char *argv[]) {
-    InputParser input(argc,argv);
+    
+    if((argc-1) % 2 != 0 || argc < 3) {
+        cout << "Usage: ./program [OPTIONS]... remote_ip remote_port" << endl;
+        return 0;
+    }
+    InputParser input(argc-2,argv);
 
-    string ip = "localhost";
+    string ipR = string(argv[argc-2]);
+    string portR = string(argv[argc-1]);
+    string myPort = "5555";
     int threads = 2;
     int time_report = 30;
      int time_tests = 30;
@@ -30,8 +37,8 @@ int main(int argc, char *argv[]) {
     int time_bandwidth = 600;
     int max_bandwidth=1;
 
-    if(input.cmdOptionExists("-C"))
-        ip = input.getCmdOption("-C");
+    if(input.cmdOptionExists("--my-port"))
+        myPort = input.getCmdOption("--my-port");
 
     if(input.cmdOptionExists("-t"))
         threads = stoi(input.getCmdOption("-t"));
@@ -54,8 +61,7 @@ int main(int argc, char *argv[]) {
     if(input.cmdOptionExists("--max-per-bandwidth"))
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
 
-
-    Node node(ip, threads);
+    Node node(Message::node("",ipR,portR),myPort, threads);
 
     node.setParam(string("time-report"), time_report);
     node.setParam(string("time-tests"), time_tests);

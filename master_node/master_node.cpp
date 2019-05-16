@@ -8,8 +8,7 @@
 
 using namespace std;
 
-MasterNode::MasterNode(std::string name, int nThreads) : Node("::1", nThreads) {
-    this->name = name;
+MasterNode::MasterNode(Message::node node, int nThreads) : Node(node, node.port, nThreads) {
     timePropagation = 20;
     timeheartbeat = 120;
 }
@@ -20,7 +19,7 @@ void MasterNode::initialize(MasterFactory* fact) {
     }else {
         this->factory = fact;
     }
-    this->storage = this->factory->newStorage("master_node.db");
+    this->storage = this->factory->newStorage("master_node.db", this->nodeS);
     Node::storage = this->storage;
     this->connections = this->factory->newConnections(this->nThreads);
     this->connections->initialize(this);
@@ -33,10 +32,9 @@ MasterNode::~MasterNode() {
     exit(0);
 }
 
-void MasterNode::start(std::string ip) {
-
-    if(ip != string("::1")) {
-        if(!this->connections->sendMHello(ip)) {
+void MasterNode::start(Message::node *node) {
+    if(node != NULL) {
+        if(!this->connections->sendMHello(*node)) {
             fprintf(stderr,"cannot connect to the network\n");
             this->stop();
             exit(1);
@@ -62,18 +60,18 @@ void MasterNode::timerFun() {
         //routine for Nodes
         
         //check database for reports
-        vector<string> ips = this->getStorage()->getLRHardware(100, this->timeheartbeat);
-        vector<string> rem;
-        for(auto&& ip : ips) {
-            bool res = this->connections->sendRequestReport(ip);
+        vector<Message::node> ips = this->getStorage()->getLRHardware(100, this->timeheartbeat);
+        vector<Message::node> rem;
+        for(auto&& node : ips) {
+            bool res = this->connections->sendRequestReport(node);
             if(!res) {
-                printf("Removing node from this group: %s\n",ip.c_str());
-                rem.push_back(ip);
+                printf("Removing node from this group: %s\n",node.id.c_str());
+                rem.push_back(node);
             }
         }
         //remove the nodes that failed to respond
         this->connections->sendRemoveNodes(ips);
-        vector<string> tmp;
+        vector<Message::node> tmp;
         this->getStorage()->updateNodes(tmp,rem);
 
         //routine for MasterNodes
@@ -81,7 +79,7 @@ void MasterNode::timerFun() {
         int i=0;
         int sent=0;
         while(i < ips.size() && sent < 1) {
-            if(ips[i] == this->myIp) {
+            if(ips[i].id == this->nodeS.id) {
                 i++;
                 continue;
             }
@@ -118,4 +116,8 @@ bool MasterNode::setParam(std::string name, int value) {
     }
     printf("Param %s: %d\n",name.c_str(),value);
     return true;
+}
+
+Message::node MasterNode::getMyNode() {
+    return this->nodeS;
 }

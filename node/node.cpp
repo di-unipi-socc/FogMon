@@ -29,7 +29,7 @@
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(string ip, int nThreads) {
+Node::Node(Message::node node, string port, int nThreads) {
     this->nThreads = nThreads;
     this->running = false;
     this->timeReport = 30;
@@ -38,7 +38,7 @@ Node::Node(string ip, int nThreads) {
     this->maxPerLatency = 100;
     this->timeBandwidth = 600;
     this->maxPerBandwidth = 1; 
-    this->ipS = ip;
+    this->nodeS = node;
     this->storage = NULL;
     this->connections = NULL;
     this->server = NULL;
@@ -46,6 +46,8 @@ Node::Node(string ip, int nThreads) {
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
     this->pTest = NULL;
+    this->myNode.port = port;
+    this->myNode.id = "";
 }
 
 void Node::initialize(Factory* fact) {
@@ -84,8 +86,6 @@ void Node::start() {
     this->running = true;
     this->server->start();
     srandom(time(nullptr));
-    
-    mNodes.push_back(this->ipS);
 
     if(this->startEstimate() != 0) {
         fprintf(stderr,"Cannot start the estimate\n");
@@ -99,7 +99,7 @@ void Node::start() {
     }
 
     this->getHardware();
-
+    mNodes = this->connections->requestMNodes(this->nodeS);
     if(!selectServer()) {
         fprintf(stderr,"Cannot connect to the main node\n");
         this->stop();
@@ -146,14 +146,14 @@ void Node::stop() {
 bool Node::selectServer() {
     //ask the MNodes list and select one MNode with the min latency
     cout << "Selecting server..." << endl;
-    vector<string> res;
+    vector<Message::node> res;
     int i=0;
     while(res.empty() && i<mNodes.size()) {
         res = this->connections->requestMNodes(mNodes[i]);
         for(int j=0; j<res.size(); j++)
         {
-            if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
-                res[j] = mNodes[i];
+            if(res[j].ip==std::string("::1")||res[j].ip==std::string("127.0.0.1"))
+                res[j].ip = mNodes[i].ip;
         }
         i++;
     }
@@ -167,17 +167,17 @@ bool Node::selectServer() {
     //try every element of res for a server and select the closest
     while(!res.empty()) {
         int imin=0;
-        unsigned int min = (unsigned int)this->testPing(res[imin]);
+        unsigned int min = (unsigned int)this->testPing(res[imin].ip);
 
         for(int i=1; i<res.size(); i++) {
-            unsigned int tmp = (unsigned int)this->testPing(res[i]);
+            unsigned int tmp = (unsigned int)this->testPing(res[i].ip);
             if(tmp < min) {
                 imin = i;
                 min = tmp;
             }
         }
-        this->ipS = res[imin];
-        if(!this->connections->sendHello(this->ipS)) {
+        this->nodeS = res[imin];
+        if(!this->connections->sendHello(this->nodeS)) {
             res.erase(res.begin()+imin);
         }else
             return true;
@@ -295,7 +295,7 @@ float Node::testBandwidthIperf(string ip, int port) {
     return -1;
 }
 
-float Node::testBandwidthEstimate(string ip, int port) {
+float Node::testBandwidthEstimate(string ip, string myIp, int port) {
     
     char command[1024];
     if(port > 0) {
@@ -305,7 +305,7 @@ float Node::testBandwidthEstimate(string ip, int port) {
         return -1;
     }
 
-    char *args[] = {"./assolo_run","-S",(char*)ip.c_str(),"-R",(char*)this->myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
+    char *args[] = {"./assolo_run","-S",(char*)ip.c_str(),"-R",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
 
@@ -485,10 +485,10 @@ void Node::timer() {
         //generate hardware report and send it
         this->getHardware();
 
-        bool ris = this->connections->sendUpdate(this->ipS);
+        bool ris = this->connections->sendUpdate(this->nodeS);
 
         if(ris == false) {
-            ris = this->connections->sendUpdate(this->ipS);
+            ris = this->connections->sendUpdate(this->nodeS);
             if(ris == false) {
                 //change server
                 cout << "Changing server..." << endl;
@@ -500,20 +500,20 @@ void Node::timer() {
 
         //every 10 iteration ask the nodes in case the server cant reach this network
         if(iter%10 == 0) {
-            vector<string> ips = this->connections->requestNodes(this->ipS);
-            vector<string> tmp = this->getStorage()->getNodes();
-            vector<string> rem;
+            vector<Message::node> ips = this->connections->requestNodes(this->nodeS);
+            vector<Message::node> tmp = this->getStorage()->getNodes();
+            vector<Message::node> rem;
 
-            for(auto ip : tmp) {
+            for(auto node : tmp) {
                 bool found = false;
                 int i=0;
                 while(!found && i<ips.size()) {
-                    if(ip == ips[i])
+                    if(node.id == ips[i].id)
                         found = true;
                     i++;
                 }
                 if(!found) {
-                    rem.push_back(ip);
+                    rem.push_back(node);
                 }
             }
 
@@ -522,12 +522,12 @@ void Node::timer() {
 
         //every 10 iteration update the MNodes
         if(iter%10 == 0) {
-            vector<string> res = this->connections->requestMNodes(this->ipS);
+            vector<Message::node> res = this->connections->requestMNodes(this->nodeS);
             if(!res.empty()) {
                 for(int j=0; j<res.size(); j++)
                 {
-                    if(res[j]==std::string("::1")||res[j]==std::string("127.0.0.1"))
-                        res[j] = this->ipS;
+                    if(res[j].ip==std::string("::1")||res[j].ip==std::string("127.0.0.1"))
+                        res[j].ip = this->nodeS.ip;
                 }
                 mNodes = res;
             }
@@ -560,14 +560,14 @@ void Node::TestTimer() {
 
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<string> ips = this->storage->getLRLatency(this->maxPerLatency, this->timeLatency);
+        vector<Message::node> ips = this->storage->getLRLatency(this->maxPerLatency, this->timeLatency);
 
-        for(auto ip : ips) {
-            if(myIp == ip)
+        for(auto node : ips) {
+            if(this->myNode.id == node.id)
                 continue;
-            int val = this->testPing(ip);
+            int val = this->testPing(node.ip);
             if(val >= 0) {
-                this->storage->saveLatencyTest(ip, val);
+                this->storage->saveLatencyTest(node, val);
             }
         }
         //test bandwidth
@@ -576,7 +576,7 @@ void Node::TestTimer() {
         int i=0;
         int tested=0;
         while(i < ips.size() && tested < 1) {
-            if(this->myIp == ips[i]) {
+            if(this->myNode.id == ips[i].id) {
                 i++;
                 continue;
             }
@@ -600,22 +600,23 @@ void Node::TestTimer() {
 }
 
 
-float Node::testBandwidth(std::string ip, float old, int &state) {
+float Node::testBandwidth(Message::node ip, float old, int &state) {
     float result = -1;
     int port;
+    string myIp;
     switch(state) {
         case 0: //base state
             port = this->connections->sendStartIperfTest(ip);
             if(port != -1) {
-                result = this->testBandwidthIperf(ip,port);
+                result = this->testBandwidthIperf(ip.ip,port);
                 if(result >= 0)
                     state = 1;
             }
         break;
         case 1: //a test is already done
-            port = this->connections->sendStartEstimateTest(ip);
+            port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip,port);
+                result = this->testBandwidthEstimate(ip.ip,myIp,port);
                 if(result >= 0 && abs(result - old)/old < 0.1) {
                     state = 2;
                 }else {
@@ -625,9 +626,9 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
             }
         break;
         case 2: //estimate succeeded
-            port = this->connections->sendStartEstimateTest(ip);
+            port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip,port);
+                result = this->testBandwidthEstimate(ip.ip, myIp,port);
                 if(result >= 0 && abs(result - old)/old < 0.1) {
                     state = 0;
                 }else {
@@ -639,7 +640,7 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
         case 3: //estimate failed
             port = this->connections->sendStartIperfTest(ip);
             if(port != -1) {
-                result = this->testBandwidthIperf(ip,port);
+                result = this->testBandwidthIperf(ip.ip,port);
                 if(result >= 0)
                     state = 0;
             }
@@ -647,12 +648,12 @@ float Node::testBandwidth(std::string ip, float old, int &state) {
     return result;
 }
 
-void Node::setMyIp(std::string ip) {
-    this->myIp = ip;
+void Node::setMyId(std::string id) {
+    this->myNode.id = id;
 }
 
-std::string Node::getMyIp() {
-    return this->myIp;
+Message::node Node::getMyNode() {
+    return this->myNode;
 }
 
 Server* Node::getServer() {

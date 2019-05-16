@@ -7,8 +7,11 @@ using namespace std;
 
 TEST(MessageTest, ParseGetInt) {
     Message mes;
-    EXPECT_EQ(mes.parseJson((char*)"{\"type\":1, \"command\":2, \"argument\":3, \"data\":2}"), true);
+    EXPECT_EQ(mes.parseJson((char*)"{\"sender\":{\"id\":\"sender\",\"ip\":\"1\",\"port\":\"2\"}, \"type\":1, \"command\":2, \"argument\":3, \"data\":2}"), true);
 
+    EXPECT_EQ(mes.getSender().id, "sender");
+    EXPECT_EQ(mes.getSender().ip, "1");
+    EXPECT_EQ(mes.getSender().port, "2");
     EXPECT_EQ(mes.getType(), 1);
     EXPECT_EQ(mes.getCommand(), 2);
     EXPECT_EQ(mes.getArgument(), 3);
@@ -19,64 +22,69 @@ TEST(MessageTest, ParseGetInt) {
 
 TEST(MessageTest, ParseGetVector) {
     Message mes;
-    EXPECT_EQ(mes.parseJson((char*)"{\"type\":1, \"command\":2, \"argument\":3, \"data\":[\"0\",\"1\",\"2\",\"3\"]}"), true);
+    EXPECT_EQ(mes.parseJson((char*)"{\"sender\":{\"id\":\"sender\",\"ip\":\"\",\"port\":\"\"}, \"type\":1, \"command\":2, \"argument\":3, \"data\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}]}"), true);
     
-    vector<string> strings;
+    vector<Message::node> strings;
 
     EXPECT_EQ(mes.getData(strings), true);
 
     for(int i=0; i<strings.size(); i++) {
-        EXPECT_EQ(strings[i], to_string(i));
+        EXPECT_EQ(strings[i].id, to_string(i));
     }
 }
 
 
 TEST(MessageTest, ParseGetVectorAndString) {
     Message mes;
-    EXPECT_EQ(mes.parseJson((char*)"{\"type\":1, \"command\":2, \"argument\":3, \"data\":{\"A\":\"hello\",\"B\":[\"0\",\"1\",\"2\",\"3\"]}}"), true);
+    EXPECT_EQ(mes.parseJson((char*)"{\"sender\":{\"id\":\"sender\",\"ip\":\" \",\"port\":\" \"}, \"type\":1, \"command\":2, \"argument\":3, \"data\":{\"A\":{\"id\":\"hello\",\"ip\":\"\",\"port\":\"\"},\"B\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}]}}"), true);
     
-    string stringA;
-    vector<string> stringsB;
+    Message::node stringA;
+    vector<Message::node> stringsB;
     EXPECT_EQ(mes.getData(stringA,stringsB), true);
 
-    EXPECT_EQ(stringA, "hello");
+    EXPECT_EQ(stringA.id, "hello");
 
     for(int i=0; i<stringsB.size(); i++) {
-        EXPECT_EQ(stringsB[i], to_string(i));
+        EXPECT_EQ(stringsB[i].id, to_string(i));
     }
 }
 
 TEST(MessageTest, ParseGetVectors) {
     Message mes;
-    EXPECT_EQ(mes.parseJson((char*)"{\"type\":1, \"command\":2, \"argument\":3, \"data\":{\"A\":[\"0\",\"1\",\"2\",\"3\"],\"B\":[\"0\",\"1\",\"2\",\"3\"]}}"), true);
+    EXPECT_EQ(mes.parseJson((char*)"{\"sender\":{\"id\":\"sender\",\"ip\":\"\",\"port\":\"\"}, \"type\":1, \"command\":2, \"argument\":3, \"data\":{\"A\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}],\"B\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}]}}"), true);
     
-    vector<string> stringsA;
-    vector<string> stringsB;
+    vector<Message::node> stringsA;
+    vector<Message::node> stringsB;
     EXPECT_EQ(mes.getData(stringsA,stringsB), true);
 
     for(int i=0; i<stringsA.size(); i++) {
-        EXPECT_EQ(stringsA[i], to_string(i));
+        EXPECT_EQ(stringsA[i].id, to_string(i));
     }
     for(int i=0; i<stringsB.size(); i++) {
-        EXPECT_EQ(stringsB[i], to_string(i));
+        EXPECT_EQ(stringsB[i].id, to_string(i));
     }
 }
 
 TEST(MessageTest, ParseToString) {
     Message mes;
-    EXPECT_EQ(mes.parseJson((char*)"{\"type\":1, \"command\":2, \"argument\":3, \"data\":{\"A\":[\"0\",\"1\",\"2\",\"3\"],\"B\":[\"0\",\"1\",\"2\",\"3\"]}}"), true);
+    char json[] = "{\"sender\":{\"id\":\"sender\",\"ip\":\"\",\"port\":\"\"},\"type\":1,\"command\":2,\"argument\":3,\"data\":{\"A\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}],\"B\":[{\"id\":\"0\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"1\",\"ip\":\"\",\"port\":\"\"},{\"id\":\"2\",\"ip\":\"\",\"port\":\"\"}]}}";
+    EXPECT_EQ(mes.parseJson((char*)json), true);
 
     mes.buildString();
-    EXPECT_EQ(mes.getString(), "{\"type\":1,\"command\":2,\"argument\":3,\"data\":{\"A\":[\"0\",\"1\",\"2\",\"3\"],\"B\":[\"0\",\"1\",\"2\",\"3\"]}}");
+    EXPECT_EQ(mes.getString(), json);
 }
 
 TEST(MessageTest, SetGetInt) {
     Message mes;
+    mes.setSender(Message::node("sender","1","2"));
     mes.setType((Message::Type)1);
     mes.setCommand((Message::Command)2);
     mes.setArgument((Message::Argument)3);
     mes.setData(2);
 
+    EXPECT_EQ(mes.getSender().id, "sender");
+    EXPECT_EQ(mes.getSender().ip, "1");
+    EXPECT_EQ(mes.getSender().port, "2");
     EXPECT_EQ(mes.getType(), 1);
     EXPECT_EQ(mes.getCommand(), 2);
     EXPECT_EQ(mes.getArgument(), 3);
@@ -88,13 +96,13 @@ TEST(MessageTest, SetGetInt) {
 TEST(MessageTest, SetGetVector) {
     Message mes;
     
-    vector<string> strings2;
+    vector<Message::node> strings2;
     for(int i=0; i<4; i++) {
-        strings2.push_back(to_string(i));
+        strings2.push_back(Message::node(to_string(i),"",""));
     }
     mes.setData(strings2);    
 
-    vector<string> strings;
+    vector<Message::node> strings;
 
     EXPECT_EQ(mes.getData(strings), true);
 
@@ -107,17 +115,17 @@ TEST(MessageTest, SetGetVector) {
 TEST(MessageTest, SetGetVectorAndString) {
     Message mes;
     
-    vector<string> strings2;
+    vector<Message::node> strings2;
     for(int i=0; i<4; i++) {
-        strings2.push_back(to_string(i));
+        strings2.push_back(Message::node(to_string(i),"",""));
     }
-    mes.setData("hello", strings2);   
+    mes.setData(Message::node("hello","",""), strings2);   
     
-    string stringA;
-    vector<string> stringsB;
+    Message::node stringA;
+    vector<Message::node> stringsB;
     EXPECT_EQ(mes.getData(stringA,stringsB), true);
 
-    EXPECT_EQ(stringA, "hello");
+    EXPECT_EQ(stringA.id, "hello");
 
     for(int i=0; i<strings2.size(); i++) {
         EXPECT_EQ(stringsB[i], strings2[i]);
@@ -126,18 +134,18 @@ TEST(MessageTest, SetGetVectorAndString) {
 
 TEST(MessageTest, SetGetVectors) {
     Message mes;
-    vector<string> strings2A,strings2B;
+    vector<Message::node> strings2A,strings2B;
     for(int i=0; i<4; i++) {
-        strings2A.push_back(to_string(i));
+        strings2A.push_back(Message::node(to_string(i),"",""));
     }
     for(int i=0; i<4; i++) {
-        strings2B.push_back(to_string(i));
+        strings2B.push_back(Message::node(to_string(i),"",""));
     }
 
     mes.setData(strings2A, strings2B);   
     
-    vector<string> stringsA;
-    vector<string> stringsB;
+    vector<Message::node> stringsA;
+    vector<Message::node> stringsB;
     EXPECT_EQ(mes.getData(stringsA,stringsB), true);
 
     for(int i=0; i<strings2A.size(); i++) {

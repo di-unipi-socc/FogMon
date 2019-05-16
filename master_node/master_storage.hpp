@@ -9,9 +9,9 @@
 class MasterStorage : public Storage, virtual public IMasterStorage {
 protected:
     virtual void createTables();
-    void addTest(std::string strIpA, std::string strIpB, Report::test_result test, std::string type);
+    void addTest(Message::node nodeA, Message::node nodeB, Report::test_result test, std::string type);
 
-    Message::node node;
+    Message::node nodeM;
 
 public:
     MasterStorage(Message::node node);
@@ -26,7 +26,7 @@ public:
 
     void addReport(std::vector<Report::report_result> results, Message::node node);
     
-    void addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored = NULL);
+    std::string addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored = NULL);
     void addMNode(Message::node node);
     void addIot(Message::node node, Report::IoT iot);
 

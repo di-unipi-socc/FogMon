@@ -51,13 +51,21 @@ int main(int argc, char *argv[]) {
     string name = string(argv[argc-1]);
     
 
-    string ip = "::1";
+    string ipR = "";
+    string portR = "";
+    string myPort = "5555";
     int threads = 2;
     int time_heartbeat = 120;
     int time_propagation = 20;
 
     if(input.cmdOptionExists("-C"))
-        ip = input.getCmdOption("-C");
+        ipR = input.getCmdOption("-C");
+
+    if(input.cmdOptionExists("-P"))
+        portR = input.getCmdOption("-P");
+
+    if(input.cmdOptionExists("--my-port"))
+        myPort = input.getCmdOption("--my-port");
 
     if(input.cmdOptionExists("-t"))
         threads = stoi(input.getCmdOption("-t"));
@@ -94,7 +102,7 @@ int main(int argc, char *argv[]) {
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
 
 
-    MasterNode node(name, threads);
+    MasterNode node(Message::node(name,"::1",myPort), threads);
 
     node.setParam(string("heartbeat"), time_heartbeat);
     node.setParam(string("time-propagation"), time_propagation);
@@ -107,7 +115,12 @@ int main(int argc, char *argv[]) {
     node.setParam(string("max-per-bandwidth"), max_bandwidth);
 
     node.initialize();
-    node.start(ip);
+    if(ipR.empty())
+        node.start();
+    else {
+        Message::node remote("",ipR,portR);
+        node.start(&remote);
+    }
 
     int a;
     scanf("%d",&a);

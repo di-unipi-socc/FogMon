@@ -33,34 +33,7 @@ void MasterConnections::initialize(IMasterNode* parent) {
 }
 
 void MasterConnections::handler(int fd, Message &m) {
-    socklen_t len;
-    struct sockaddr_storage addr;
-    char ip[INET6_ADDRSTRLEN];
-    memset(ip, 0, INET6_ADDRSTRLEN);
-    strcat(ip, "::1");
-
-    len = sizeof(addr);
-    getpeername(fd, (struct sockaddr*)&addr, &len);
-                
-    if(addr.ss_family == AF_INET) {
-        struct sockaddr_in *s = (struct sockaddr_in*)&addr;
-        inet_ntop(AF_INET, &s->sin_addr, ip, sizeof(ip));
-    }else if(addr.ss_family == AF_INET6) {
-        struct sockaddr_in6 *s = (struct sockaddr_in6*)&addr;
-        if (IN6_IS_ADDR_V4MAPPED(&s->sin6_addr)) {
-            inet_ntop(AF_INET, &(((in_addr*)(s->sin6_addr.s6_addr+12))->s_addr), ip, sizeof(ip));
-        }
-        else
-            inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
-    }else {
-        cerr << "error socket family" << endl;
-#ifndef ENABLE_TESTS
-        return;
-#endif
-    }
-    if(strcmp(ip,"127.0.0.1")==0)
-        strcpy(ip,"::1");
-    string strIp = string(ip);
+    string strIp = this->getSource(fd,m);
 
     bool handled = false;
 
@@ -72,7 +45,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 if(m.getData(r)) {
                     vector<Report::report_result> results;
                     if(r.getReports(results)) {
-                        this->parent->getStorage()->addReport(results, strIp);
+                        this->parent->getStorage()->addReport(results, m.getSender());
                     }
                     Message res;
                     res.setType(Message::Type::MRESPONSE);
@@ -84,16 +57,22 @@ void MasterConnections::handler(int fd, Message &m) {
             }
         }else if(m.getCommand() == Message::Command::MHELLO) {
             handled = true;
-            this->parent->getStorage()->addMNode(strIp);
             Message res;
             res.setType(Message::Type::MRESPONSE);
             res.setCommand(Message::Command::MHELLO);
-            res.setArgument(Message::Argument::POSITIVE);
 
-            vector<string> nodes = this->parent->getStorage()->getMNodes();
+            if(m.getSender().id == this->parent->getMyNode().id)
+            {
+                res.setArgument(Message::Argument::NEGATIVE);
+            }else {
+                this->parent->getStorage()->addMNode(m.getSender());
+                
+                res.setArgument(Message::Argument::POSITIVE);
 
-            res.setData(nodes);
+                vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
 
+                res.setData(nodes);
+            }
             sendMessage(fd, res);
         }
     }else if(m.getType() == Message::Type::REQUEST) {
@@ -101,11 +80,11 @@ void MasterConnections::handler(int fd, Message &m) {
             if(m.getCommand() == Message::Command::GET) {
                 handled = true;
                 //build array of nodes
-                vector<string> nodes = this->parent->getStorage()->getNodes();
+                vector<Message::node> nodes = this->parent->getStorage()->getNodes();
                 
                 //local node needs to monitor also the other mnodes
                 if(strIp == "::1") {
-                    vector<string> mnodes = this->parent->getStorage()->getMNodes();
+                    vector<Message::node> mnodes = this->parent->getStorage()->getMNodes();
                     nodes.insert(nodes.end(), mnodes.begin(), mnodes.end());
                 }
                 
@@ -123,7 +102,7 @@ void MasterConnections::handler(int fd, Message &m) {
             if(m.getCommand() == Message::Command::GET) {
                 handled = true;
                 //build array of nodes
-                vector<string> nodes = this->parent->getStorage()->getMNodes();
+                vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
                 //send nodes
                 Message res;
                 res.setType(Message::Type::RESPONSE);
@@ -157,11 +136,17 @@ void MasterConnections::handler(int fd, Message &m) {
                 Report::hardware_result hardware;
                 r.getHardware(hardware);
 
+                Message::node sender = m.getSender();
+                sender.id = "";
+                if(sender.ip == "::1" && sender.port == this->parent->getMyNode().port) {
+                    sender.id = this->parent->getMyNode().id;
+                }
+
                 //set new node online                
-                this->parent->getStorage()->addNode(strIp, hardware);
+                sender.id = this->parent->getStorage()->addNode(sender, hardware);
                 
 
-                vector<string> vec = this->parent->getStorage()->getNodes();
+                vector<Message::node> vec = this->parent->getStorage()->getNodes();
 
                 //get nodelist
                 Message res;
@@ -169,7 +154,7 @@ void MasterConnections::handler(int fd, Message &m) {
                 res.setCommand(Message::Command::HELLO);
                 res.setArgument(Message::Argument::POSITIVE);
 
-                res.setData(strIp, vec);
+                res.setData(sender, vec);
                 
                 sendMessage(fd, res);
 
@@ -179,9 +164,9 @@ void MasterConnections::handler(int fd, Message &m) {
                 broadcast.setType(Message::Type::NOTIFY);
                 broadcast.setCommand(Message::Command::UPDATE);
                 broadcast.setArgument(Message::Argument::NODES);
-                vector<string> v;
-                v.push_back(strIp);
-                vector<string> v2;
+                vector<Message::node> v;
+                v.push_back(sender);
+                vector<Message::node> v2;
                 broadcast.setData(v ,v2);
 
                 this->notifyAll(broadcast);
@@ -198,16 +183,16 @@ void MasterConnections::handler(int fd, Message &m) {
                     vector<Report::test_result> bandwidth;
                     vector<Report::IoT> iot;
                     if(r.getHardware(hardware)) {
-                        this->parent->getStorage()->addNode(strIp, hardware);
+                        this->parent->getStorage()->addNode(m.getSender(), hardware);
                     }
                     if(r.getLatency(latency)) {
-                        this->parent->getStorage()->addReportLatency(strIp, latency);
+                        this->parent->getStorage()->addReportLatency(m.getSender(), latency);
                     }
                     if(r.getBandwidth(bandwidth)) {
-                        this->parent->getStorage()->addReportBandwidth(strIp, bandwidth);
+                        this->parent->getStorage()->addReportBandwidth(m.getSender(), bandwidth);
                     }
                     if(r.getIot(iot)) {
-                        this->parent->getStorage()->addReportIot(strIp, iot);
+                        this->parent->getStorage()->addReportIot(m.getSender(), iot);
                     }
                     Message res;
                     res.setType(Message::Type::RESPONSE);
@@ -223,20 +208,21 @@ void MasterConnections::handler(int fd, Message &m) {
         Connections::handler(fd, m);
 }
 
-bool MasterConnections::sendRemoveNodes(std::vector<std::string> ips) {
+bool MasterConnections::sendRemoveNodes(std::vector<Message::node> ips) {
     Message broadcast;
+    broadcast.setSender(this->parent->getMyNode());
     broadcast.setType(Message::Type::NOTIFY);
     broadcast.setCommand(Message::Command::UPDATE);
     broadcast.setArgument(Message::Argument::NODES);
 
-    vector<string> v;
+    vector<Message::node> v;
     broadcast.setData(v ,ips);
 
     return this->notifyAll(broadcast);
 }
 
-bool MasterConnections::sendRequestReport(std::string ip) {
-    int Socket = openConnection(ip);
+bool MasterConnections::sendRequestReport(Message::node ip) {
+    int Socket = openConnection(ip.ip,ip.port);
     
     if(Socket < 0) {
         return false;
@@ -247,6 +233,7 @@ bool MasterConnections::sendRequestReport(std::string ip) {
 
     //build message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::REQUEST);
     m.setCommand(Message::Command::GET);
     m.setArgument(Message::Argument::REPORT);
@@ -288,9 +275,8 @@ bool MasterConnections::sendRequestReport(std::string ip) {
     return ret;
 }
 
-bool MasterConnections::sendSetToken(std::string ip, int time) {
-    int Socket = openConnection(ip);
-    
+bool MasterConnections::sendMReport(Message::node ip, vector<Report::report_result> report) {
+    int Socket = this->openConnection(ip.ip, ip.port);
     if(Socket < 0) {
         return false;
     }
@@ -300,39 +286,7 @@ bool MasterConnections::sendSetToken(std::string ip, int time) {
 
     //build message
     Message m;
-    m.setType(Message::Type::REQUEST);
-    m.setCommand(Message::Command::SET);
-    m.setArgument(Message::Argument::TOKEN);
-
-    m.setData(time);
-    bool ret = false;
-
-    //send message
-    if(this->sendMessage(Socket, m)) {
-        Message res;
-        if(this->getMessage(Socket, res)) {
-            if( res.getType()==Message::Type::RESPONSE &&
-                res.getCommand() == Message::Command::SET &&
-                res.getArgument() == Message::Argument::POSITIVE) {
-                ret = true;
-            }
-        }
-    }
-    close(Socket);
-    return ret;
-}
-
-bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result> report) {
-    int Socket = this->openConnection(ip);
-    if(Socket < 0) {
-        return false;
-    }
-
-    fflush(stdout);
-    char buffer[10];
-
-    //build message
-    Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::MREQUEST);//TODO
     m.setCommand(Message::Command::SET);
     m.setArgument(Message::Argument::REPORT);
@@ -358,8 +312,8 @@ bool MasterConnections::sendMReport(std::string ip, vector<Report::report_result
     return ret;
 }
 
-bool MasterConnections::sendMHello(std::string ip) {
-    int Socket = this->openConnection(ip);
+bool MasterConnections::sendMHello(Message::node ip) {
+    int Socket = this->openConnection(ip.ip, ip.port);
     if(Socket < 0) {
         return false;
     }
@@ -369,6 +323,7 @@ bool MasterConnections::sendMHello(std::string ip) {
 
     //build message
     Message m;
+    m.setSender(this->parent->getMyNode());
     m.setType(Message::Type::MREQUEST);//TODO
     m.setCommand(Message::Command::MHELLO);
     m.setArgument(Message::Argument::REPORT);
@@ -387,9 +342,10 @@ bool MasterConnections::sendMHello(std::string ip) {
                 vector<Message::node> vec;
                 if(res.getData(vec)) {
                     for(auto node : vec) {
+                        if(node.ip == "::1")
+                            node.ip = ip.ip;
                         this->parent->getStorage()->addMNode(node);
                     }
-                    this->parent->getStorage()->addMNode(ip);
                     ret = true;
                 }
             }
