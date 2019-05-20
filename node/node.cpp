@@ -310,6 +310,9 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
     char command[1024];
     sprintf(command, "%d", this->portAssolo);
     old = old/1000; //convert to mbps
+    if(old < 1.0) {
+        old = 5.0;
+    }
     char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", (char*)to_string(old*20).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
@@ -624,6 +627,7 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
                 result = this->testBandwidthEstimate(ip.ip,myIp,old);
                 if(result >= 0 && abs(result - old)/old < 0.2) {
                     state = 2;
+                    result = old; //return the old result because is still reliable
                 }else {
                     state = 3;
                     result = -1;
@@ -636,6 +640,7 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
                 result = this->testBandwidthEstimate(ip.ip, myIp,old);
                 if(result >= 0 && abs(result - old)/old < 0.2) {
                     state = 0;
+                    result = old; //return the old result because is still reliable
                 }else {
                     state = 3;
                     result = -1;
