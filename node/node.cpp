@@ -133,7 +133,6 @@ void Node::stop() {
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
     this->running = false;
-    pthread_cond_ti
     if(this->timerThread.joinable())
     {
         this->timerThread.join();
