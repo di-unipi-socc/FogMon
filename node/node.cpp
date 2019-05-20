@@ -309,7 +309,7 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
 
     char command[1024];
     sprintf(command, "%d", this->portAssolo);
-
+    old = old/1000; //convert to mbps
     char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", (char*)to_string(old*20).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
