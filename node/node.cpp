@@ -18,6 +18,7 @@
 #include <sys/un.h>
 #include <string.h>
 #include <sys/eventfd.h>
+#include <signal.h>
 
 #include <sigar.h>
 #include "rapidjson/document.h"
@@ -110,6 +111,11 @@ void Node::start() {
     this->timerTestThread = thread(&Node::TestTimer, this);
 }
 
+void signalHandler( int signum ) {
+   cout << "Interrupt signal (" << signum << ") received.\n"; 
+}
+
+
 void Node::stop() {
     if(this->pIperf)
         delete this->pIperf;
@@ -127,6 +133,7 @@ void Node::stop() {
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
     this->running = false;
+    pthread_cond_ti
     if(this->timerThread.joinable())
     {
         this->timerThread.join();
@@ -295,17 +302,16 @@ float Node::testBandwidthIperf(string ip, int port) {
     return -1;
 }
 
-float Node::testBandwidthEstimate(string ip, string myIp, int port) {
+float Node::testBandwidthEstimate(string ip, string myIp, float old) {
     
-    char command[1024];
-    if(port > 0) {
-        sprintf(command, "%d", port);
-    }else {
-        cerr << "Error port not valid" << endl;
+    if(old < 0) {
         return -1;
     }
 
-    char *args[] = {"./assolo_run","-S",(char*)ip.c_str(),"-R",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", "100", "-l", "1", "-U",command, NULL };
+    char command[1024];
+    sprintf(command, "%d", this->portAssolo);
+
+    char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", (char*)to_string(old*20).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, NULL };
     ReadProc *proc = new ReadProc(args);
 
 
@@ -616,8 +622,8 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
         case 1: //a test is already done
             port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip.ip,myIp,port);
-                if(result >= 0 && abs(result - old)/old < 0.1) {
+                result = this->testBandwidthEstimate(ip.ip,myIp,old);
+                if(result >= 0 && abs(result - old)/old < 0.2) {
                     state = 2;
                 }else {
                     state = 3;
@@ -628,8 +634,8 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
         case 2: //estimate succeeded
             port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
-                result = this->testBandwidthEstimate(ip.ip, myIp,port);
-                if(result >= 0 && abs(result - old)/old < 0.1) {
+                result = this->testBandwidthEstimate(ip.ip, myIp,old);
+                if(result >= 0 && abs(result - old)/old < 0.2) {
                     state = 0;
                 }else {
                     state = 3;

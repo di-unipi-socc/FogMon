@@ -110,7 +110,7 @@ int ReadProc::nowaitproc() {
         int w;
         if ((w = waitpid(pid, &status, WNOHANG)) < 0)
         {
-            return -1;
+            return 0;
         }
         else if(w > 0)
         {
@@ -133,7 +133,7 @@ int ReadProc::nowaitproc() {
         }
     }
     status =-1;
-    return -1;
+    return 0;
 }
 
 std::string ReadProc::readoutput() {

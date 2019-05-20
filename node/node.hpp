@@ -91,7 +91,7 @@ protected:
     //test the bandwidth using iperf3
     float testBandwidthIperf(std::string ip, int port = -1);
     //test the bandwidth using an estimation tool (assolo)
-    float testBandwidthEstimate(std::string ip, std::string myIp, int port = -1);
+    float testBandwidthEstimate(std::string ip, std::string myIp, float old);
 
     //test the latency with another node
     int testPing(std::string ip);

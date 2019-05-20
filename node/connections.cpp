@@ -213,8 +213,14 @@ vector<Message::node> Connections::requestMNodes(Message::node ipS) {
         }
     }
     close(Socket);
-    if(result)
+    if(result) {
+        for(auto &node : nodes) {
+            if(node.ip == "::1") {
+                node.ip = ipS.ip;
+            }
+        }
         return nodes;
+    }
     return vector<Message::node>();
 }
 
