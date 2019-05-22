@@ -18,7 +18,7 @@ void IStorage::open(string path) {
     sqlite3_enable_load_extension(db, 1);
     char *zErrMsg = 0;
 
-    err = sqlite3_exec(this->db, "SELECT load_extension('./libsqlitefunctions.so')", 0, 0, &zErrMsg);
+    err = sqlite3_exec(this->db, "SELECT load_extension('./libsqlitefunctions')", 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error (load extension): %s\n", zErrMsg);

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.4.0)
 
+set(CMAKE_CXX_FLAGS -m32)
+set(CMAKE_C_FLAGS -m32)
+
 project(sqlitefunctions)
 
 add_library(sqlitefunctions SHARED extension-functions.c)

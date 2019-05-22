@@ -625,7 +625,7 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
             port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
                 result = this->testBandwidthEstimate(ip.ip,myIp,old);
-                if(result >= 0 && abs(result - old)/old < 0.2) {
+                if(result >= 0 && abs(result - old)/old < 0.3) {
                     state = 2;
                     result = old; //return the old result because is still reliable
                 }else {
@@ -638,7 +638,7 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
             port = this->connections->sendStartEstimateTest(ip, myIp);
             if(port != -1) {
                 result = this->testBandwidthEstimate(ip.ip, myIp,old);
-                if(result >= 0 && abs(result - old)/old < 0.2) {
+                if(result >= 0 && abs(result - old)/old < 0.3) {
                     state = 0;
                     result = old; //return the old result because is still reliable
                 }else {
