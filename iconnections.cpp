@@ -358,7 +358,7 @@ std::string IConnections::getSource(int fd, Message &m) {
     }else {
         cerr << "error socket family" << endl;
 #ifndef ENABLE_TESTS
-        return;
+        return string("");
 #endif
         strcpy(ip, "::1");
     }

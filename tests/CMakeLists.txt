@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(FogMon_Tests CXX)
 
-set(CMAKE_CXX_FLAGS -m32)
-set(CMAKE_C_FLAGS -m32)
-
 ADD_SUBDIRECTORY (googletest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
@@ -29,7 +26,6 @@ SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAG
 
 
 add_executable(UnitTests main_test.cpp ${UNIT_SRCS} ${INTEGRATION_SRCS} ${SRCS} ${SRCS_MASTER} ${SRCS_NODE} ${SRCS_MICROBIT})
-set_target_properties(UnitTests PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 
 
 find_library(SQLITE_LIBRARY sqlite3)
