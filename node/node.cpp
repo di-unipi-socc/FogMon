@@ -584,7 +584,7 @@ void Node::TestTimer() {
         }
         //test bandwidth
         //get 10 nodes tested more than 300 seconds in the past
-        ips = this->storage->getLRBandwidth(this->maxPerBandwidth, this->timeBandwidth);
+        ips = this->storage->getLRBandwidth(this->maxPerBandwidth + 5, this->timeBandwidth);
         int i=0;
         int tested=0;
         while(i < ips.size() && tested < 1) {

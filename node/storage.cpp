@@ -283,7 +283,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
     for(auto node : add) {
         if(node.id != "") {
             //does not exists then insert
-            std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (id,ip,port, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
+            std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (id,ip,port, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
             int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
