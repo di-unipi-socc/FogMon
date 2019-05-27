@@ -6,7 +6,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/node
 file(GLOB SRCS "*.cpp")
 file(GLOB HDRS "*.hpp")
 
-find_library(SQLITE_LIBRARY sqlite3)
 find_library(PTHREAD_LIBRARY pthread)
 find_library(SERIALPORT_LIBRARY serialport)
 find_library(SIGAR_LIBRARY sigar)

@@ -204,6 +204,8 @@ int Node::startIperf() {
 
     int port = random()%1000 + 5600;
 
+    port = 5201;
+
     char command[1024];
     sprintf(command, "%d", port);
 
@@ -225,6 +227,8 @@ int Node::startEstimate() {
     
     
     int port = random()%2000 + 5600;
+
+    port = 8366;
 
     char *args1[] = {"./assolo_rcv", NULL };
     ReadProc *proc1 = new ReadProc(args1);

@@ -76,7 +76,7 @@ std::string MasterStorage::addNode(Message::node node, Report::hardware_result h
 
             if(nodes.size() > 0) {
                 try {
-                    int num = stol(nodes[0].id.substr(this->nodeM.id.size()));
+                    int num = stol(nodes[0].id.substr(this->nodeM.id.size()+1));
                     base = num;
                 }catch (...) {
 
