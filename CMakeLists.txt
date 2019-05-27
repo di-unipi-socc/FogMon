@@ -9,6 +9,7 @@ file(GLOB HDRS "*.hpp")
 find_library(PTHREAD_LIBRARY pthread)
 find_library(SERIALPORT_LIBRARY serialport)
 find_library(SIGAR_LIBRARY sigar)
+find_library(SQLITE_LIBRARY sqlite3)
 
 message(${PTHREAD_LIBRARY})
 message(${SQLITE_LIBRARY})
