@@ -361,7 +361,7 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
                     sout << buff;
                 }
                 output = sout.str();
-                //unlink(file.c_str());
+                unlink(file.c_str());
                 {
                     std::regex reg("([0-9\\.]*) ([0-9\\.]*)\n");
 
