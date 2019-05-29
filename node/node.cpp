@@ -371,9 +371,12 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
                     int num = 0;
                     while (std::regex_search (output,m,reg)) {
                         output = m.suffix().str();
-                        try {}
+                        try {
                         mean += stof(m[2]);
                         num++;
+                        }catch(...) {
+                            
+                        }
                     }
                     if(num>0)  {
                         mean = mean/num;
