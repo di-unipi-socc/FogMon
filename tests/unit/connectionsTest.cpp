@@ -75,6 +75,9 @@ public:
     
     virtual std::vector<Message::node> getLRLatency(int num, int seconds) {return vector<Message::node>();}
     virtual std::vector<Message::node> getLRBandwidth(int num, int seconds) {return vector<Message::node>();}
+        
+    virtual std::vector<Message::node> getMLRLatency(int num, int seconds) {return vector<Message::node>();}
+    virtual std::vector<Message::node> getMLRBandwidth(int num, int seconds) {return vector<Message::node>();}
 
     virtual int getTestBandwidthState(Message::node ip, Report::test_result &last) { return 0;}
 
@@ -91,7 +94,7 @@ public:
     virtual void addReportIot(Message::node strIp, std::vector<Report::IoT> iots) {}
     virtual void addReport(Message::node strIp, Report::hardware_result hardware, std::vector<Report::test_result> latency, std::vector<Report::test_result> bandwidth) {}
 
-    virtual std::vector<Message::node> getLRHardware(int num, int seconds) {return vector<Message::node>();}
+    virtual std::vector<Message::node> getMLRHardware(int num, int seconds) {return vector<Message::node>();}
 
     virtual void addMNode(Message::node ip) {}
     virtual Report::report_result getReport(Message::node ip) {}

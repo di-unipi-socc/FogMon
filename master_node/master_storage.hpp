@@ -36,9 +36,9 @@ public:
 
     void addReport(Report::report_result result, Message::node *monitored = NULL);
 
-    std::vector<Message::node> getLRHardware(int num, int seconds);
-    std::vector<Message::node> getLRLatency(int num, int seconds);
-    std::vector<Message::node> getLRBandwidth(int num, int seconds);
+    std::vector<Message::node> getMLRHardware(int num, int seconds);
+    std::vector<Message::node> getMLRLatency(int num, int seconds);
+    std::vector<Message::node> getMLRBandwidth(int num, int seconds);
 
     void complete();
 

@@ -247,7 +247,7 @@ TEST(StorageMasterTest, FailNullRef) {
 
     //missing test-testt
 
-    res = storage.getLRLatency(3, 10);
+    res = storage.getMLRLatency(3, 10);
     dim = 0;
     EXPECT_EQ(dim, res.size());
 
@@ -260,7 +260,7 @@ TEST(StorageMasterTest, FailNullRef) {
     tests.push_back(test);
     storage.addReportBandwidth(node_testt,tests);
 
-    res = storage.getLRBandwidth(4, 10);
+    res = storage.getMLRBandwidth(4, 10);
     dim = 0;
     EXPECT_EQ(dim, res.size()); 
 }
@@ -320,7 +320,7 @@ TEST(StorageMasterTest, GetHardware) {
     EXPECT_EQ(hw1.mean_free_memory, hw.mean_free_memory);
 }
 
-TEST(StorageMasterTest, GetLRHardware) {
+TEST(StorageMasterTest, GetMLRHardware) {
     MasterStorage storage(nodeA);
     storage.open("testB.db");
     sleep(2);
@@ -334,7 +334,7 @@ TEST(StorageMasterTest, GetLRHardware) {
     storage.addNode(node_testt,hw);
     storage.addNode(node_testtt,hw);
 
-    vector<Message::node> res = storage.getLRHardware(2, 2);
+    vector<Message::node> res = storage.getMLRHardware(2, 2);
     int dim = 1;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)
@@ -343,7 +343,7 @@ TEST(StorageMasterTest, GetLRHardware) {
         FAIL();
 }
 
-TEST(StorageMasterTest, ReportGetLRLatency) {
+TEST(StorageMasterTest, ReportGetMLRLatency) {
     MasterStorage storage(nodeA);
     storage.open("testB.db");
     
@@ -362,7 +362,7 @@ TEST(StorageMasterTest, ReportGetLRLatency) {
 
     //missing test-testt
 
-    vector<Message::node> res = storage.getLRLatency(3, 10);
+    vector<Message::node> res = storage.getMLRLatency(3, 10);
     int dim = 2;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim) {
@@ -373,7 +373,7 @@ TEST(StorageMasterTest, ReportGetLRLatency) {
         FAIL();
 }
 
-TEST(StorageMasterTest, ReportGetLRBandwidth) {
+TEST(StorageMasterTest, ReportGetMLRBandwidth) {
     MasterStorage storage(nodeA);
     storage.open("testB.db");
 
@@ -396,7 +396,7 @@ TEST(StorageMasterTest, ReportGetLRBandwidth) {
     tests.push_back(test);
     storage.addReportBandwidth(node_testt,tests);
 
-    vector<Message::node> res = storage.getLRBandwidth(4, 10);
+    vector<Message::node> res = storage.getMLRBandwidth(4, 10);
     int dim = 1;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)

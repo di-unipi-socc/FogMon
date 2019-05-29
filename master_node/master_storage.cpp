@@ -223,7 +223,7 @@ void MasterStorage::addReport(std::vector<Report::report_result> results, Messag
     }
 }
 
-std::vector<Message::node> MasterStorage::getLRLatency(int num, int seconds) {
+std::vector<Message::node> MasterStorage::getMLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,   "SELECT id,ip,port FROM "
@@ -248,7 +248,7 @@ std::vector<Message::node> MasterStorage::getLRLatency(int num, int seconds) {
     return nodes;
 }
 
-std::vector<Message::node> MasterStorage::getLRBandwidth(int num, int seconds) {
+std::vector<Message::node> MasterStorage::getMLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,   "SELECT id,ip,port FROM "
@@ -272,7 +272,7 @@ std::vector<Message::node> MasterStorage::getLRBandwidth(int num, int seconds) {
     return nodes;
 }
 
-std::vector<Message::node> MasterStorage::getLRHardware(int num, int seconds) {
+std::vector<Message::node> MasterStorage::getMLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT id,ip,port FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%ld-strftime('%%s','now') <= 0 ORDER BY lasttime LIMIT %d", this->nodeM.id.c_str(), seconds, num);

@@ -60,7 +60,7 @@ void MasterNode::timerFun() {
         //routine for Nodes
         
         //check database for reports
-        vector<Message::node> ips = this->getStorage()->getLRHardware(100, this->timeheartbeat);
+        vector<Message::node> ips = this->getStorage()->getMLRHardware(100, this->timeheartbeat);
         vector<Message::node> rem;
         for(auto&& node : ips) {
             bool res = this->connections->sendRequestReport(node);

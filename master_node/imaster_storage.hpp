@@ -20,9 +20,9 @@ public:
 
     virtual Report::report_result getReport(Message::node node) = 0;
 
-    virtual std::vector<Message::node> getLRHardware(int num, int seconds) = 0;
-    virtual std::vector<Message::node> getLRLatency(int num, int seconds) = 0;
-    virtual std::vector<Message::node> getLRBandwidth(int num, int seconds) = 0;
+    virtual std::vector<Message::node> getMLRHardware(int num, int seconds) = 0;
+    virtual std::vector<Message::node> getMLRLatency(int num, int seconds) = 0;
+    virtual std::vector<Message::node> getMLRBandwidth(int num, int seconds) = 0;
 
     virtual std::vector<Message::node> getMNodes() = 0;
     virtual std::vector<Report::report_result> getReport() = 0;
