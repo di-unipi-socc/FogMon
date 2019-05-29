@@ -396,9 +396,18 @@ int getTest2Callback(void *T, int argc, char **argv, char **azColName) {
     test->target.id = string(argv[0]);
     test->target.ip = string(argv[1]);
     test->target.port = string(argv[2]);
-    test->mean = stof(argv[3]);
-    test->variance = stof(argv[4]);
-    test->lasttime = stol(argv[5]);
+    if(argv[3] == NULL)
+        test->mean = 0;
+    else
+        test->mean = stof(argv[3]);
+    if(argv[4] == NULL)
+        test->variance = 0;
+    else
+        test->variance = stof(argv[4]);
+    if(argv[5] == NULL)
+        test->lasttime = 0;
+    else
+        test->lasttime = stof(argv[5]);
     return 0;
 }
 
