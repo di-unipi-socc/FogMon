@@ -74,6 +74,13 @@ void MasterConnections::handler(int fd, Message &m) {
                 res.setData(nodes);
             }
             sendMessage(fd, res);
+
+            //update the nodes of the follower of this leader
+            vector<Message::node> v;
+            v.push_back(m.getSender());
+            vector<Message::node> v2;
+
+            this->parent->getStorage()->updateNodes(v,v2);
         }
     }else if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::NODES) {
