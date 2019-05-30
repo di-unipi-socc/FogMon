@@ -33,6 +33,7 @@ MasterNode::~MasterNode() {
 }
 
 void MasterNode::start(Message::node *node) {
+    Node::start();
     if(node != NULL) {
         if(!this->connections->sendMHello(*node)) {
             fprintf(stderr,"cannot connect to the network\n");
@@ -40,7 +41,6 @@ void MasterNode::start(Message::node *node) {
             exit(1);
         }
     }
-    Node::start();
     this->timerFunThread = thread(&MasterNode::timerFun, this);
 }
 
