@@ -40,6 +40,17 @@ void MasterNode::start(Message::node *node) {
             this->stop();
             exit(1);
         }
+        //communicate with the other
+        vector<Message::node> ips = this->storage->getMNodes();
+        for(auto ip : ips) {
+            if(ip.id == this->getMyNode().id)
+                continue;
+            if(!this->connections->sendMHello(ip)) {
+                fprintf(stderr,"cannot connect to the network\n");
+                this->stop();
+                exit(1);
+            }
+        }
     }
     this->timerFunThread = thread(&MasterNode::timerFun, this);
 }
