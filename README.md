@@ -1,4 +1,6 @@
-# FogMon
+<center>
+<img src="https://github.com/di-unipi-socc/FogMon/blob/master/img/logofogmon.png?raw=true" alt="Home Screen" width="250" />
+</center>
 
 ```
 git submodule init
