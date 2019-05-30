@@ -48,7 +48,7 @@ std::string MasterStorage::addNode(Message::node node, Report::hardware_result h
         stringstream query;
         vector<Message::node> nodes;
 
-        query << "SELECT id,ip,port FROM MNodes WHERE ip = \""+ node.ip+"\" AND port = \""+node.port+"\" AND monitoredBy = "\""<< this->nodeM.id <<""\" LIMIT 1";
+        query << "SELECT id,ip,port FROM MNodes WHERE ip = \""+ node.ip+"\" AND port = \""+node.port+"\" AND monitoredBy = \""<< this->nodeM.id <<"\" LIMIT 1";
         int err = sqlite3_exec(this->db, query.str().c_str(), VectorNodeCallback, &nodes, &zErrMsg);
         if( err!=SQLITE_OK )
         {
@@ -63,7 +63,7 @@ std::string MasterStorage::addNode(Message::node node, Report::hardware_result h
             stringstream query;
             vector<Message::node> nodes;
 
-            query << "SELECT id,ip,port FROM MNodes WHERE monitoredBy = "\""<< this->nodeM.id <<""\" ORDER BY id DESC LIMIT 1";
+            query << "SELECT id,ip,port FROM MNodes WHERE monitoredBy = \""<< this->nodeM.id <<"\" ORDER BY id DESC LIMIT 1";
             int err = sqlite3_exec(this->db, query.str().c_str(), VectorNodeCallback, &nodes, &zErrMsg);
             if( err!=SQLITE_OK )
             {
