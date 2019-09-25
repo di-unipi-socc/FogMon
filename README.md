@@ -6,7 +6,7 @@ FogMon is described in the following paper:
 
 > [Antonio Brogi](http://pages.di.unipi.it/brogi), [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese <br>
 > [**Measuring the Fog, Gently**](), <br>	
-> 17th International Conference on Service-Oriented Computing, Toulouse, France, 2019. 
+> 17th International Conference on Service-Oriented Computing (ICSOC), 2019. 
 
 If you wish to reuse source code in this repo, please consider citing the above mentioned article.
 
