@@ -2,6 +2,16 @@
 <img src="https://github.com/di-unipi-socc/FogMon/blob/master/img/logofogmon.png?raw=true" alt="Home Screen" width="250" />
 </center>
 
+FogMon is described in the following paper:
+
+> [Antonio Brogi](http://pages.di.unipi.it/brogi), [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese <br>
+> [**Measuring the Fog, Gently**](), <br>	
+> 17th International Conference on Service-Oriented Computing, Toulouse, France, 2019. 
+
+If you wish to reuse source code in this repo, please consider citing the above mentioned article.
+
+## How To
+
 ```
 git submodule init
 git submodule update
