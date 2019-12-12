@@ -98,6 +98,7 @@ public:
 
     virtual void addMNode(Message::node ip) {}
     virtual Report::report_result getReport(Message::node ip) {}
+    virtual std::vector<Message::node> getAllNodes() {}
     virtual vector<Message::node> getMNodes() {}
     virtual vector<Report::report_result> getReport() {}
 
@@ -130,7 +131,7 @@ public:
     Server* getServer() {return NULL;}
 
     virtual bool updateSelection(Message::leader_update) { return true; }
-    virtual bool changeRoles(Message::leader_update) { return true; }
+    virtual void changeRoles(Message::leader_update) { }
     virtual bool initSelection(int) { return true; }
     virtual bool calcSelection(Message::node, int, bool&) { return true; }
     virtual void stopSelection() {}

@@ -136,7 +136,7 @@ void LeaderConnections::handler(int fd, Message &m) {
             bool r = true;
 
             if(m.getArgument() == Message::Argument::POSITIVE) {
-                r = this->parent->changeRoles(update);
+                this->parent->changeRoles(update);
             }
             this->parent->stopSelection();
 

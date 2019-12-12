@@ -30,7 +30,7 @@ public:
     virtual bool updateSelection(Message::leader_update update);
     virtual void stopSelection();
 
-    virtual bool changeRoles(Message::leader_update update);
+    virtual void changeRoles(Message::leader_update update);
     virtual void changeRole(std::vector<Message::node> leaders);
 protected:
     void timerFun();

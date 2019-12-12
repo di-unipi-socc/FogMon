@@ -19,6 +19,7 @@ public:
 
     Message::node getNode();
 
+    std::vector<Message::node> getAllNodes();
     std::vector<Message::node> getNodes();
     std::vector<Message::node> getMNodes();
     std::vector<Report::report_result> getReport();

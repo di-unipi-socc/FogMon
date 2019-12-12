@@ -24,6 +24,7 @@ public:
     virtual std::vector<Message::node> getMLRLatency(int num, int seconds) = 0;
     virtual std::vector<Message::node> getMLRBandwidth(int num, int seconds) = 0;
 
+    virtual std::vector<Message::node> getAllNodes() = 0;
     virtual std::vector<Message::node> getMNodes() = 0;
     virtual std::vector<Report::report_result> getReport() = 0;
 

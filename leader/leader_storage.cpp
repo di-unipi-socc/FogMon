@@ -81,6 +81,24 @@ void LeaderStorage::addIot(Message::node node, Report::IoT iot) {
     }
 }
 
+std::vector<Message::node> LeaderStorage::getAllNodes() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"SELECT id,ip,port FROM MNodes");
+
+    vector<Message::node> nodes;
+
+    int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    return nodes;
+}
+
 vector<Message::node> LeaderStorage::getNodes() {
     char *zErrMsg = 0;
     char buf[1024];
@@ -144,6 +162,21 @@ void LeaderStorage::addReportBandwidth(Message::node node, vector<Report::test_r
 }
 
  void LeaderStorage::addReportIot(Message::node node, std::vector<Report::IoT> iots) {
+    char *zErrMsg = 0;
+    char buf[1024];
+    if(node.id == "") {
+        return;
+    }
+    std::sprintf(buf,"DELETE FROM MIots WHERE idNode = \"%s\"", node.id.c_str());
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
     for(auto iot : iots) {
         this->addIot(node, iot);
     }

@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <string>
+#include <cmath>
 
 #include "rapidjson/document.h"
 #include "rapidjson/reader.h"
@@ -92,6 +93,14 @@ void Leader::timerFun() {
         this->connections->sendRemoveNodes(ips);
         vector<Message::node> tmp;
         this->getStorage()->updateNodes(tmp,rem);
+        
+        int nF = this->storage->getAllNodes().size();
+        int nL = this->storage->getMNodes().size();
+        
+        if(sqrt(nF) > nL+1) {
+            printf("Leaders number: %d\nFollower number: %d\n",nL,nF);
+            this->startSelection();
+        }
 
         //routine for LeaderNodes
         ips = this->getStorage()->getMNodes();
@@ -230,6 +239,7 @@ Message::leader_update Leader::selection(int id) {
 }
 
 void Leader::startSelection() {
+    printf("starting selection\n");
     this->updates.clear();
 
     {
@@ -255,7 +265,7 @@ void Leader::startSelection() {
 
         status = STARTED;
     }
-
+    printf("started selection\n");
     //start thread here
     this->selectionThread = thread([this]{
         auto t1 = std::chrono::high_resolution_clock::now();
@@ -281,7 +291,10 @@ void Leader::startSelection() {
                 sel = update;
             }
         }
-        
+        printf("selected (cost = %f, changes = %d):\n",sel.cost,sel.changes);
+        for(auto n : sel.selected) {
+            printf("%s  %s  %s\n",n.id.c_str(),n.ip.c_str(),n.port.c_str());
+        }
         this->connections->sendEndSelection(sel,true);
 
         {
@@ -336,7 +349,7 @@ void Leader::changeRole(vector<Message::node> leaders) {
     }
 }
 
-bool Leader::changeRoles(Message::leader_update update) {
+void Leader::changeRoles(Message::leader_update update) {
     this->connections->sendChangeRoles(update);
     this->changeRole(update.selected);
 }
