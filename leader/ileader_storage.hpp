@@ -1,11 +1,11 @@
-#ifndef IMASTER_STORAGE_HPP_
-#define IMASTER_STORAGE_HPP_
+#ifndef ILEADER_STORAGE_HPP_
+#define ILEADER_STORAGE_HPP_
 
 #include "istorage.hpp"
 #include "message.hpp"
 #include "report.hpp"
 
-class IMasterStorage : virtual public IStorage {
+class ILeaderStorage : virtual public IStorage {
 public:
     virtual Message::node getNode() = 0;
 

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "inputParser.hpp"
-#include "node.hpp"
+#include "follower.hpp"
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     if(input.cmdOptionExists("--max-per-bandwidth"))
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
 
-    Node node(Message::node("",ipR,portR),myPort, threads);
+    Follower node(Message::node("","::1",myPort), threads);
 
     node.setParam(string("time-report"), time_report);
     node.setParam(string("time-tests"), time_tests);
@@ -71,7 +71,9 @@ int main(int argc, char *argv[]) {
     node.setParam(string("max-per-bandwidth"), max_bandwidth);
 
     node.initialize();
-    node.start();
+    vector<Message::node> vec;
+    vec.push_back(Message::node("",ipR,portR));
+    node.start(vec);
 
     int a;
     scanf("%d",&a);

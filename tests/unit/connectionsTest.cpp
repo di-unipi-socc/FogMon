@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "master_connections.hpp"
-#include "imaster_node.hpp"
+#include "leader_connections.hpp"
+#include "ileader.hpp"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -13,7 +13,7 @@ using namespace std;
 Message::node nodeM("idM","","");
 Message::node nodeN("sender","","");
 
-class MStorage : virtual public IMasterStorage {
+class MStorage : virtual public ILeaderStorage {
 protected:
     void createTables() {}
 
@@ -113,7 +113,7 @@ public:
     virtual void addIot(Message::node strIp, Report::IoT iot) {}
 };
 
-class MParent : virtual public IMasterNode {
+class MParent : virtual public ILeader {
 public:
     void start() {};
     void stop() {};
@@ -129,7 +129,15 @@ public:
     int getEstimatePort() {return 8365;}
     Server* getServer() {return NULL;}
 
-    IMasterStorage* getStorage() {return &this->storage;}
+    virtual bool updateSelection(Message::leader_update) { return true; }
+    virtual bool changeRoles(Message::leader_update) { return true; }
+    virtual bool initSelection(int) { return true; }
+    virtual bool calcSelection(Message::node, int, bool&) { return true; }
+    virtual void stopSelection() {}
+
+    void changeRole(std::vector<Message::node> leaders) {}
+
+    ILeaderStorage* getStorage() {return &this->storage;}
 
     MStorage storage;
 };
@@ -350,6 +358,6 @@ TEST(ConnectionsTest, NUpdateNodes) {
     conn.stop();
 }
 
-TEST(ConnectionsMasterTest, Aaaa) {
+TEST(ConnectionsLeaderTest, Aaaa) {
     FAIL();
 }

@@ -1,7 +1,7 @@
 
 
 #include "inputParser.hpp"
-#include "master_node.hpp"
+#include "leader.hpp"
 
 #include <unistd.h>
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
 
 
-    MasterNode node(Message::node(name,"::1",myPort), threads);
+    Leader node(Message::node(name,"::1",myPort), threads);
 
     node.setParam(string("heartbeat"), time_heartbeat);
     node.setParam(string("time-propagation"), time_propagation);
@@ -129,12 +129,12 @@ int main(int argc, char *argv[]) {
     node.setParam(string("max-per-bandwidth"), max_bandwidth);
 
     node.initialize();
-    if(ipR.empty())
-        node.start();
-    else {
-        Message::node remote("",ipR,portR);
-        node.start(&remote);
+    vector<Message::node> vec;
+    if(!ipR.empty()) {
+        vec.push_back(Message::node("",ipR,portR));
     }
+
+    node.start(vec);
 
     int a;
     scanf("%d",&a);

@@ -1,4 +1,4 @@
-#include "master_storage.hpp"
+#include "leader_storage.hpp"
 #include "storage.hpp"
 #include <gtest/gtest.h>
 #include <vector>
@@ -190,9 +190,9 @@ Message::node nodeA("idM","::1","1234567");
 Message::node nodeB("testMNode","::1","12345678");
 Message::node nodeB1("testAAA","::1","1273691");
 
-TEST(StorageMasterTest, AddGetNode) {
+TEST(StorageLeaderTest, AddGetNode) {
     unlink("testB.db");
-    MasterStorage storage(nodeA);
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     Report::hardware_result hw;
     hw.cores = 4;
@@ -201,19 +201,19 @@ TEST(StorageMasterTest, AddGetNode) {
     hw.mean_free_cpu = 0.4;
     hw.memory = 10*1000*1000;
     hw.mean_free_memory = 1*1000*1000;
-    storage.addNode(Message::node("","::1","1234"),hw);
+    storage.addNode(Message::node("1234321","::1","1234"),hw);
     std::vector<Message::node> res = storage.getNodes();
     int dim = 1;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)
-        EXPECT_EQ("idM-0000000000000001", res[0].id);
+        EXPECT_EQ("1234321", res[0].id);
     else
         FAIL();
 }
 
-TEST(StorageMasterTest, FailNullRef) {
+TEST(StorageLeaderTest, FailNullRef) {
     unlink("testB.db");
-    MasterStorage storage(nodeA);
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     Report::hardware_result hw;
     hw.cores = 4;
@@ -265,8 +265,8 @@ TEST(StorageMasterTest, FailNullRef) {
     EXPECT_EQ(dim, res.size()); 
 }
 
-TEST(StorageMasterTest, AddGetMNode) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, AddGetMNode) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     //defualt ::1 as MNode
     storage.addMNode(nodeB);
@@ -286,8 +286,8 @@ TEST(StorageMasterTest, AddGetMNode) {
         FAIL();
 }
 
-TEST(StorageMasterTest, GetHardware) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, GetHardware) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
 
 
@@ -320,8 +320,8 @@ TEST(StorageMasterTest, GetHardware) {
     EXPECT_EQ(hw1.mean_free_memory, hw.mean_free_memory);
 }
 
-TEST(StorageMasterTest, GetMLRHardware) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, GetMLRHardware) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     sleep(2);
     Report::hardware_result hw;
@@ -343,8 +343,8 @@ TEST(StorageMasterTest, GetMLRHardware) {
         FAIL();
 }
 
-TEST(StorageMasterTest, ReportGetMLRLatency) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, ReportGetMLRLatency) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     
     Report::test_result test;
@@ -373,8 +373,8 @@ TEST(StorageMasterTest, ReportGetMLRLatency) {
         FAIL();
 }
 
-TEST(StorageMasterTest, ReportGetMLRBandwidth) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, ReportGetMLRBandwidth) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
 
     Report::test_result test;
@@ -405,8 +405,8 @@ TEST(StorageMasterTest, ReportGetMLRBandwidth) {
         FAIL();
 }
 
-TEST(StorageMasterTest, GetLatency) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, GetLatency) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
 
     vector<Report::test_result> tests = storage.getLatency(node_testtt);
@@ -419,8 +419,8 @@ TEST(StorageMasterTest, GetLatency) {
     }
 }
 
-TEST(StorageMasterTest, GetBandiwdth) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, GetBandiwdth) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     vector<Report::test_result> tests = storage.getBandwidth(node_testtt);
 
@@ -432,8 +432,8 @@ TEST(StorageMasterTest, GetBandiwdth) {
     }
 }
 
-TEST(StorageMasterTest, Complete) {
-    MasterStorage storage(nodeA);
+TEST(StorageLeaderTest, Complete) {
+    LeaderStorage storage(nodeA);
     storage.open("testB.db");
     Report::hardware_result hw;
     hw.cores = 4;

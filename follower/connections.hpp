@@ -1,7 +1,7 @@
 #ifndef CONNECTIONS_HPP_
 #define CONNECTIONS_HPP_
 
-#include "inode.hpp"
+#include "iagent.hpp"
 #include "iconnections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
@@ -13,13 +13,13 @@ class Connections : public IConnections {
 protected:
     void handler(int fd, Message &m);
 
-    INode* parent;
+    IAgent* parent;
 
 public:
     Connections(int nThread);
     ~Connections();
 
-    void initialize(INode *parent);
+    void initialize(IAgent *parent);
 
     std::vector<Message::node> requestMNodes(Message::node ipS); 
     std::vector<Message::node> requestNodes(Message::node ipS);

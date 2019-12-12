@@ -1,26 +1,26 @@
-#ifndef NODE_HPP_
-#define NODE_HPP_
+#ifndef FOLLOWER_HPP_
+#define FOLLOWER_HPP_
 
-#include "inode.hpp"
+#include "iagent.hpp"
 #include "connections.hpp"
 #include "server.hpp"
 #include "factory.hpp"
 #include "iiotdiscoverer.hpp"
 #include "readproc.hpp"
 
-class Node : virtual public INode {
+class Follower : virtual public IAgent {
 public:
-    Node(Message::node node, std::string port, int nThreads);
-    ~Node();
+    Follower(Message::node node, int nThreads);
+    ~Follower();
 
     bool setParam(std::string name, int value);
 
     virtual void initialize(Factory* factory = NULL);
 
     //start listener for incoming ping and directions
-    void start();
+    virtual void start(vector<Message::node> mNodes);
     //stop everything
-    void stop();
+    virtual void stop();
 
     virtual IConnections* getConnections();
     virtual IStorage* getStorage();
@@ -34,13 +34,14 @@ public:
     virtual int getEstimatePort();
 
     virtual Server* getServer();
-protected:
 
-    std::vector<Message::node> mNodes;
+    virtual void changeRole(std::vector<Message::node> leaders);
+protected:
 
     //id and port saved here
     Message::node myNode;
 
+    //configs
     int timeReport;
     int timeTests;
     int timeLatency;
@@ -48,19 +49,21 @@ protected:
     int maxPerLatency;
     int maxPerBandwidth;
 
+    //ports for tests
     int portIperf;
     int portAssolo;
+
+    //processes for tests
     ReadProc *pIperf;
     ReadProc *pAssoloRcv;
     ReadProc *pAssoloSnd;
-
     ReadProc *pTest;
     std::mutex mTest;
 
-    bool running;
-
+    //threads
     std::thread timerThread;
     std::thread timerTestThread;
+
     Server* server;
 
     Connections * connections;
@@ -97,7 +100,7 @@ protected:
     int testPing(std::string ip);
 
     //from ipS and mNodes select the closest server
-    bool selectServer();
+    bool selectServer(vector<Message::node> mNodes);
 
     //get the hardware of this node
     void getHardware();

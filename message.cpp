@@ -146,9 +146,13 @@ bool Message::getData(vector<node>& nodesA, vector<node>& nodesB) {
     return true;
 }
 
- bool Message::getData(Report& report) {
-     return report.parseJson(this->data);
- }
+bool Message::getData(Report& report) {
+    return report.parseJson(this->data);
+}
+
+bool Message::getData(Message::leader_update& update) {
+    return update.setJson(this->data);
+}
 
 void Message::setData(int i) {
 
@@ -221,6 +225,11 @@ void Message::setData(std::vector<node> nodesA, std::vector<node> nodesB) {
 
 void Message::setData(Report& report) {
     this->data = *(report.getJson());
+}
+
+void Message::setData(Message::leader_update& update) {
+    Document::AllocatorType& allocator = doc.GetAllocator();
+    this->data = update.getJson(allocator);
 }
 
 void Message::buildString() {

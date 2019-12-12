@@ -1,6 +1,6 @@
 
-#include "master_connections.hpp"
-#include "master_node.hpp"
+#include "leader_connections.hpp"
+#include "leader.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -21,18 +21,18 @@
 #include <netdb.h>
 #include <iostream>
 
-MasterConnections::MasterConnections(int nThread) : Connections(nThread) {
+LeaderConnections::LeaderConnections(int nThread) : Connections(nThread) {
 }
 
-MasterConnections::~MasterConnections() {
+LeaderConnections::~LeaderConnections() {
 }
 
-void MasterConnections::initialize(IMasterNode* parent) {
+void LeaderConnections::initialize(ILeader* parent) {
     Connections::initialize(parent);
     this->parent = parent;
 }
 
-void MasterConnections::handler(int fd, Message &m) {
+void LeaderConnections::handler(int fd, Message &m) {
     string strIp = this->getSource(fd,m);
 
     bool handled = false;
@@ -81,6 +81,75 @@ void MasterConnections::handler(int fd, Message &m) {
             vector<Message::node> v2;
 
             this->parent->getStorage()->updateNodes(v,v2);
+        }else if(m.getCommand() == Message::Command::SELECTION_INIT) {
+            Message::node node = m.getSender();
+            int id;
+            m.getData(id);
+            bool r = this->parent->initSelection(id);
+            Message res;
+            res.setType(Message::Type::MRESPONSE);
+            res.setCommand(Message::Command::SELECTION_INIT);
+
+            if(r) {
+                res.setArgument(Message::Argument::POSITIVE);
+            }else {
+                res.setArgument(Message::Argument::NEGATIVE);
+            }
+            sendMessage(fd, res);
+        }else if(m.getCommand() == Message::Command::SELECTION_START) {
+            Message::node node = m.getSender();
+            int id;
+            m.getData(id);
+            bool e;
+            bool r = this->parent->calcSelection(node,id,e);
+            Message res;
+            res.setType(Message::Type::MRESPONSE);
+            res.setCommand(Message::Command::SELECTION_START);
+
+            if(r) {
+                if(e) {
+                    res.setArgument(Message::Argument::POSITIVE);
+                }else {
+                    res.setArgument(Message::Argument::NONE);
+                }
+            }else {
+                res.setArgument(Message::Argument::NEGATIVE);
+            }
+            sendMessage(fd, res);
+        }else if(m.getCommand() == Message::Command::SELECTION) {
+            Message::leader_update update;
+            m.getData(update);
+            bool r = this->parent->updateSelection(update);
+            Message res;
+            res.setType(Message::Type::MRESPONSE);
+            res.setCommand(Message::Command::SELECTION);
+            
+            if(r) {
+                res.setArgument(Message::Argument::POSITIVE);
+            }else {
+                res.setArgument(Message::Argument::NEGATIVE);
+            }
+            sendMessage(fd, res);
+        }else if(m.getCommand() == Message::Command::SELECTION_END) {
+            Message::leader_update update;
+            m.getData(update);
+            bool r = true;
+
+            if(m.getArgument() == Message::Argument::POSITIVE) {
+                r = this->parent->changeRoles(update);
+            }
+            this->parent->stopSelection();
+
+            Message res;
+            res.setType(Message::Type::MRESPONSE);
+            res.setCommand(Message::Command::SELECTION_END);
+            
+            if(r) {
+                res.setArgument(Message::Argument::POSITIVE);
+            }else {
+                res.setArgument(Message::Argument::NEGATIVE);
+            }
+            sendMessage(fd, res);
         }
     }else if(m.getType() == Message::Type::REQUEST) {
         if(m.getArgument() == Message::Argument::NODES) {
@@ -144,10 +213,10 @@ void MasterConnections::handler(int fd, Message &m) {
                 r.getHardware(hardware);
 
                 Message::node sender = m.getSender();
-                sender.id = "";
-                if(sender.ip == "::1" && sender.port == this->parent->getMyNode().port) {
-                    sender.id = this->parent->getMyNode().id;
-                }
+                //sender.id = "";
+                //if(sender.ip == "::1" && sender.port == this->parent->getMyNode().port) {
+                //    sender.id = this->parent->getMyNode().id;
+                //}
 
                 //set new node online                
                 sender.id = this->parent->getStorage()->addNode(sender, hardware);
@@ -215,7 +284,34 @@ void MasterConnections::handler(int fd, Message &m) {
         Connections::handler(fd, m);
 }
 
-bool MasterConnections::sendRemoveNodes(std::vector<Message::node> ips) {
+bool LeaderConnections::notifyAllM(Message &m) {
+    vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
+    int num = 0;
+    for(auto node : nodes) {
+        int fd = this->openConnection(node.ip);
+        if(fd >= 0 ) {
+            if(this->sendMessage(fd,m)) {
+                Message res;
+                if(this->getMessage(fd, res)) {
+                    if( res.getType()==Message::Type::MRESPONSE &&
+                        res.getCommand() == m.getCommand()) {
+                        if(res.getArgument() == Message::Argument::POSITIVE) {
+                            num++;
+                        }
+                        else if(res.getArgument() == Message::Argument::NEGATIVE) {
+                            close(fd);
+                            return false;
+                        }
+                    }
+                }
+            }
+            close(fd);
+        }
+    }
+    return num;
+}
+
+bool LeaderConnections::sendRemoveNodes(std::vector<Message::node> ips) {
     Message broadcast;
     broadcast.setSender(this->parent->getMyNode());
     broadcast.setType(Message::Type::NOTIFY);
@@ -228,7 +324,7 @@ bool MasterConnections::sendRemoveNodes(std::vector<Message::node> ips) {
     return this->notifyAll(broadcast);
 }
 
-bool MasterConnections::sendRequestReport(Message::node ip) {
+bool LeaderConnections::sendRequestReport(Message::node ip) {
     int Socket = openConnection(ip.ip,ip.port);
     
     if(Socket < 0) {
@@ -282,7 +378,7 @@ bool MasterConnections::sendRequestReport(Message::node ip) {
     return ret;
 }
 
-bool MasterConnections::sendMReport(Message::node ip, vector<Report::report_result> report) {
+bool LeaderConnections::sendMReport(Message::node ip, vector<Report::report_result> report) {
     int Socket = this->openConnection(ip.ip, ip.port);
     if(Socket < 0) {
         return false;
@@ -294,7 +390,7 @@ bool MasterConnections::sendMReport(Message::node ip, vector<Report::report_resu
     //build message
     Message m;
     m.setSender(this->parent->getMyNode());
-    m.setType(Message::Type::MREQUEST);//TODO
+    m.setType(Message::Type::MREQUEST);
     m.setCommand(Message::Command::SET);
     m.setArgument(Message::Argument::REPORT);
 
@@ -319,7 +415,7 @@ bool MasterConnections::sendMReport(Message::node ip, vector<Report::report_resu
     return ret;
 }
 
-bool MasterConnections::sendMHello(Message::node ip) {
+bool LeaderConnections::sendMHello(Message::node ip) {
     int Socket = this->openConnection(ip.ip, ip.port);
     if(Socket < 0) {
         return false;
@@ -331,7 +427,7 @@ bool MasterConnections::sendMHello(Message::node ip) {
     //build message
     Message m;
     m.setSender(this->parent->getMyNode());
-    m.setType(Message::Type::MREQUEST);//TODO
+    m.setType(Message::Type::MREQUEST);
     m.setCommand(Message::Command::MHELLO);
     m.setArgument(Message::Argument::REPORT);
     m.setData(this->parent->getStorage()->getNode());
@@ -360,4 +456,85 @@ bool MasterConnections::sendMHello(Message::node ip) {
     }
     close(Socket);
     return ret;
+}
+
+bool LeaderConnections::sendInitiateSelection(int id) {
+    Message broadcast;
+    broadcast.setSender(this->parent->getMyNode());
+    broadcast.setType(Message::Type::MREQUEST);
+    broadcast.setCommand(Message::Command::SELECTION_INIT);
+    broadcast.setArgument(Message::Argument::NONE);
+
+    broadcast.setData(id);
+
+    return this->notifyAllM(broadcast);
+}
+
+bool LeaderConnections::sendStartSelection(int id) {
+    Message broadcast;
+    broadcast.setSender(this->parent->getMyNode());
+    broadcast.setType(Message::Type::MREQUEST);
+    broadcast.setCommand(Message::Command::SELECTION_START);
+    broadcast.setArgument(Message::Argument::NONE);
+
+    broadcast.setData(id);
+
+    return this->notifyAllM(broadcast);
+}
+
+bool LeaderConnections::sendSelection(Message::leader_update update, Message::node node) {
+    int Socket = this->openConnection(node.ip, node.port);
+    if(Socket < 0) {
+        return false;
+    }
+
+    Message m;
+    m.setSender(this->parent->getMyNode());
+    m.setType(Message::Type::MREQUEST);
+    m.setCommand(Message::Command::SELECTION);
+    m.setArgument(Message::Argument::NONE);
+
+    m.setData(update);
+
+    //send message
+    if(this->sendMessage(Socket, m)) {
+        Message res;
+        if(this->getMessage(Socket, res)) {
+            if( res.getType()==Message::Type::MRESPONSE &&
+                res.getCommand() == Message::Command::SELECTION &&
+                res.getArgument() == Message::Argument::POSITIVE) {
+
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool LeaderConnections::sendEndSelection(Message::leader_update update, bool result) {
+    Message broadcast;
+    broadcast.setSender(this->parent->getMyNode());
+    broadcast.setType(Message::Type::MREQUEST);
+    broadcast.setCommand(Message::Command::SELECTION_END);
+    if(result) {
+        broadcast.setArgument(Message::Argument::POSITIVE);
+    }else {
+        broadcast.setArgument(Message::Argument::NEGATIVE);
+    }
+    
+    broadcast.setData(update);
+
+    return this->notifyAllM(broadcast);
+}
+
+bool LeaderConnections::sendChangeRoles(Message::leader_update update) {
+    Message broadcast;
+    broadcast.setSender(this->parent->getMyNode());
+    broadcast.setType(Message::Type::REQUEST);
+    broadcast.setCommand(Message::Command::SET);
+    broadcast.setArgument(Message::Argument::ROLES);
+
+    broadcast.setData(update);
+
+    return this->notifyAll(broadcast);
 }

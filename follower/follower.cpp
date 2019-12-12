@@ -1,4 +1,4 @@
-#include "node.hpp"
+#include "follower.hpp"
 #include <sys/statvfs.h>
 #include <sys/sysinfo.h>
 
@@ -26,20 +26,20 @@
 #include "microbit/microbit_discoverer.hpp"
 
 #include "storage.hpp"
+#include "node.hpp"
 
 using namespace std;
 using namespace rapidjson;
 
-Node::Node(Message::node node, string port, int nThreads) {
+Follower::Follower(Message::node node, int nThreads) : IAgent() {
     this->nThreads = nThreads;
-    this->running = false;
     this->timeReport = 30;
     this->timeTests = 30;
     this->timeLatency = 30;
     this->maxPerLatency = 100;
     this->timeBandwidth = 600;
-    this->maxPerBandwidth = 1; 
-    this->nodeS = node;
+    this->maxPerBandwidth = 1;
+
     this->storage = NULL;
     this->connections = NULL;
     this->server = NULL;
@@ -47,11 +47,10 @@ Node::Node(Message::node node, string port, int nThreads) {
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
     this->pTest = NULL;
-    this->myNode.port = port;
-    this->myNode.id = "";
+    this->myNode = node;
 }
 
-void Node::initialize(Factory* fact) {
+void Follower::initialize(Factory* fact) {
     if(fact == NULL) {
         this->factory = &this->tFactory;
     }else {
@@ -66,7 +65,7 @@ void Node::initialize(Factory* fact) {
     this->server = this->factory->newServer(this->connections,5555);
 }
 
-Node::~Node() {
+Follower::~Follower() {
     this->stop();
     try{
         delete this->connections;
@@ -80,11 +79,10 @@ Node::~Node() {
         delete this->server;
         this->server = NULL;
     }catch(...) {}
-    exit(0);
 }
 
-void Node::start() {
-    this->running = true;
+void Follower::start(vector<Message::node> mNodes) {
+    IAgent::start(mNodes);
     this->server->start();
     srandom(time(nullptr));
 
@@ -100,15 +98,15 @@ void Node::start() {
     }
 
     this->getHardware();
-    mNodes = this->connections->requestMNodes(this->nodeS);
-    if(!selectServer()) {
+
+    if(!selectServer(mNodes)) {
         fprintf(stderr,"Cannot connect to the main node\n");
         this->stop();
         exit(1);
     }
 
-    this->timerThread = thread(&Node::timer, this);
-    this->timerTestThread = thread(&Node::TestTimer, this);
+    this->timerThread = thread(&Follower::timer, this);
+    this->timerTestThread = thread(&Follower::TestTimer, this);
 }
 
 void signalHandler( int signum ) {
@@ -116,7 +114,8 @@ void signalHandler( int signum ) {
 }
 
 
-void Node::stop() {
+void Follower::stop() {
+    IAgent::stop();
     if(this->pIperf)
         delete this->pIperf;
     if(this->pAssoloRcv)
@@ -124,7 +123,7 @@ void Node::stop() {
     if(this->pAssoloSnd)
         delete this->pAssoloSnd;
     {
-        std::unique_lock<std::mutex> lock(this->mTest);
+        std::lock_guard<std::mutex> lock(this->mTest);
         if(this->pTest)
             delete this->pTest;
         this->pTest = NULL;
@@ -132,7 +131,6 @@ void Node::stop() {
     this->pIperf = NULL;
     this->pAssoloRcv = NULL;
     this->pAssoloSnd = NULL;
-    this->running = false;
     if(this->timerThread.joinable())
     {
         this->timerThread.join();
@@ -149,12 +147,13 @@ void Node::stop() {
         this->storage->close();
 }
 
-bool Node::selectServer() {
+bool Follower::selectServer(vector<Message::node> mNodes) {
     //ask the MNodes list and select one MNode with the min latency
     cout << "Selecting server..." << endl;
     vector<Message::node> res;
     int i=0;
     while(res.empty() && i<mNodes.size()) {
+        cout << "trying "<<mNodes[i].ip<<endl;
         res = this->connections->requestMNodes(mNodes[i]);
         for(int j=0; j<res.size(); j++)
         {
@@ -164,7 +163,7 @@ bool Node::selectServer() {
         i++;
     }
     if(!res.empty())
-        mNodes = res;
+        this->node->setMNodes(res);
     else {
         //try connecting anyway
         res = mNodes;
@@ -192,15 +191,15 @@ bool Node::selectServer() {
     return false;
 }
 
-IConnections* Node::getConnections() {
+IConnections* Follower::getConnections() {
     return (IConnections*)(&(this->connections));
 }
 
-IStorage* Node::getStorage() {
+IStorage* Follower::getStorage() {
     return this->storage;
 }
 
-int Node::startIperf() {
+int Follower::startIperf() {
 
     int port = random()%1000 + 5600;
 
@@ -211,7 +210,7 @@ int Node::startIperf() {
 
     char *args[] = {"/bin/iperf3", "-s","-p",command, NULL };
     ReadProc *proc = new ReadProc(args);
-    usleep(50*1000);
+    sleeper.sleepFor(chrono::milliseconds(50));
     int res = proc->nowaitproc();
 
     if(res != 0) {
@@ -223,7 +222,7 @@ int Node::startIperf() {
     return -1;
 }
 
-int Node::startEstimate() {
+int Follower::startEstimate() {
     
     
     int port = random()%2000 + 5600;
@@ -239,7 +238,7 @@ int Node::startEstimate() {
     char *args2[] = {"./assolo_snd", command, NULL };
     ReadProc *proc2 = new ReadProc(args2);
 
-    usleep(50*1000);
+    sleeper.sleepFor(chrono::milliseconds(50));
     int res1 = proc1->nowaitproc();
     int res2 = proc2->nowaitproc();
 
@@ -249,13 +248,14 @@ int Node::startEstimate() {
         this->portAssolo = port;
         return 0;
     }else {
-        proc1->killproc();
-        proc2->killproc();
+        delete proc1;
+        delete proc2;
+
     }
     return -1;
 }
 
-float Node::testBandwidthIperf(string ip, int port) {
+float Follower::testBandwidthIperf(string ip, int port) {
     char command[256];
     if(port > 0) {
         sprintf(command, "iperf3 -c %s -p %d -t 1 -i 1 -J 2>&1", ip.c_str(), port);
@@ -305,7 +305,7 @@ float Node::testBandwidthIperf(string ip, int port) {
     return -1;
 }
 
-float Node::testBandwidthEstimate(string ip, string myIp, float old) {
+float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
     
     if(old < 0) {
         return -1;
@@ -322,15 +322,17 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
 
 
     {
-        std::unique_lock<std::mutex> lock(this->mTest);
-        if(this->pTest)
+        std::lock_guard<std::mutex> lock(this->mTest);
+        if(this->pTest) {
+            delete proc;
             return -1;
+        }
         this->pTest = proc;
     }
     
 
     while(proc->nowaitproc() != 0) {
-        usleep(100*1000);
+        sleeper.sleepFor(chrono::milliseconds(100));
     }
 
     int exit_code = 0;
@@ -389,7 +391,7 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
     }
 
     {
-        std::unique_lock<std::mutex> lock(this->mTest);
+        std::lock_guard<std::mutex> lock(this->mTest);
         if(this->pTest)
             delete this->pTest;
         this->pTest = NULL;
@@ -397,7 +399,7 @@ float Node::testBandwidthEstimate(string ip, string myIp, float old) {
     return ret;
 }
 
-int Node::testPing(string ip) {
+int Follower::testPing(string ip) {
     char command[1024];
     sprintf(command, "ping -c 3 %s 2>&1", ip.c_str());
     string mode = "r";
@@ -440,7 +442,7 @@ int Node::testPing(string ip) {
     return -1;
 }
 
-void Node::getHardware() {
+void Follower::getHardware() {
 
     int status, i;
     sigar_t *sigar;
@@ -465,7 +467,7 @@ void Node::getHardware() {
                status, sigar_strerror(sigar, status));
         exit(1);
     }
-    sleep(1);
+    sleeper.sleepFor(chrono::seconds(1));
     status = sigar_cpu_get(sigar, &cpuT2);
     if (status != SIGAR_OK) {
         printf("cpu error: %d (%s)\n",
@@ -494,7 +496,7 @@ void Node::getHardware() {
     sigar_close(sigar);
 }
 
-void Node::timer() {
+void Follower::timer() {
     int iter=0;
     while(this->running) {
         //generate hardware report and send it
@@ -507,7 +509,7 @@ void Node::timer() {
             if(ris == false) {
                 //change server
                 cout << "Changing server..." << endl;
-                if(!selectServer()) {
+                if(!selectServer(this->node->getMNodes())) {
                     cout << "Failed to find a server!!!!!!!!" << endl;
                 }
             }
@@ -544,16 +546,16 @@ void Node::timer() {
                     if(res[j].ip==std::string("::1")||res[j].ip==std::string("127.0.0.1"))
                         res[j].ip = this->nodeS.ip;
                 }
-                mNodes = res;
+                this->node->setMNodes(res);
             }
         }
 
-        sleep(this->timeReport);
+        sleeper.sleepFor(chrono::seconds(this->timeReport));
         iter++;
     }
 }
 
-void Node::testIoT() {
+void Follower::testIoT() {
     MicrobitDiscoverer discoverer;
     vector<IThing*> things = discoverer.discover();
 
@@ -566,7 +568,7 @@ void Node::testIoT() {
     }
 }
 
-void Node::TestTimer() {
+void Follower::TestTimer() {
     int iter=0;
     while(this->running) {
         //monitor IoT
@@ -609,13 +611,13 @@ void Node::TestTimer() {
             i++;
         }
 
-        sleep(this->timeTests);
+        sleeper.sleepFor(chrono::milliseconds(this->timeTests));
         iter++;
     }
 }
 
 
-float Node::testBandwidth(Message::node ip, float old, int &state) {
+float Follower::testBandwidth(Message::node ip, float old, int &state) {
     float result = -1;
     int port;
     string myIp;
@@ -665,19 +667,19 @@ float Node::testBandwidth(Message::node ip, float old, int &state) {
     return result;
 }
 
-void Node::setMyId(std::string id) {
+void Follower::setMyId(std::string id) {
     this->myNode.id = id;
 }
 
-Message::node Node::getMyNode() {
+Message::node Follower::getMyNode() {
     return this->myNode;
 }
 
-Server* Node::getServer() {
+Server* Follower::getServer() {
     return this->server;
 }
 
-bool Node::setParam(std::string name, int value) {
+bool Follower::setParam(std::string name, int value) {
     if(value <= 0)
         return false;
 
@@ -700,10 +702,19 @@ bool Node::setParam(std::string name, int value) {
     return true;
 }
 
-int Node::getIperfPort() {
+int Follower::getIperfPort() {
     return this->portIperf;
 }
 
-int Node::getEstimatePort() {
+int Follower::getEstimatePort() {
     return this->portAssolo;
+}
+
+void Follower::changeRole(vector<Message::node> leaders) {
+    for(auto l : leaders) {
+        if(l == this->myNode) {
+            this->node->promote();
+            return;
+        }
+    }   
 }

@@ -36,6 +36,7 @@ def avg_dist(matrix,cluster,medoid):
     return m/(len(cluster)-1)
 
 def quality(matrix,clusters,medoids):
+    #TODO: add linear combination of changed medoids to the cost
     v = 0
     avgs = [avg_dist(matrix,clusters[i],medoids[i]) for i in range(len(medoids))]
     print(avgs)
@@ -65,6 +66,7 @@ for i in range(4):
     medoids = kmedoids_instance.get_medoids()
     clusters = kmedoids_instance.get_clusters()
     q = quality(matrix,clusters,medoids)
+    print(q)
     if m==0:
         m=q
         instance = kmedoids_instance
@@ -102,3 +104,6 @@ print(pos)
 visualizer = cluster_visualizer()
 visualizer.append_clusters(clusters, pos)
 visualizer.show()
+
+
+

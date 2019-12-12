@@ -1,12 +1,12 @@
-#ifndef MASTER_STORAGE_HPP_
-#define MASTER_STORAGE_HPP_
+#ifndef LEADER_STORAGE_HPP_
+#define LEADER_STORAGE_HPP_
 
 #include "storage.hpp"
-#include "imaster_storage.hpp"
+#include "ileader_storage.hpp"
 #include "message.hpp"
 #include "report.hpp"
 
-class MasterStorage : public Storage, virtual public IMasterStorage {
+class LeaderStorage : public Storage, virtual public ILeaderStorage {
 protected:
     virtual void createTables();
     void addTest(Message::node nodeA, Message::node nodeB, Report::test_result test, std::string type);
@@ -14,8 +14,8 @@ protected:
     Message::node nodeM;
 
 public:
-    MasterStorage(Message::node node);
-    virtual ~MasterStorage();
+    LeaderStorage(Message::node node);
+    virtual ~LeaderStorage();
 
     Message::node getNode();
 

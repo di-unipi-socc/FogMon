@@ -3,7 +3,7 @@
 #include <string>
 #include <thread>
 
-class INode;
+class IAgent;
 class IConnections;
 
 #include <thread>

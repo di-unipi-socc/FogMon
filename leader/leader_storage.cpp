@@ -1,4 +1,4 @@
-#include "master_storage.hpp"
+#include "leader_storage.hpp"
 #include <string.h>
 #include <vector>
 #include <sstream>
@@ -6,14 +6,14 @@
 
 using namespace std;
 
-MasterStorage::MasterStorage(Message::node node) : Storage() {
+LeaderStorage::LeaderStorage(Message::node node) : Storage() {
     this->nodeM = node;
 }
 
-MasterStorage::~MasterStorage() {
+LeaderStorage::~LeaderStorage() {
 }
 
-void MasterStorage::createTables() {
+void LeaderStorage::createTables() {
     Storage::createTables();
     char *zErrMsg = 0;
     
@@ -34,60 +34,12 @@ void MasterStorage::createTables() {
     }
 }
 
-Message::node MasterStorage::getNode() {
+Message::node LeaderStorage::getNode() {
     return this->nodeM;
 }
 
-std::string MasterStorage::addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored) {
+std::string LeaderStorage::addNode(Message::node node, Report::hardware_result hardware, Message::node *monitored) {
     char *zErrMsg = 0;
-    
-    if(node.id == "") 
-    {
-        //get old id if present, else generate the new id
-
-        stringstream query;
-        vector<Message::node> nodes;
-
-        query << "SELECT id,ip,port FROM MNodes WHERE ip = \""+ node.ip+"\" AND port = \""+node.port+"\" AND monitoredBy = \""<< this->nodeM.id <<"\" LIMIT 1";
-        int err = sqlite3_exec(this->db, query.str().c_str(), VectorNodeCallback, &nodes, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error (get node %s): %s\n", query.str().c_str(),zErrMsg);
-            sqlite3_free(zErrMsg);
-            exit(1);
-        }
-        if(nodes.size() > 0) {
-            //exist alread
-            node.id = nodes[0].id;
-        }else {
-            stringstream query;
-            vector<Message::node> nodes;
-
-            query << "SELECT id,ip,port FROM MNodes WHERE monitoredBy = \""<< this->nodeM.id <<"\" ORDER BY id DESC LIMIT 1";
-            int err = sqlite3_exec(this->db, query.str().c_str(), VectorNodeCallback, &nodes, &zErrMsg);
-            if( err!=SQLITE_OK )
-            {
-                fprintf(stderr, "SQL error (get node %s): %s\n", query.str().c_str(),zErrMsg);
-                sqlite3_free(zErrMsg);
-                exit(1);
-            }
-
-            int base = 0;
-
-            if(nodes.size() > 0) {
-                try {
-                    int num = stol(nodes[0].id.substr(this->nodeM.id.size()+1));
-                    base = num;
-                }catch (...) {
-
-                }
-            }
-            char id[256];
-            snprintf(id,256,"%s-%016d",this->nodeM.id.c_str(),base+1);
-            node.id = string(id);
-        }
-    }
-
     
     stringstream query;
     query <<    "INSERT OR REPLACE INTO MNodes"
@@ -112,7 +64,7 @@ std::string MasterStorage::addNode(Message::node node, Report::hardware_result h
     return node.id;
 }
 
-void MasterStorage::addIot(Message::node node, Report::IoT iot) {
+void LeaderStorage::addIot(Message::node node, Report::IoT iot) {
     char *zErrMsg = 0;
     char buf[1024];
     if(node.id == "") {
@@ -129,7 +81,7 @@ void MasterStorage::addIot(Message::node node, Report::IoT iot) {
     }
 }
 
-vector<Message::node> MasterStorage::getNodes() {
+vector<Message::node> LeaderStorage::getNodes() {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT id,ip,port FROM MNodes WHERE monitoredBy = \"%s\"",this->nodeM.id.c_str());
@@ -147,7 +99,7 @@ vector<Message::node> MasterStorage::getNodes() {
     return nodes;
 }
 
-void MasterStorage::addTest(Message::node nodeA, Message::node nodeB, Report::test_result test, string type) {
+void LeaderStorage::addTest(Message::node nodeA, Message::node nodeB, Report::test_result test, string type) {
     char *zErrMsg = 0;
     char buf[2048];
     if(type == string("Latency")) {
@@ -178,33 +130,33 @@ void MasterStorage::addTest(Message::node nodeA, Message::node nodeB, Report::te
     }
 }
 
-void MasterStorage::addReportLatency(Message::node node, vector<Report::test_result> latency) {
+void LeaderStorage::addReportLatency(Message::node node, vector<Report::test_result> latency) {
     for(auto test : latency) {
         this->addTest(node, test.target, test, "Latency");
         this->addTest(test.target, node, test, "Latency"); //because is symmetric
     }
 }
 
-void MasterStorage::addReportBandwidth(Message::node node, vector<Report::test_result> bandwidth) {
+void LeaderStorage::addReportBandwidth(Message::node node, vector<Report::test_result> bandwidth) {
     for(auto test : bandwidth) {
         this->addTest(node, test.target, test, "Bandwidth"); //asymmetric
     }
 }
 
- void MasterStorage::addReportIot(Message::node node, std::vector<Report::IoT> iots) {
+ void LeaderStorage::addReportIot(Message::node node, std::vector<Report::IoT> iots) {
     for(auto iot : iots) {
         this->addIot(node, iot);
     }
  }
 
-void MasterStorage::addReport(Report::report_result result, Message::node *monitored) {
+void LeaderStorage::addReport(Report::report_result result, Message::node *monitored) {
     this->addNode(result.source, result.hardware, monitored);
     this->addReportLatency(result.source, result.latency);
     this->addReportBandwidth(result.source, result.bandwidth);
     this->addReportIot(result.source, result.iot);
 }
 
-void MasterStorage::addReport(std::vector<Report::report_result> results, Message::node node) {
+void LeaderStorage::addReport(std::vector<Report::report_result> results, Message::node node) {
     for(auto &result : results) {
         if(result.source.ip == string("::1"))
             result.source.ip = node.ip;
@@ -223,7 +175,7 @@ void MasterStorage::addReport(std::vector<Report::report_result> results, Messag
     }
 }
 
-std::vector<Message::node> MasterStorage::getMLRLatency(int num, int seconds) {
+std::vector<Message::node> LeaderStorage::getMLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,   "SELECT id,ip,port FROM "
@@ -248,7 +200,7 @@ std::vector<Message::node> MasterStorage::getMLRLatency(int num, int seconds) {
     return nodes;
 }
 
-std::vector<Message::node> MasterStorage::getMLRBandwidth(int num, int seconds) {
+std::vector<Message::node> LeaderStorage::getMLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,   "SELECT id,ip,port FROM "
@@ -272,7 +224,7 @@ std::vector<Message::node> MasterStorage::getMLRBandwidth(int num, int seconds) 
     return nodes;
 }
 
-std::vector<Message::node> MasterStorage::getMLRHardware(int num, int seconds) {
+std::vector<Message::node> LeaderStorage::getMLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT id,ip,port FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%ld-strftime('%%s','now') <= 0 ORDER BY lasttime LIMIT %d", this->nodeM.id.c_str(), seconds, num);
@@ -290,7 +242,7 @@ std::vector<Message::node> MasterStorage::getMLRHardware(int num, int seconds) {
     return nodes;
 }
 
-vector<Message::node> MasterStorage::getMNodes() {
+vector<Message::node> LeaderStorage::getMNodes() {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT id,ip,port FROM MMNodes ORDER BY RANDOM()");
@@ -308,7 +260,7 @@ vector<Message::node> MasterStorage::getMNodes() {
     return nodes;
 }
 
-void MasterStorage::addMNode(Message::node node) {
+void LeaderStorage::addMNode(Message::node node) {
     char *zErrMsg = 0;
     char buf[1024];
     if(ip == "") {
@@ -325,7 +277,7 @@ void MasterStorage::addMNode(Message::node node) {
     }
 }
 
-vector<Report::report_result> MasterStorage::getReport() {
+vector<Report::report_result> LeaderStorage::getReport() {
     vector<Message::node> ips = this->getNodes();
     vector<Report::report_result> res;
 
@@ -336,7 +288,7 @@ vector<Report::report_result> MasterStorage::getReport() {
     return res;
 }
 
-Report::hardware_result MasterStorage::getHardware(Message::node node) {
+Report::hardware_result LeaderStorage::getHardware(Message::node node) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT * FROM MNodes WHERE id = \"%s\" GROUP BY ip", node.id.c_str());
@@ -354,7 +306,7 @@ Report::hardware_result MasterStorage::getHardware(Message::node node) {
     return r;
 }
 
-std::vector<Report::test_result> MasterStorage::getLatency(Message::node node) {
+std::vector<Report::test_result> LeaderStorage::getLatency(Message::node node) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT N2.id, N2.ip, N2.port, M.meanL as mean, M.varianceL as variance, strftime('%%s',M.lasttimeL) as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.id = \"%s\" group by N2.id", node.id.c_str());
@@ -372,7 +324,7 @@ std::vector<Report::test_result> MasterStorage::getLatency(Message::node node) {
     return tests;
 }
 
-std::vector<Report::test_result> MasterStorage::getBandwidth(Message::node node) {
+std::vector<Report::test_result> LeaderStorage::getBandwidth(Message::node node) {
     char *zErrMsg = 0;
     char buf[1024];
     std::sprintf(buf,"SELECT N2.id, N2.ip, N2.port, M.meanB as mean, M.varianceB as variance, strftime('%%s',M.lasttimeB) as time FROM MLinks AS M JOIN MNodes AS N1 JOIN MNodes AS N2 WHERE N1.id=M.idA AND N2.id=M.idB AND N1.id = \"%s\" group by N2.id", node.id.c_str());
@@ -390,7 +342,7 @@ std::vector<Report::test_result> MasterStorage::getBandwidth(Message::node node)
     return tests;
 }
 
-Report::report_result MasterStorage::getReport(Message::node node) {
+Report::report_result LeaderStorage::getReport(Message::node node) {
     Report::report_result r;
     r.source = node;
 
@@ -403,7 +355,7 @@ Report::report_result MasterStorage::getReport(Message::node node) {
     return r;
 }
 
-void MasterStorage::complete() {
+void LeaderStorage::complete() {
     char *zErrMsg = 0;
     char buf[2048];
     std::sprintf(buf,

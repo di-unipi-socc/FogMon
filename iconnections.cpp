@@ -1,6 +1,6 @@
 
 #include "iconnections.hpp"
-#include "inode.hpp"
+#include "iagent.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +40,7 @@ IConnections::~IConnections() {
     delete [] this->workers;
 }
 
-void IConnections::initialize(INode *parent) {
+void IConnections::initialize(IAgent *parent) {
     this->parent = parent;
 }
 

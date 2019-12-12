@@ -25,7 +25,7 @@ Connections::Connections(int nThread) : IConnections(nThread) {
 Connections::~Connections() {
 }
 
-void Connections::initialize(INode *parent) {
+void Connections::initialize(IAgent *parent) {
     IConnections::initialize(parent);
     this->parent = parent;
 }
@@ -128,7 +128,13 @@ void Connections::handler(int fd, Message &m) {
                 if(this->sendMessage(fd, res)) {
                     
                 }
-                
+            }
+        }else if(m.getArgument() == Message::Argument::ROLES) {
+            if(m.getCommand() == Message::Command::SET) {
+                vector<Message::node> leaders;
+                //contains the list of new leaders
+                m.getData(leaders);
+                this->parent->changeRole(leaders);
             }
         }
     }else if(m.getType() == Message::Type::NOTIFY) {
@@ -256,7 +262,6 @@ bool Connections::sendHello(Message::node ipS) {
                 vector<Message::node> vec;
                 if(res.getData(node, vec)) {
                     cout << "My id: " << node.id << " " << node.ip << ":" << node.port << endl;
-                    this->parent->setMyId(node.id);
                     this->parent->getStorage()->setFilter(ipS.ip);
                     this->parent->getStorage()->refreshNodes(vec);
                     result = true;

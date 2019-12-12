@@ -11,10 +11,21 @@ public:
     ReadProc(char ** args);
     ~ReadProc();
 
+    //kill the process
+    //return    0 if success
+    //          -1 if error or not running
     int killproc();
 
+    //wait for the process to terminate
+    //return    exitcode
+    //          0 if unnatural death
+    //          -1 if not running
     int waitproc();
 
+    //test if is still running
+    //return    exitcode if terminated
+    //          0 if is terminated with no exitcode
+    //          -1 if still running
     int nowaitproc();
 
     std::string readoutput();

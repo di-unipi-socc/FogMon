@@ -1,9 +1,9 @@
 #ifndef ICONNECTIONS_HPP_
 #define ICONNECTIONS_HPP_
 
-class INode;
+class IAgent;
 
-#include "inode.hpp"
+#include "iagent.hpp"
 #include "queue.hpp"
 #include "message.hpp"
 #include "istorage.hpp"
@@ -22,7 +22,7 @@ class INode;
 using namespace std;
 class IConnections {
 protected:
-    INode *parent;
+    IAgent *parent;
     Queue<int> queue;
 
     atomic<bool> running;
@@ -47,7 +47,7 @@ public:
     IConnections(int nThread);
     ~IConnections();
 
-    void initialize(INode *parent);
+    void initialize(IAgent *parent);
 
     void start();
     void stop();
