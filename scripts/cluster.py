@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from pyclustering.cluster.kmedoids import kmedoids
 from pyclustering.cluster import cluster_visualizer
 from pyclustering.utils import read_sample
@@ -30,7 +31,7 @@ def quality(matrix,clusters,medoids):
         v += m
     return v/len(medoids)
 
-conn = sqlite3.connect('master_node.db')
+conn = sqlite3.connect('leader_node.db')
 c = conn.cursor()
 
 Nodes = c.execute('SELECT * FROM MNodes').fetchall()
@@ -39,24 +40,23 @@ Leaders = c.execute('SELECT * FROM MMNodes').fetchall()
 L = len(Leaders)
 LeadersIds = []
 for i in Leaders:
-    LeadersIds.append(i[0])
+    LeadersIds.append(str(i[0]))
 
 N = len(Nodes)
 
 D = {}
 for i in range(N):
-    D[Nodes[i][0]]=i
+    D[str(Nodes[i][0])]=i
 
 A = [[None for _ in range(N)] for _ in range(N)]
 
 avg = 0
 n = 0
 for a in c.execute('SELECT * FROM MLinks'):
-    A[D[a[0]]][D[a[1]]] = a[2]
+    A[D[str(a[0])]][D[str(a[1])]] = a[2]
     if a[2] != None:
         avg += a[2]
         n+=1
-
 avg /= n
 for i in range(len(A)):
     for j in range(len(A[i])):
@@ -97,7 +97,7 @@ new_leaders = []
 
 for i in D:
     if D[i] in medoids:
-        new_leaders.append(i)
+        new_leaders.append(str(i))
 
 changes = 0
 

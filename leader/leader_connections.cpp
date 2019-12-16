@@ -21,7 +21,7 @@
 #include <netdb.h>
 #include <iostream>
 
-LeaderConnections::LeaderConnections(int nThread) : Connections(nThread) {
+LeaderConnections::LeaderConnections(int nThread) : FollowerConnections(nThread) {
 }
 
 LeaderConnections::~LeaderConnections() {
@@ -281,7 +281,7 @@ void LeaderConnections::handler(int fd, Message &m) {
         }
     }
     if(!handled)
-        Connections::handler(fd, m);
+        FollowerConnections::handler(fd, m);
 }
 
 bool LeaderConnections::notifyAllM(Message &m) {

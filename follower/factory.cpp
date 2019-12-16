@@ -6,8 +6,8 @@ IStorage* Factory::newStorage(std::string path) {
     return ret;
 }
 
-Connections* Factory::newConnections(int nThread) {
-    return new Connections(nThread);
+FollowerConnections* Factory::newConnections(int nThread) {
+    return new FollowerConnections(nThread);
 }
 
 Server* Factory::newServer(IConnections* conn, int port) {

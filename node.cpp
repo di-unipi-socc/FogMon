@@ -1,7 +1,6 @@
 #include "node.hpp"
 #include "leader.hpp"
 #include "follower.hpp"
-#include "connections.hpp"
 
 #include <iostream>
 

@@ -2,7 +2,7 @@
 #define FOLLOWER_HPP_
 
 #include "iagent.hpp"
-#include "connections.hpp"
+#include "follower_connections.hpp"
 #include "server.hpp"
 #include "factory.hpp"
 #include "iiotdiscoverer.hpp"
@@ -66,7 +66,7 @@ protected:
 
     Server* server;
 
-    Connections * connections;
+    FollowerConnections * connections;
     IStorage* storage;
 
     Factory tFactory;

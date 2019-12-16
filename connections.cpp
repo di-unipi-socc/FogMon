@@ -1,5 +1,5 @@
 
-#include "iconnections.hpp"
+#include "connections.hpp"
 #include "iagent.hpp"
 
 #include <stdio.h>
@@ -28,24 +28,24 @@
 using namespace rapidjson;
 using namespace std;
 
-IConnections::IConnections(int nThread) {
+Connections::Connections(int nThread) {
     num = nThread;
     this->running = false;
     
     this->workers = new thread[num];
 }
 
-IConnections::~IConnections() {
+Connections::~Connections() {
     this->stop();
     delete [] this->workers;
 }
 
-void IConnections::initialize(IAgent *parent) {
+void Connections::initialize(IAgent *parent) {
     this->parent = parent;
 }
 
 //start the workers and the queue
-void IConnections::start() {
+void Connections::start() {
     
     //check if workers are already running
     for(int i=0; i<num; i++) {
@@ -59,12 +59,12 @@ void IConnections::start() {
     this->running = true;
     this->queue.startqueue();
     for(int i=0; i<num; i++) {
-        this->workers[i] = thread(&IConnections::worker, this);
+        this->workers[i] = thread(&Connections::worker, this);
     }
 }
 
 //stop the workers and the queue
-void IConnections::stop() {
+void Connections::stop() {
     this->running = false;
     this->queue.stopqueue();
 
@@ -77,11 +77,11 @@ void IConnections::stop() {
 
 }
 
-void IConnections::request(int fd) {
+void Connections::request(int fd) {
     this->queue.push(fd);
 }
 
-void IConnections::worker() {
+void Connections::worker() {
     while(this->running.load()) {
         int fd;
         if(this->queue.pop(&fd)!=0)
@@ -100,7 +100,7 @@ void IConnections::worker() {
 //return 1 if all ok
 //return 0 if end of stream
 //return -1 if error
-int IConnections::readS(long fd, void *data, int len) {
+int Connections::readS(long fd, void *data, int len) {
 	int n;
 	int pos =0;
 	while(pos<len && (n = read(fd, &(((char*)data)[pos]), len-pos)) < len)
@@ -121,7 +121,7 @@ int IConnections::readS(long fd, void *data, int len) {
 
 //return 1 if all ok
 //return -1 if error
-int IConnections::writeS(long fd, const char *data, int len) {
+int Connections::writeS(long fd, const char *data, int len) {
     int n;
 	int pos =0;
 	while(pos < len && (n = write(fd, &(data[pos]), len-pos)) < len)
@@ -138,7 +138,7 @@ int IConnections::writeS(long fd, const char *data, int len) {
 	return 1;
 }
 
-bool IConnections::getMessage(int fd, Message &m) {
+bool Connections::getMessage(int fd, Message &m) {
     if(fd < 0)
         return false;
 
@@ -172,7 +172,7 @@ bool IConnections::getMessage(int fd, Message &m) {
     return false;
 }
 
-bool IConnections::sendMessage(int fd, Message &m) {
+bool Connections::sendMessage(int fd, Message &m) {
     if(fd < 0)
         return false;
 
@@ -198,7 +198,7 @@ bool IConnections::sendMessage(int fd, Message &m) {
     return false;
 }
 
-bool IConnections::notifyAll(Message &m) {
+bool Connections::notifyAll(Message &m) {
     vector<Message::node> nodes = this->parent->getStorage()->getNodes();
     for(auto node : nodes) {
         int fd = this->openConnection(node.ip);
@@ -210,7 +210,7 @@ bool IConnections::notifyAll(Message &m) {
     return true;
 }
 
-int IConnections::openConnection(string ip, string port) {
+int Connections::openConnection(string ip, string port) {
 
     struct addrinfo *result,hints;
 
@@ -335,7 +335,7 @@ int IConnections::openConnection(string ip, string port) {
     return Socket;
 }
 
-std::string IConnections::getSource(int fd, Message &m) {
+std::string Connections::getSource(int fd, Message &m) {
     socklen_t len;
     struct sockaddr_storage addr;
     char ip[INET6_ADDRSTRLEN];

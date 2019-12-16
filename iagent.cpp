@@ -6,7 +6,7 @@ IAgent::IAgent() {
 }
 
 IAgent::~IAgent() {
-    
+    this->stop();
 }
 
 void IAgent::start(std::vector<Message::node> mNodes) {

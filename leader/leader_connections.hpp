@@ -1,15 +1,16 @@
 #ifndef LEADER_CONNECTIONS_HPP_
 #define LEADER_CONNECTIONS_HPP_
 
-#include "connections.hpp"
+#include "follower_connections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
 #include "leader_storage.hpp"
 #include "ileader.hpp"
+#include "ileader_connections.hpp"
 
 #include <thread>
 
-class LeaderConnections : public Connections {
+class LeaderConnections : public FollowerConnections, virtual public ILeaderConnections {
 protected:
     void handler(int fd, Message &m);
 

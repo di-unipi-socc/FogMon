@@ -120,7 +120,7 @@ public:
     void stop() {};
 
     bool setParam(string name, int value) {}
-    IConnections* getConnections() {return NULL;}
+    ILeaderConnections* getConnections() {return NULL;}
     void setMyId(std::string ip) {}
     Message::node getMyNode() {return nodeM;}
     int startIperf() {return 0;}
@@ -143,12 +143,12 @@ public:
     MStorage storage;
 };
 
-class MConn : public IConnections {
+class MConn : public Connections {
 public:
-    MConn() : IConnections(0) {}
-    bool sendMessage(int fd, Message &m) {return IConnections::sendMessage(fd,m);}
+    MConn() : Connections(0) {}
+    bool sendMessage(int fd, Message &m) {return Connections::sendMessage(fd,m);}
 
-    bool getMessage(int fd, Message &m) {return IConnections::getMessage(fd,m);}
+    bool getMessage(int fd, Message &m) {return Connections::getMessage(fd,m);}
 
     void handler(int,Message &) {}
 };
@@ -159,7 +159,7 @@ TEST(ConnectionsTest, RStartIperf) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);
@@ -191,7 +191,7 @@ TEST(ConnectionsTest, RStartEstimate) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);
@@ -224,7 +224,7 @@ TEST(ConnectionsTest, RSetNodes) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);
@@ -255,7 +255,7 @@ TEST(ConnectionsTest, RGetNodes) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);
@@ -287,7 +287,7 @@ TEST(ConnectionsTest, RGetReport) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);
@@ -338,7 +338,7 @@ TEST(ConnectionsTest, NUpdateNodes) {
 
     EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
     MParent mNode;
-    Connections conn(1);
+    FollowerConnections conn(1);
     conn.initialize(&mNode);
     conn.start();
     conn.request(pipefd[0]);

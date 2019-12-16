@@ -1,23 +1,24 @@
-#ifndef CONNECTIONS_HPP_
-#define CONNECTIONS_HPP_
+#ifndef FOLLOWER_CONNECTIONS_HPP_
+#define FOLLOWER_CONNECTIONS_HPP_
 
 #include "iagent.hpp"
 #include "iconnections.hpp"
+#include "connections.hpp"
 #include "queue.hpp"
 #include "message.hpp"
 #include "storage.hpp"
 
 #include <thread>
 
-class Connections : public IConnections {
+class FollowerConnections : public Connections, virtual public IConnections {
 protected:
     void handler(int fd, Message &m);
 
     IAgent* parent;
 
 public:
-    Connections(int nThread);
-    ~Connections();
+    FollowerConnections(int nThread);
+    ~FollowerConnections();
 
     void initialize(IAgent *parent);
 

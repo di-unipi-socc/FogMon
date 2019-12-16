@@ -53,7 +53,7 @@ std::string LeaderStorage::addNode(Message::node node, Report::hardware_result h
     }else {
         query << " \""<< monitored->id <<"\")";
     }
-
+    
     int err = sqlite3_exec(this->db, query.str().c_str(), 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {

@@ -85,6 +85,13 @@ public:
             this->changes = changes;
             this->id = id;
         }
+        bool empty() {
+            if(cost = 0 && id == 0 && changes == 0 && selected.empty()) {
+                return true;
+            }
+            return false;
+        }
+
         rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) {
             rapidjson::Value obj(rapidjson::kObjectType);
             rapidjson::Value selected(rapidjson::kArrayType);

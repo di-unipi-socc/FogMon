@@ -9,6 +9,7 @@ class LeaderFactory;
 #include "server.hpp"
 #include "leader_factory.hpp"
 #include "ileader.hpp"
+#include "selector.hpp"
 
 class Leader : virtual public ILeader, public Follower {
 public:
@@ -22,6 +23,7 @@ public:
     virtual void start(vector<Message::node> mNodes);
     virtual void stop();
 
+    ILeaderConnections* getConnections();
     ILeaderStorage* getStorage();
     Message::node getMyNode();
 
@@ -35,23 +37,10 @@ public:
 protected:
     void timerFun();
 
-    std::thread timerFunThread;
+    //for the leader selection algorithms
+    Selector selector;
 
-    typedef enum Status{FREE, READY, STARTED, RECEIVED, CHANGING};
-
-    Message::leader_update selection(int id);
-    void startSelection();
-    
-    std::vector<Message::leader_update> updates;
-    std::thread selectionThread;
-    std::mutex selectionMutex;
-    Status status;
-    int id;
-    ReadProc *clusterProc;
-    std::mutex clusterMutex;
-
-
-    
+    std::thread timerFunThread;    
 
     int timeheartbeat;
     int timePropagation;

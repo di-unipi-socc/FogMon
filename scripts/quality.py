@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from pyclustering.cluster.kmedoids import kmedoids
 from pyclustering.cluster import cluster_visualizer
 from pyclustering.utils import read_sample
@@ -30,7 +31,7 @@ def quality(matrix,clusters,medoids):
         v += m
     return v/len(medoids)
 
-conn = sqlite3.connect('master_node.db')
+conn = sqlite3.connect('leader_node.db')
 c = conn.cursor()
 
 Nodes = c.execute('SELECT * FROM MNodes').fetchall()

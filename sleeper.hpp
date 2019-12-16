@@ -37,7 +37,9 @@ public:
     }
 
     void start() {
-        lock();
+        if(!l_) {
+            lock();
+        }
     }
 
     void stop() {

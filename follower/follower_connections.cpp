@@ -1,4 +1,4 @@
-#include "connections.hpp"
+#include "follower_connections.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,18 +19,18 @@
 
 using namespace std;
 
-Connections::Connections(int nThread) : IConnections(nThread) {
+FollowerConnections::FollowerConnections(int nThread) : Connections(nThread) {
 }
 
-Connections::~Connections() {
+FollowerConnections::~FollowerConnections() {
 }
 
-void Connections::initialize(IAgent *parent) {
-    IConnections::initialize(parent);
+void FollowerConnections::initialize(IAgent *parent) {
+    Connections::initialize(parent);
     this->parent = parent;
 }
 
-void Connections::handler(int fd, Message &m) {
+void FollowerConnections::handler(int fd, Message &m) {
     string strIp = this->getSource(fd,m);
 
     if(m.getType() == Message::Type::REQUEST) {
@@ -152,7 +152,7 @@ void Connections::handler(int fd, Message &m) {
     }   
 }
 
-vector<Message::node> Connections::requestNodes(Message::node ipS) {
+vector<Message::node> FollowerConnections::requestNodes(Message::node ipS) {
     int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
@@ -187,7 +187,7 @@ vector<Message::node> Connections::requestNodes(Message::node ipS) {
     return vector<Message::node>();
 }
 
-vector<Message::node> Connections::requestMNodes(Message::node ipS) {
+vector<Message::node> FollowerConnections::requestMNodes(Message::node ipS) {
     int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
@@ -230,7 +230,7 @@ vector<Message::node> Connections::requestMNodes(Message::node ipS) {
     return vector<Message::node>();
 }
 
-bool Connections::sendHello(Message::node ipS) {
+bool FollowerConnections::sendHello(Message::node ipS) {
     cout << "Trying server " << ipS.id << " " << ipS.ip << ":" << ipS.port <<endl;
     int Socket = openConnection(ipS.ip, ipS.port);
     if(Socket < 0) {
@@ -274,7 +274,7 @@ bool Connections::sendHello(Message::node ipS) {
     return result;
 }
 
-bool Connections::sendUpdate(Message::node ipS) {
+bool FollowerConnections::sendUpdate(Message::node ipS) {
     int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
@@ -319,7 +319,7 @@ bool Connections::sendUpdate(Message::node ipS) {
     return result;
 }
 
-int Connections::sendStartIperfTest(Message::node ip) {
+int FollowerConnections::sendStartIperfTest(Message::node ip) {
     int Socket = openConnection(ip.ip, ip.port);
     
     if(Socket < 0) {
@@ -354,7 +354,7 @@ int Connections::sendStartIperfTest(Message::node ip) {
     return port;
 }
 
-int Connections::sendStartEstimateTest(Message::node ip, std::string &myIp) {
+int FollowerConnections::sendStartEstimateTest(Message::node ip, std::string &myIp) {
     int Socket = openConnection(ip.ip, ip.port);
     
     if(Socket < 0) {
