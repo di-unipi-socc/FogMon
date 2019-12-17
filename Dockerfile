@@ -1,12 +1,6 @@
 FROM fedora:26
-RUN dnf install -y libserialport libserialport-devel gcc make iperf3 gcc-c++ cmake
-RUN dnf install -y libtool
-RUN dnf install -y libtirpc
-RUN dnf install -y sqlite sqlite-devel
-RUN dnf install -y sigar sigar-devel
-RUN dnf install -y iputils
-RUN dnf install -y python3
-RUN dnf install -y libuuid-devel
+RUN dnf install -y libserialport libserialport-devel gcc make iperf3 gcc-c++ cmake libtool libtirpc sqlite sqlite-devel sigar sigar-devel iputils libuuid-devel redhat-rpm-config python3 python3-devel lapack-devel python3-scipy freetype-devel libjpeg-turbo-devel
+RUN python3 -m pip install cython
 RUN python3 -m pip install pyclustering
 
 ADD . /compile
