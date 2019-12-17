@@ -60,8 +60,8 @@ void Follower::initialize(Factory* fact) {
         this->storage = this->factory->newStorage("node.db");
     if(this->connections == NULL) {
         this->connections = this->factory->newConnections(this->nThreads);
-        this->connections->initialize(this);
     }
+    this->connections->initialize(this);
     this->server = this->factory->newServer(this->connections,5555);
 }
 

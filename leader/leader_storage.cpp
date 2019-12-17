@@ -260,7 +260,7 @@ std::vector<Message::node> LeaderStorage::getMLRBandwidth(int num, int seconds) 
 std::vector<Message::node> LeaderStorage::getMLRHardware(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT id,ip,port FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%ld-strftime('%%s','now') <= 0 ORDER BY lasttime LIMIT %d", this->nodeM.id.c_str(), seconds, num);
+    std::sprintf(buf,"SELECT id,ip,port FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%d-strftime('%%s','now') <= 0 ORDER BY lasttime LIMIT %d", this->nodeM.id.c_str(), seconds, num);
 
     vector<Message::node> nodes;
 
