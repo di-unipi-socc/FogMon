@@ -40,9 +40,7 @@ Leader::~Leader() {
 }
 
 void Leader::start(vector<Message::node> mNodes) {
-    vector<Message::node> vec;
-    vec.push_back(this->nodeS);
-    Follower::start(vec);
+    Follower::start(vector<Message::node>());
     if(!mNodes.empty()) {
         if(!this->connections->sendMHello(mNodes[0])) {
             fprintf(stderr,"cannot connect to the network\n");

@@ -88,6 +88,10 @@ std::vector<Message::node> Node::getMNodes() {
     return this->mNodes;
 }
 
+bool Node::isFollower() {
+    return !this->isLeader;
+}
+
 extern "C"
 {
 #ifdef WIN32

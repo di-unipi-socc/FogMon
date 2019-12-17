@@ -72,15 +72,15 @@ void LeaderConnections::handler(int fd, Message &m) {
                 vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
 
                 res.setData(nodes);
+
+                //update the nodes of the follower of this leader
+                vector<Message::node> v;
+                v.push_back(m.getSender());
+                vector<Message::node> v2;
+
+                this->parent->getStorage()->updateNodes(v,v2);
             }
             sendMessage(fd, res);
-
-            //update the nodes of the follower of this leader
-            vector<Message::node> v;
-            v.push_back(m.getSender());
-            vector<Message::node> v2;
-
-            this->parent->getStorage()->updateNodes(v,v2);
         }else if(m.getCommand() == Message::Command::SELECTION_INIT) {
             Message::node node = m.getSender();
             int id;

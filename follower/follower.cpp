@@ -150,6 +150,14 @@ void Follower::stop() {
 bool Follower::selectServer(vector<Message::node> mNodes) {
     //ask the MNodes list and select one MNode with the min latency
     cout << "Selecting server..." << endl;
+    
+    //if is a leader connect to it
+    if(!this->node->isFollower()) {
+        if(!this->connections->sendHello(this->nodeS))
+            return false;
+        return true;
+    }
+
     vector<Message::node> res;
     int i=0;
     while(res.empty() && i<mNodes.size()) {
@@ -187,6 +195,44 @@ bool Follower::selectServer(vector<Message::node> mNodes) {
         }else
             return true;
         
+    }
+    return false;
+}
+
+bool Follower::checkServer(vector<Message::node> mNodes) {
+    vector<Message::node> res = mNodes;
+
+    unsigned int curr = (unsigned int)this->testPing(this->nodeS.ip);
+
+    //try every element of res for a server and select the closest
+    while(!res.empty()) {
+        int imin=0;
+        unsigned int min = (unsigned int)this->testPing(res[imin].ip);
+
+        for(int i=1; i<res.size(); i++) {
+            unsigned int tmp = (unsigned int)this->testPing(res[i].ip);
+            if(tmp < min) {
+                imin = i;
+                min = tmp;
+            }
+        }
+
+        if( curr > min + 5) {
+            float mean = 0;
+            float meanCurr = 0;
+            for(int i=0; i<5; i++) {
+                unsigned int val = (unsigned int)this->testPing(res[imin].ip);
+                mean += val;
+                unsigned int valCurr = (unsigned int)this->testPing(this->nodeS.ip);
+                meanCurr += valCurr;
+            }
+            mean/=5;
+            meanCurr/=5;
+
+            if(meanCurr > mean + 5) {
+                return true;
+            }
+        }        
     }
     return false;
 }
@@ -512,6 +558,7 @@ void Follower::timer() {
                 if(!selectServer(this->node->getMNodes())) {
                     cout << "Failed to find a server!!!!!!!!" << endl;
                 }
+                iter=0;
             }
         }
 
@@ -538,7 +585,7 @@ void Follower::timer() {
         }
 
         //every 10 iteration update the MNodes
-        if(iter%10 == 0) {
+        if(iter%10 == 9) {
             vector<Message::node> res = this->connections->requestMNodes(this->nodeS);
             if(!res.empty()) {
                 for(int j=0; j<res.size(); j++)
@@ -548,6 +595,7 @@ void Follower::timer() {
                 }
                 this->node->setMNodes(res);
             }
+            this->checkServer(res);
         }
 
         sleeper.sleepFor(chrono::seconds(this->timeReport));
@@ -713,6 +761,7 @@ int Follower::getEstimatePort() {
 void Follower::changeRole(vector<Message::node> leaders) {
     for(auto l : leaders) {
         if(l == this->myNode) {
+            this->node->setMNodes(leaders);
             this->node->promote();
             return;
         }

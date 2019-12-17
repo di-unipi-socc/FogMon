@@ -31,6 +31,8 @@ public:
     void setMNodes(std::vector<Message::node> nodes);
     std::vector<Message::node> getMNodes();
 
+    bool isFollower();
+
 protected:
     IAgent * agent;
     bool isLeader;

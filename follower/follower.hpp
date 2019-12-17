@@ -102,6 +102,9 @@ protected:
     //from ipS and mNodes select the closest server
     bool selectServer(vector<Message::node> mNodes);
 
+    //check if the best leader is selected
+    bool checkServer(vector<Message::node> mNodes);
+
     //get the hardware of this node
     void getHardware();
 };
