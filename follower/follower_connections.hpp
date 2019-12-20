@@ -10,7 +10,7 @@
 
 #include <thread>
 
-class FollowerConnections : public Connections, virtual public IConnections {
+class FollowerConnections : public Connections {
 protected:
     void handler(int fd, Message &m);
 

@@ -94,7 +94,7 @@ bool Selector::checkSelection() {
     int nF = this->parent->getStorage()->getAllNodes().size();
     int nL = this->parent->getStorage()->getMNodes().size();
     
-    if(sqrt(nF) > nL+1) {
+    if(sqrt(nF) >= nL+1) {
         printf("Leaders number: %d\nFollower number: %d\n",nL,nF);
         this->startSelection();
     }
