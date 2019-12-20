@@ -57,7 +57,7 @@ void Follower::initialize(Factory* fact) {
         this->factory = fact;
     }
     if(this->storage == NULL)
-        this->storage = this->factory->newStorage("node.db");
+        this->storage = this->factory->newStorage("leader_node.db");
     if(this->connections == NULL) {
         this->connections = this->factory->newConnections(this->nThreads);
     }
@@ -758,7 +758,7 @@ int Follower::getEstimatePort() {
 
 void Follower::changeRole(vector<Message::node> leaders) {
     for(auto l : leaders) {
-        if(l == this->myNode) {
+        if(l.id == this->myNode.id) {
             this->node->setMNodes(leaders);
             this->node->promote();
             return;

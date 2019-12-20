@@ -162,7 +162,7 @@ Message::leader_update Selector::selection(int id) {
 }
 
 void Selector::startSelection() {
-printf("starting selection\n");
+    printf("starting selection\n");
     this->updates.clear();
 
     {
@@ -176,11 +176,26 @@ printf("starting selection\n");
     }
 
     if(!this->parent->getConnections()->sendInitiateSelection(this->id)) {
+        {
+            const std::lock_guard<std::mutex> lock(this->selectionMutex);
+
+            if(status == READY) {
+                status = FREE;
+            }
+        }
         return;
     }
 
     if(!this->parent->getConnections()->sendStartSelection(this->id)){
+        {
+            const std::lock_guard<std::mutex> lock(this->selectionMutex);
+
+            if(status == READY) {
+                status = FREE;
+            }
+        }
         this->parent->getConnections()->sendEndSelection(Message::leader_update(),false);
+        return;
     }
 
     {
@@ -218,6 +233,21 @@ printf("starting selection\n");
         for(auto n : sel.selected) {
             printf("%s  %s  %s\n",n.id.c_str(),n.ip.c_str(),n.port.c_str());
         }
+
+        auto nodes = this->parent->getStorage()->getAllNodes();
+        auto tmpS = sel.selected;
+
+        sel.selected.clear();
+
+        for(auto node : nodes) {
+            for(auto sele : tmpS) {
+                if(sele.id == node.id) {
+                    sel.selected.push_back(node);
+                    break;
+                }
+            }
+        }
+
         this->parent->getConnections()->sendEndSelection(sel,true);
 
         {

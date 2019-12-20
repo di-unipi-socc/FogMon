@@ -286,8 +286,12 @@ void LeaderConnections::handler(int fd, Message &m) {
 
 bool LeaderConnections::notifyAllM(Message &m) {
     vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
+    int n = 0;
     int num = 0;
     for(auto node : nodes) {
+        if(node.id == this->parent->getMyNode().id)
+            continue;
+        n++;
         int fd = this->openConnection(node.ip);
         if(fd >= 0 ) {
             if(this->sendMessage(fd,m)) {
@@ -308,6 +312,8 @@ bool LeaderConnections::notifyAllM(Message &m) {
             close(fd);
         }
     }
+    if(n==0)
+        return true;
     return num;
 }
 

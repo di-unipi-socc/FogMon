@@ -3,6 +3,7 @@
 #include "follower.hpp"
 
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -15,7 +16,10 @@ Node::Node(string port, bool isLeader, int threads) {
 
     cout << "Generated id: "<< this->id << endl;
 
+    unlink("leader_node.db");
+
     this->create();
+
 }
 
 Node::~Node() {
