@@ -204,6 +204,9 @@ void Selector::startSelection() {
         status = STARTED;
     }
     printf("started selection\n");
+    if(this->selectionThread.joinable()) {
+        this->selectionThread.join();
+    }
     //start thread here
     this->selectionThread = thread([this]{
         auto t1 = std::chrono::high_resolution_clock::now();

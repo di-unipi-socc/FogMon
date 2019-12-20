@@ -23,7 +23,7 @@ public:
     bool setParam(std::string name, int value);
 
     //promote to leader if follower
-    void promote();
+    virtual void promote();
 
     //demote to follower if leader
     void demote();

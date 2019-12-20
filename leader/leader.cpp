@@ -170,6 +170,7 @@ void Leader::changeRole(vector<Message::node> leaders) {
         }
     }
     if(!present) {
+        this->node->setMNodes(leaders);
         this->node->demote();
     }else {
         this->selector.stopSelection();
@@ -177,6 +178,7 @@ void Leader::changeRole(vector<Message::node> leaders) {
 }
 
 void Leader::changeRoles(Message::leader_update update) {
+    if(update.selected.size() == 0)
+        return;
     this->connections->sendChangeRoles(update);
-    this->changeRole(update.selected);
 }

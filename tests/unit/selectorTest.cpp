@@ -2,6 +2,7 @@
 
 #include "selector.hpp"
 #include "leader_storage.hpp"
+#include "follower.hpp"
 
 class MSelector : public Selector {
 public:
@@ -191,6 +192,17 @@ public:
 
 };
 
+class MNode : public Node {
+public:
+
+    MNode() : Node("a",false,0) {}
+
+    void promote() {
+        sent=true;
+    }
+    bool sent = false;
+};
+
 TEST(SelectorTest, calcSelectionTest) {
 
     MParent2 parent;
@@ -349,3 +361,19 @@ TEST(SelectorTest, ScriptTest) {
 
 }
 
+TEST(SelectorTest, FollowerTest) {
+
+    Follower A(Message::node("a","1","2"),1);
+
+    MNode node;
+    A.setParent(&node);
+
+    vector<Message::node> vect;
+    vect.push_back(Message::node("a","1","2"));
+
+    A.changeRole(vect);
+
+
+    EXPECT_EQ(node.sent, true);
+
+}
