@@ -37,7 +37,7 @@ Follower::Follower(Message::node node, int nThreads) : IAgent() {
     this->timeTests = 30;
     this->timeLatency = 30;
     this->maxPerLatency = 100;
-    this->timeBandwidth = 600;
+    this->timeBandwidth = 60000;
     this->maxPerBandwidth = 1;
 
     this->storage = NULL;
@@ -204,36 +204,34 @@ bool Follower::checkServer(vector<Message::node> mNodes) {
 
     unsigned int curr = (unsigned int)this->testPing(this->nodeS.ip);
 
-    //try every element of res for a server and select the closest
-    while(!res.empty()) {
-        int imin=0;
-        unsigned int min = (unsigned int)this->testPing(res[imin].ip);
+    int imin=0;
+    unsigned int min = (unsigned int)this->testPing(res[imin].ip);
 
-        for(int i=1; i<res.size(); i++) {
-            unsigned int tmp = (unsigned int)this->testPing(res[i].ip);
-            if(tmp < min) {
-                imin = i;
-                min = tmp;
-            }
+    for(int i=1; i<res.size(); i++) {
+        unsigned int tmp = (unsigned int)this->testPing(res[i].ip);
+        if(tmp < min) {
+            imin = i;
+            min = tmp;
         }
-
-        if( curr > min + 5) {
-            float mean = 0;
-            float meanCurr = 0;
-            for(int i=0; i<5; i++) {
-                unsigned int val = (unsigned int)this->testPing(res[imin].ip);
-                mean += val;
-                unsigned int valCurr = (unsigned int)this->testPing(this->nodeS.ip);
-                meanCurr += valCurr;
-            }
-            mean/=5;
-            meanCurr/=5;
-
-            if(meanCurr > mean + 5) {
-                return true;
-            }
-        }        
     }
+
+    if( curr > min + 5) {
+        float mean = 0;
+        float meanCurr = 0;
+        for(int i=0; i<5; i++) {
+            unsigned int val = (unsigned int)this->testPing(res[imin].ip);
+            mean += val;
+            unsigned int valCurr = (unsigned int)this->testPing(this->nodeS.ip);
+            meanCurr += valCurr;
+        }
+        mean/=5;
+        meanCurr/=5;
+
+        if(meanCurr > mean + 5) {
+            return true;
+        }
+    } 
+    
     return false;
 }
 
