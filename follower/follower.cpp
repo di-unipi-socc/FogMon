@@ -162,7 +162,13 @@ bool Follower::selectServer(vector<Message::node> mNodes) {
     int i=0;
     while(res.empty() && i<mNodes.size()) {
         cout << "trying "<<mNodes[i].ip<<endl;
-        res = this->connections->requestMNodes(mNodes[i]);
+        for(int i=0; i<5; i++) {
+            res = this->connections->requestMNodes(mNodes[i]);
+            if(res.size() != 0)
+                i=5;
+            sleeper.sleepFor(chrono::seconds(3));
+        }
+        
         for(int j=0; j<res.size(); j++)
         {
             if(res[j].ip==std::string("::1")||res[j].ip==std::string("127.0.0.1"))
@@ -657,7 +663,7 @@ void Follower::TestTimer() {
             i++;
         }
 
-        sleeper.sleepFor(chrono::milliseconds(this->timeTests));
+        sleeper.sleepFor(chrono::seconds(this->timeTests));
         iter++;
     }
 }
@@ -757,6 +763,7 @@ int Follower::getEstimatePort() {
 }
 
 void Follower::changeRole(vector<Message::node> leaders) {
+    this->node->setMNodes(leaders);
     for(auto l : leaders) {
         if(l.id == this->myNode.id) {
             this->node->setMNodes(leaders);

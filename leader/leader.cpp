@@ -174,6 +174,25 @@ void Leader::changeRole(vector<Message::node> leaders) {
         this->node->demote();
     }else {
         this->selector.stopSelection();
+        
+        sleeper.sleepFor(chrono::seconds(10));
+
+        for(auto node : leaders) {
+            if(!this->connections->sendMHello(node)) {
+                continue;
+            }
+        }
+        //communicate with the other
+        vector<Message::node> ips = this->storage->getMNodes();
+        for(auto ip : ips) {
+            if(ip.id == this->getMyNode().id)
+                continue;
+            if(!this->connections->sendMHello(ip)) {
+                fprintf(stderr,"cannot connect to the network\n");
+                this->stop();
+                exit(1);
+            }
+        }
     }
 }
 

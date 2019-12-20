@@ -123,8 +123,7 @@ Message::leader_update Selector::selection(int id) {
      {
         std::lock_guard<std::mutex> lock(this->clusterMutex);
         if(this->clusterProc) {
-            delete proc;
-            return Message::leader_update();
+            delete this->clusterProc;
         }
         this->clusterProc = proc;
     }
