@@ -131,11 +131,11 @@ void FollowerConnections::handler(int fd, Message &m) {
             }
         }else if(m.getArgument() == Message::Argument::ROLES) {
             if(m.getCommand() == Message::Command::SET) {
-                vector<Message::node> leaders;
+                Message::leader_update update;
                 //contains the list of new leaders
-                m.getData(leaders);
-                cout << "Selected Leaders: "<< leaders.size() << endl;
-                this->parent->changeRole(leaders);
+                m.getData(update);
+                cout << "Selected Leaders: "<< update.selected.size() << endl;
+                this->parent->changeRole(update.selected);
             }
         }
     }else if(m.getType() == Message::Type::NOTIFY) {

@@ -386,8 +386,8 @@ TEST(ConnectionsLeaderTest, sendChangeRoleTest) {
     mess.setCommand(Message::Command::SET);
     mess.setArgument(Message::Argument::ROLES);
 
-    vector<Message::node> update;
-    update.push_back(Message::node("a","b","c"));
+    Message::leader_update update;
+    update.selected.push_back(Message::node("a","b","c"));
 
     mess.setData(update);
     
