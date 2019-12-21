@@ -31,7 +31,11 @@ def quality(matrix,clusters,medoids):
         v += m
     return v/len(medoids)
 
-conn = sqlite3.connect('leader_node.db')
+from shutil import copyfile
+
+copyfile("leader_node.db", "leader_node_copy.db")
+
+conn = sqlite3.connect('leader_node_copy.db')
 c = conn.cursor()
 
 Nodes = c.execute('SELECT * FROM MNodes').fetchall()
