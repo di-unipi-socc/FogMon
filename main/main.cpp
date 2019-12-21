@@ -125,14 +125,11 @@ int main(int argc, char *argv[]) {
             case 0:
                 node.setParam("start-selection",1);
             break;
-
-            case 1:
-            break;
             default:
             break;
         }
         scanf("%d",&a);
-    }while(a != 0);
+    }while(a == 0);
 
 
     node.stop();
