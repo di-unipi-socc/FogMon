@@ -71,6 +71,8 @@ for a in c.execute('SELECT * FROM MLinks'):
         avg += a[2]
         n+=1
 
+c.close()
+
 avg /= n
 for i in range(len(A)):
     for j in range(len(A[i])):
@@ -78,8 +80,6 @@ for i in range(len(A)):
             A[i][j] = avg
         if A[i][j]==0:
             A[i][j] = 0.5
-
-c.close()
 
 medoids = [D[i] for i in LeadersIds]
 

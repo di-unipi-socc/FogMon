@@ -57,6 +57,9 @@ for a in c.execute('SELECT * FROM MLinks'):
     if a[2] != None:
         avg += a[2]
         n+=1
+
+c.close()
+
 avg /= n
 for i in range(len(A)):
     for j in range(len(A[i])):
