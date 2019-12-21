@@ -763,9 +763,12 @@ int Follower::getEstimatePort() {
 }
 
 void Follower::changeRole(vector<Message::node> leaders) {
+    cout << "Change role arrived:" << endl;
     this->node->setMNodes(leaders);
     for(auto l : leaders) {
+        cout << l.id << endl;
         if(l.id == this->myNode.id) {
+            cout << "match!" << endl;
             this->node->setMNodes(leaders);
             this->node->promote();
             return;
