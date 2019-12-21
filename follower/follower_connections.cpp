@@ -135,6 +135,11 @@ void FollowerConnections::handler(int fd, Message &m) {
                 //contains the list of new leaders
                 m.getData(update);
                 cout << "Selected Leaders: "<< update.selected.size() << endl;
+                for(auto &node : update.selected) {
+                    if(node.ip == "::1" || node.ip == "127.0.0.1") {
+                        node.ip = strIp;
+                    }
+                }
                 this->parent->changeRole(update.selected);
             }
         }

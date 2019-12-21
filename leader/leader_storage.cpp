@@ -225,7 +225,7 @@ std::vector<Message::node> LeaderStorage::getMLRLatency(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stdout, "SQL error: %s\n", zErrMsg);
+        fprintf(stdout, "SQL error (MLRL): %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -249,7 +249,7 @@ std::vector<Message::node> LeaderStorage::getMLRBandwidth(int num, int seconds) 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error (MLRB): %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -267,7 +267,7 @@ std::vector<Message::node> LeaderStorage::getMLRHardware(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error (MLRH): %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -331,7 +331,7 @@ Report::hardware_result LeaderStorage::getHardware(Message::node node) {
     int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error (get hardware): %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -349,7 +349,7 @@ std::vector<Report::test_result> LeaderStorage::getLatency(Message::node node) {
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error (get latency): %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -367,7 +367,7 @@ std::vector<Report::test_result> LeaderStorage::getBandwidth(Message::node node)
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "SQL error (get bandwidth): %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
