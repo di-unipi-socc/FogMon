@@ -89,8 +89,13 @@ bool Selector::updateSelection(Message::leader_update update) {
     return false;
 }
 
-bool Selector::checkSelection() {
+bool Selector::checkSelection(bool doit) {
 
+    if(doit) {
+        this->startSelection();
+        return true;
+    }
+    
     int nF = this->parent->getStorage()->getAllNodes().size();
     int nL = this->parent->getStorage()->getMNodes().size();
 
@@ -99,7 +104,44 @@ bool Selector::checkSelection() {
     if(sqrt(nF) >= nL+1) {
         printf("STARTING SELECTION");
         this->startSelection();
+        return true;
     }
+
+    //calculate with a script the update and set the id on it
+    char *args[] = {"./scripts/quality.py",NULL};
+    ReadProc * proc = new ReadProc(args);
+
+     {
+        std::lock_guard<std::mutex> lock(this->clusterMutex);
+        if(this->clusterProc) {
+            delete this->clusterProc;
+        }
+        this->clusterProc = proc;
+    }
+
+    int res = proc->waitproc();
+
+    if(res != 0) {
+        return false;
+    }
+
+    string output = proc->readoutput();
+    rapidjson::Document doc;
+    rapidjson::ParseResult ok = doc.Parse((const char*)output.c_str());
+    if(!ok)
+        return false;
+    
+    if( !doc.HasMember("quality") || !doc["quality"].IsDouble()) {
+        return false;
+    }
+    
+    float quality = (float)doc["quality"].GetDouble();
+
+    if(quality > 3)
+        this->startSelection();
+        return true;
+
+    return false;
 }
 
 void Selector::stopSelection() {

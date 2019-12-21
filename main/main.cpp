@@ -67,6 +67,8 @@ int main(int argc, char *argv[]) {
     int max_latency = 100;
     int time_bandwidth = 600;
     int max_bandwidth=1;
+    int leaderCheck = 10;
+
     bool leader = false;
     
     if(input.cmdOptionExists("--time-report"))
@@ -86,6 +88,9 @@ int main(int argc, char *argv[]) {
     
     if(input.cmdOptionExists("--max-per-bandwidth"))
         time_bandwidth = stoi(input.getCmdOption("--max-per-bandwidth"));
+
+    if(input.cmdOptionExists("--leader-check"))
+        leaderCheck = stoi(input.getCmdOption("--leader-check"));
 
     if(input.cmdOptionExists("--leader"))
         leader = true;
@@ -109,12 +114,26 @@ int main(int argc, char *argv[]) {
     node.setParam(string("max-per-latency"), max_latency);
     node.setParam(string("time-bandwidth"), time_bandwidth);
     node.setParam(string("max-per-bandwidth"), max_bandwidth);
+    node.setParam(string("leader-check"), leaderCheck);
 
     node.start();
 
-    int a;
-    scanf("%d",&a);
-    scanf("%d",&a);
+    int a = -1;
+
+    do {
+        switch(a) {
+            case 0:
+                node.setParam("start-selection",1);
+            break;
+
+            case 1:
+            break;
+            default:
+            break;
+        }
+        scanf("%d",&a);
+    }while(a != 0);
+
 
     node.stop();
     return 0;

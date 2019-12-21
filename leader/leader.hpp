@@ -42,9 +42,6 @@ protected:
 
     std::thread timerFunThread;    
 
-    int timeheartbeat;
-    int timePropagation;
-
     LeaderConnections *connections;
     ILeaderStorage* storage;
 

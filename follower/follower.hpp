@@ -41,14 +41,6 @@ protected:
     //id and port saved here
     Message::node myNode;
 
-    //configs
-    int timeReport;
-    int timeTests;
-    int timeLatency;
-    int timeBandwidth;
-    int maxPerLatency;
-    int maxPerBandwidth;
-
     //ports for tests
     int portIperf;
     int portAssolo;

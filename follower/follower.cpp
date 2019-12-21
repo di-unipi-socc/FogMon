@@ -33,12 +33,6 @@ using namespace rapidjson;
 
 Follower::Follower(Message::node node, int nThreads) : IAgent() {
     this->nThreads = nThreads;
-    this->timeReport = 30;
-    this->timeTests = 30;
-    this->timeLatency = 30;
-    this->maxPerLatency = 100;
-    this->timeBandwidth = 60000;
-    this->maxPerBandwidth = 1;
 
     this->storage = NULL;
     this->connections = NULL;
@@ -589,7 +583,7 @@ void Follower::timer() {
         }
 
         //every 10 iteration update the MNodes
-        if(iter%10 == 9) {
+        if(iter% this->node->leaderCheck == 9) {
             vector<Message::node> res = this->connections->requestMNodes(this->nodeS);
             if(!res.empty()) {
                 for(int j=0; j<res.size(); j++)
@@ -602,7 +596,7 @@ void Follower::timer() {
             this->checkServer(res);
         }
 
-        sleeper.sleepFor(chrono::seconds(this->timeReport));
+        sleeper.sleepFor(chrono::seconds(this->node->timeReport));
         iter++;
     }
 }
@@ -629,7 +623,7 @@ void Follower::TestTimer() {
 
         //get list ordered by time for the latency tests
         //test the least recent
-        vector<Message::node> ips = this->storage->getLRLatency(this->maxPerLatency, this->timeLatency);
+        vector<Message::node> ips = this->storage->getLRLatency(this->node->maxPerLatency, this->node->timeLatency);
 
         for(auto node : ips) {
             if(this->myNode.id == node.id)
@@ -641,7 +635,7 @@ void Follower::TestTimer() {
         }
         //test bandwidth
         //get 10 nodes tested more than 300 seconds in the past
-        ips = this->storage->getLRBandwidth(this->maxPerBandwidth + 5, this->timeBandwidth);
+        ips = this->storage->getLRBandwidth(this->node->maxPerBandwidth + 5, this->node->timeBandwidth);
         int i=0;
         int tested=0;
         while(i < ips.size() && tested < 1) {
@@ -663,7 +657,7 @@ void Follower::TestTimer() {
             i++;
         }
 
-        sleeper.sleepFor(chrono::seconds(this->timeTests));
+        sleeper.sleepFor(chrono::seconds(this->node->timeTests));
         iter++;
     }
 }
@@ -735,21 +729,6 @@ bool Follower::setParam(std::string name, int value) {
     if(value <= 0)
         return false;
 
-    if(name == string("time-report")) {
-        this->timeReport = value;
-    }else if(name == string("time-tests")) {
-        this->timeTests = value;
-    }else if(name == string("time-latency")) {
-        this->timeLatency = value;
-    }else if(name == string("time-bandwidth")) {
-        this->timeBandwidth = value;
-    }else if(name == string("max-per-latency")) {
-        this->maxPerLatency = value;
-    }else if(name == string("max-per-bandwidth")) {
-        this->maxPerBandwidth = value;
-    }else{
-        return false;
-    }
     printf("Param %s: %d\n",name.c_str(),value);
     return true;
 }

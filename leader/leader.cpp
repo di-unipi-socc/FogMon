@@ -16,8 +16,6 @@
 using namespace std;
 
 Leader::Leader(Message::node node, int nThreads) : Follower(node, nThreads), selector(this) {
-    timePropagation = 20;
-    timeheartbeat = 120;
     this->nodeS = node;
 }
 
@@ -82,7 +80,7 @@ void Leader::timerFun() {
         //routine for Nodes
         
         //check database for reports
-        vector<Message::node> ips = this->getStorage()->getMLRHardware(100, this->timeheartbeat);
+        vector<Message::node> ips = this->getStorage()->getMLRHardware(100, this->node->timeheartbeat);
         vector<Message::node> rem;
         for(auto&& node : ips) {
             bool res = this->connections->sendRequestReport(node);
@@ -120,7 +118,7 @@ void Leader::timerFun() {
         }
         
         iter++;
-        sleeper.sleepFor(chrono::seconds(this->timePropagation));
+        sleeper.sleepFor(chrono::seconds(this->node->timePropagation));
     }
 }
 
@@ -147,13 +145,10 @@ bool Leader::setParam(std::string name, int value) {
     if(Follower::setParam(name,value))
         return true;
     
-    if(name == string("heartbeat")) {
-        this->timeheartbeat = value;
-    }else if(name == string("time-propagation")) {
-        this->timePropagation = value;
-    }else{
-        return false;
+    if(name == string("start-selection")) {
+        this->selector.checkSelection(true);
     }
+    
     printf("Param %s: %d\n",name.c_str(),value);
     return true;
 }

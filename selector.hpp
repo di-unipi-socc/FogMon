@@ -32,7 +32,8 @@ public:
     virtual void stopSelection();
 
     //check if a selections is needed
-    virtual bool checkSelection();
+    //if doit is true start the selection anyway
+    virtual bool checkSelection(bool doit = false);
 
 protected:
 

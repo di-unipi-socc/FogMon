@@ -8,6 +8,17 @@
 using namespace std;
 
 Node::Node(string port, bool isLeader, int threads) {
+    this->timeReport = 30;
+    this->timeTests = 30;
+    this->timeLatency = 30;
+    this->maxPerLatency = 100;
+    this->timeBandwidth = 60000;
+    this->maxPerBandwidth = 1;
+    this->leaderCheck = 10;
+
+    this->timePropagation = 20;
+    this->timeheartbeat = 120;
+
     this->isLeader = isLeader;
     this->agent = NULL;
     this->port = port;
@@ -131,7 +142,24 @@ string Node::genId() {
 }
 
 bool Node::setParam(std::string name, int value) {
-    if(this->agent->setParam(name,value))
-        return true;
-    return false;
+    if(name == string("time-report")) {
+        this->timeReport = value;
+    }else if(name == string("time-tests")) {
+        this->timeTests = value;
+    }else if(name == string("time-latency")) {
+        this->timeLatency = value;
+    }else if(name == string("time-bandwidth")) {
+        this->timeBandwidth = value;
+    }else if(name == string("max-per-latency")) {
+        this->maxPerLatency = value;
+    }else if(name == string("max-per-bandwidth")) {
+        this->maxPerBandwidth = value;
+    }else if(name == string("leader-check")) {
+        this->leaderCheck = value;
+    }else if(name == string("heartbeat")) {
+        this->timeheartbeat = value;
+    }else if(name == string("time-propagation")) {
+        this->timePropagation = value;
+    }else
+        return this->agent->setParam(name,value);
 }

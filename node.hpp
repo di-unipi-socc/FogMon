@@ -33,6 +33,18 @@ public:
 
     bool isFollower();
 
+    //configs
+    int timeReport;
+    int timeTests;
+    int timeLatency;
+    int timeBandwidth;
+    int maxPerLatency;
+    int maxPerBandwidth;
+    int leaderCheck;
+
+    int timeheartbeat;
+    int timePropagation;
+
 protected:
     IAgent * agent;
     bool isLeader;
