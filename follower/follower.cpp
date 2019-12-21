@@ -764,6 +764,7 @@ int Follower::getEstimatePort() {
 
 void Follower::changeRole(vector<Message::node> leaders) {
     cout << "Change role arrived:" << endl;
+    fflush(stdout);
     this->node->setMNodes(leaders);
     for(auto l : leaders) {
         cout << l.id << endl;
