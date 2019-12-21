@@ -95,8 +95,6 @@ void Leader::timerFun() {
         this->connections->sendRemoveNodes(ips);
         vector<Message::node> tmp;
         this->getStorage()->updateNodes(tmp,rem);
-        
-        this->selector.checkSelection();
 
         //routine for LeaderNodes
         ips = this->getStorage()->getMNodes();
@@ -117,6 +115,8 @@ void Leader::timerFun() {
 
         if(iter % 5 == 0) {
             this->getStorage()->complete();
+
+            this->selector.checkSelection();
         }
         
         iter++;
