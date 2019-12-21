@@ -117,7 +117,7 @@ void Selector::stopSelection() {
 Message::leader_update Selector::selection(int id) {
 
     //calculate with a script the update and set the id on it
-    char *args[] = {"./scripts/cluster.py"};
+    char *args[] = {"./scripts/cluster.py",NULL};
     ReadProc * proc = new ReadProc(args);
 
      {

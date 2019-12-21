@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-extern char **environ;
+char **environ;
 
 using namespace std;
 
@@ -18,7 +18,7 @@ ReadProc::ReadProc(char** args) {
 
     if(args == NULL)
         return;
-
+    
     posix_spawn_file_actions_init(&action);
 
     pipe(out);
@@ -26,7 +26,7 @@ ReadProc::ReadProc(char** args) {
     posix_spawn_file_actions_adddup2(&action, out[1], STDOUT_FILENO);
     posix_spawn_file_actions_adddup2(&action, out[1], STDERR_FILENO);
     posix_spawn_file_actions_addclose(&action, out[0]);
-
+    
     status = posix_spawn(&pid, args[0], &action, NULL, args, environ);
     if (status != 0)
     {

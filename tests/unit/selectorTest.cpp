@@ -317,7 +317,7 @@ TEST(SelectorTest, ScriptTest) {
     for(int i=0; i< 10; i++) {
         stor->addNode(Message::node(to_string(i),to_string(i),""),Report::hardware_result());
     }
-    
+
     vector<Report::report_result> reports;
     for(int i=0; i<10; i++) {
         Report::report_result report;
