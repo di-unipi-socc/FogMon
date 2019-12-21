@@ -136,10 +136,20 @@ public:
     virtual bool calcSelection(Message::node, int, bool&) { return true; }
     virtual void stopSelection() {}
 
-    void changeRole(std::vector<Message::node> leaders) {}
+    void changeRole(std::vector<Message::node> leaders) {
+        EXPECT_EQ(leaders.size(),1);
+        for(auto l : leaders) {
+            if(l.id == "a") {
+
+            }else {
+                FAIL();
+            }
+        }
+        change = true;
+    }
 
     ILeaderStorage* getStorage() {return &this->storage;}
-
+    bool change=false;
     MStorage storage;
 };
 
@@ -357,6 +367,34 @@ TEST(ConnectionsTest, NUpdateNodes) {
     EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
+}
+
+TEST(ConnectionsLeaderTest, sendChangeRoleTest) {
+
+    int pipefd[2];
+    MConn mConn;
+
+    EXPECT_EQ(socketpair(AF_LOCAL,SOCK_STREAM,0,pipefd), 0);
+    MParent mNode;
+    FollowerConnections conn(1);
+    conn.initialize(&mNode);
+    conn.start();
+    conn.request(pipefd[0]);
+
+    Message mess;
+    mess.setType(Message::Type::REQUEST);
+    mess.setCommand(Message::Command::SET);
+    mess.setArgument(Message::Argument::ROLES);
+
+    vector<Message::node> update;
+    update.push_back(Message::node("a","b","c"));
+
+    mess.setData(update);
+    
+    EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
+    EXPECT_EQ(close(pipefd[1]), 0);
+    conn.stop();
+    EXPECT_EQ(mNode.change, true);
 }
 
 TEST(ConnectionsLeaderTest, Aaaa) {

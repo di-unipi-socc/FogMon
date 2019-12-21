@@ -134,6 +134,7 @@ void FollowerConnections::handler(int fd, Message &m) {
                 vector<Message::node> leaders;
                 //contains the list of new leaders
                 m.getData(leaders);
+                cout << "Selected Leaders: "<< leaders.size() << endl;
                 this->parent->changeRole(leaders);
             }
         }
