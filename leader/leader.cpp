@@ -40,7 +40,14 @@ Leader::~Leader() {
 void Leader::start(vector<Message::node> mNodes) {
     Follower::start(vector<Message::node>());
     if(!mNodes.empty()) {
-        if(!this->connections->sendMHello(mNodes[0])) {
+        bool res = false;
+        for(int i=0; i<5; i++) {
+            res = this->connections->sendMHello(mNodes[0]);
+            if(res)
+                i=5;
+            sleeper.sleepFor(chrono::seconds(3));
+        }
+        if(!res) {
             fprintf(stderr,"cannot connect to the network\n");
             this->stop();
             exit(1);
@@ -50,7 +57,13 @@ void Leader::start(vector<Message::node> mNodes) {
         for(auto ip : ips) {
             if(ip.id == this->getMyNode().id)
                 continue;
-            if(!this->connections->sendMHello(ip)) {
+            for(int i=0; i<5; i++) {
+                res = this->connections->sendMHello(ip);
+                if(res)
+                    i=5;
+                sleeper.sleepFor(chrono::seconds(3));
+            }
+            if(!res) {
                 fprintf(stderr,"cannot connect to the network\n");
                 this->stop();
                 exit(1);
