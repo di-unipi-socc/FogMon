@@ -68,7 +68,7 @@ bool Selector::calcSelection(Message::node from, int id, bool &res) {
 
         Message::leader_update sel = this->selection(id);
 
-        if(!Message::leader_update().empty()) {
+        if(!sel.empty()) {
             this->parent->getConnections()->sendSelection(sel,from);
         }
 
