@@ -154,15 +154,15 @@ void Leader::timerFun() {
 }
 
 bool Leader::initSelection(int id) {
-    this->selector.initSelection(id);
+    return this->selector.initSelection(id);
 }
 
 bool Leader::calcSelection(Message::node from, int id, bool &res) {
-    this->selector.calcSelection(from,id,res);
+    return this->selector.calcSelection(from,id,res);
 }
 
 bool Leader::updateSelection(Message::leader_update update) {
-    this->selector.updateSelection(update);
+    return this->selector.updateSelection(update);
 }
 
 void Leader::stopSelection() {
