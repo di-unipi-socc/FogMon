@@ -730,7 +730,7 @@ bool Follower::setParam(std::string name, int value) {
         return false;
 
     printf("Param %s: %d\n",name.c_str(),value);
-    return true;
+    return false;
 }
 
 int Follower::getIperfPort() {

@@ -150,7 +150,7 @@ bool Leader::setParam(std::string name, int value) {
     }
     
     printf("Param %s: %d\n",name.c_str(),value);
-    return true;
+    return false;
 }
 
 Message::node Leader::getMyNode() {
