@@ -85,8 +85,6 @@ void Leader::start(vector<Message::node> mNodes) {
         }
         if(!res) {
             fprintf(stderr,"cannot connect to the network2\n");
-            this->stop();
-            exit(1);
         }
     }
 
