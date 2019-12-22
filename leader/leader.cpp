@@ -41,8 +41,12 @@ void Leader::start(vector<Message::node> mNodes) {
     Follower::start(vector<Message::node>());
     bool valid = false;
     for(auto l : mNodes) {
-        if(l.id == this->getMyNode().id)
+        if(l.id == this->getMyNode().id) {
+            if(mNodes.size() == 1) {
+                valid = true;
+            }
             continue;
+        }
 
         bool res = false;
         for(int i=0; i<5; i++) {
