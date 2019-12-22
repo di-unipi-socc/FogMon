@@ -106,7 +106,7 @@ bool Selector::checkSelection(bool doit) {
         this->startSelection();
         return true;
     }
-
+    try {
     //calculate with a script the update and set the id on it
     char *args[] = {"./scripts/quality.py",NULL};
     ReadProc * proc = new ReadProc(args);
@@ -140,7 +140,9 @@ bool Selector::checkSelection(bool doit) {
     if(quality > 3)
         this->startSelection();
         return true;
-
+    }catch(...) {
+        printf("Exception in quality test.\n");
+    }
     return false;
 }
 
