@@ -185,12 +185,12 @@ bool Connections::sendMessage(int fd, Message &m) {
     error = writeS(fd, (const char*)&len, sizeof(len));
     if (error < 0)
     {
-        perror("   recv() failed at len");
+        perror("   write() failed at len");
     }else if(len > 0) {
 
         error = writeS(fd, json.c_str(), len);
         if(error < 0) {
-            perror("   recv() failed at data");
+            perror("   write() failed at data");
         }else {
             return true;
         }
