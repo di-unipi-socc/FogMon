@@ -39,37 +39,50 @@ Leader::~Leader() {
 
 void Leader::start(vector<Message::node> mNodes) {
     Follower::start(vector<Message::node>());
-    if(!mNodes.empty()) {
+    bool valid = false;
+    for(auto l : mNodes) {
+        if(l.id == this->getMyNode().id)
+            continue;
+
         bool res = false;
         for(int i=0; i<5; i++) {
-            res = this->connections->sendMHello(mNodes[0]);
+            res = this->connections->sendMHello(l);
             if(res)
                 i=5;
             sleeper.sleepFor(chrono::seconds(3));
         }
         if(!res) {
-            fprintf(stderr,"cannot connect to the network\n");
+            fprintf(stderr,"cannot connect to the network1\n");
+            continue;
+        }
+        valid = true;
+    }
+
+    if(!valid) {
+        this->stop();
+        exit(1);
+    }
+
+    //communicate with the other
+    vector<Message::node> ips = this->storage->getMNodes();
+    for(auto ip : ips) {
+        if(ip.id == this->getMyNode().id)
+            continue;
+
+        bool res = false;
+        for(int i=0; i<5; i++) {
+            res = this->connections->sendMHello(ip);
+            if(res)
+                i=5;
+            sleeper.sleepFor(chrono::seconds(3));
+        }
+        if(!res) {
+            fprintf(stderr,"cannot connect to the network2\n");
             this->stop();
             exit(1);
         }
-        //communicate with the other
-        vector<Message::node> ips = this->storage->getMNodes();
-        for(auto ip : ips) {
-            if(ip.id == this->getMyNode().id)
-                continue;
-            for(int i=0; i<5; i++) {
-                res = this->connections->sendMHello(ip);
-                if(res)
-                    i=5;
-                sleeper.sleepFor(chrono::seconds(3));
-            }
-            if(!res) {
-                fprintf(stderr,"cannot connect to the network\n");
-                this->stop();
-                exit(1);
-            }
-        }
     }
+
     this->timerFunThread = thread(&Leader::timerFun, this);
 }
 
