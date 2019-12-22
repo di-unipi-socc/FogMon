@@ -40,6 +40,9 @@ Leader::~Leader() {
 void Leader::start(vector<Message::node> mNodes) {
     Follower::start(vector<Message::node>());
     bool valid = false;
+    if(mNodes.size() == 0) {
+        valid = true;
+    }
     for(auto l : mNodes) {
         if(l.id == this->getMyNode().id) {
             if(mNodes.size() == 1) {
