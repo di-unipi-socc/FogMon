@@ -593,7 +593,15 @@ void Follower::timer() {
                 }
                 this->node->setMNodes(res);
             }
-            this->checkServer(res);
+            cout << "Check server" << endl;
+            bool change = this->checkServer(res);
+            if(change) {
+                cout << "Changing server" << endl;
+                if(!selectServer(res)) {
+                    cout << "Failed to find a server!!!!!!!!" << endl;
+                }
+            }
+            cout << "no change" << endl;
         }
 
         sleeper.sleepFor(chrono::seconds(this->node->timeReport));
