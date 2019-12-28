@@ -58,12 +58,11 @@ void Report::setLatency(vector<test_result> latency) {
     Document::AllocatorType& allocator = doc.GetAllocator();
 
     for(auto test : latency) {
-        Value target(test.target.c_str(), allocator);
         Value mean(test.mean);
         Value variance(test.variance);
         Value lasttime(test.lasttime);
         Value obj(kObjectType);
-        obj.AddMember("target",target, allocator);
+        obj.AddMember("target",test.target.getJson(allocator), allocator);
         obj.AddMember("mean",mean, allocator);
         obj.AddMember("variance",variance, allocator);
         obj.AddMember("lasttime",lasttime, allocator);
@@ -82,12 +81,11 @@ void Report::setBandwidth(vector<test_result> bandwidth) {
     Document::AllocatorType& allocator = doc.GetAllocator();
 
     for(auto test : bandwidth) {
-        Value target(test.target.c_str(), allocator);
         Value mean(test.mean);
         Value variance(test.variance);
         Value lasttime(test.lasttime);
         Value obj(kObjectType);
-        obj.AddMember("target",target, allocator);
+        obj.AddMember("target",test.target.getJson(allocator), allocator);
         obj.AddMember("mean",mean, allocator);
         obj.AddMember("variance",variance, allocator);
         obj.AddMember("lasttime",lasttime, allocator);
@@ -137,7 +135,6 @@ void Report::setReports(std::vector<report_result> reports) {
 
     for(auto test : reports) {
         
-        Value ip(test.ip.c_str(), allocator);
         Value hw(kObjectType);
         Value lt(kArrayType);
         Value bw(kArrayType);
@@ -169,12 +166,11 @@ void Report::setReports(std::vector<report_result> reports) {
         }
         
         for(auto testLt : test.latency) {
-            Value target(testLt.target.c_str(), allocator);
             Value mean(testLt.mean);
             Value variance(testLt.variance);
             Value lasttime(testLt.lasttime);
             Value obj(kObjectType);
-            obj.AddMember("target",target, allocator);
+            obj.AddMember("target",testLt.target.getJson(allocator), allocator);
             obj.AddMember("mean",mean, allocator);
             obj.AddMember("variance",variance, allocator);
             obj.AddMember("lasttime",lasttime, allocator);
@@ -183,12 +179,11 @@ void Report::setReports(std::vector<report_result> reports) {
         }
 
         for(auto testBw : test.bandwidth) {
-            Value target(testBw.target.c_str(), allocator);
             Value mean(testBw.mean);
             Value variance(testBw.variance);
             Value lasttime(testBw.lasttime);
             Value obj(kObjectType);
-            obj.AddMember("target",target, allocator);
+            obj.AddMember("target",testBw.target.getJson(allocator), allocator);
             obj.AddMember("mean",mean, allocator);
             obj.AddMember("variance",variance, allocator);
             obj.AddMember("lasttime",lasttime, allocator);
@@ -211,7 +206,7 @@ void Report::setReports(std::vector<report_result> reports) {
         
         Value obj(kObjectType);
         
-        obj.AddMember("ip",ip, allocator);
+        obj.AddMember("source",test.source.getJson(allocator), allocator);
         obj.AddMember("hardware",hw, allocator);
         obj.AddMember("latency",lt, allocator);
         obj.AddMember("bandwidth",bw, allocator);
@@ -258,19 +253,14 @@ bool Report::getLatency(vector<test_result>& latency) {
         return false;
 
     for (auto& v : this->doc["latency"].GetArray()) {
-        int a = !v.HasMember("target");
-        int b = !v["target"].IsString();
-        int c = !v.HasMember("mean") || !v["mean"].IsFloat() ||
-            !v.HasMember("variance") || !v["variance"].IsFloat();
-        int d = !v.IsObject();
         if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("target") || !v["target"].IsObject() ||
             !v.HasMember("mean") || !v["mean"].IsFloat() ||
             !v.HasMember("variance") || !v["variance"].IsFloat() ||
             !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
             return false;
         test_result test;
-        test.target = string(v["target"].GetString());
+        test.target.setJson(v["target"]);
         test.mean = v["mean"].GetFloat();
         test.variance = v["variance"].GetFloat();
         test.lasttime = v["lasttime"].GetInt64();
@@ -287,13 +277,13 @@ bool Report::getBandwidth(vector<test_result>& bandwidth) {
 
     for (auto& v : this->doc["bandwidth"].GetArray()) {
         if( !v.IsObject() ||
-            !v.HasMember("target") || !v["target"].IsString() ||
+            !v.HasMember("target") || !v["target"].IsObject() ||
             !v.HasMember("mean") || !v["mean"].IsFloat() ||
             !v.HasMember("variance") || !v["variance"].IsFloat() ||
             !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
             return false;
         test_result test;
-        test.target = string(v["target"].GetString());
+        test.target.setJson(v["target"]);
         test.mean = v["mean"].GetFloat();
         test.variance = v["variance"].GetFloat();
         test.lasttime = v["lasttime"].GetInt64();
@@ -346,11 +336,11 @@ bool Report::getReports(std::vector<report_result> &reports) {
             !v.HasMember("latency") || !v["latency"].IsArray() ||
             !v.HasMember("bandwidth") || !v["bandwidth"].IsArray() ||
             !v.HasMember("iot") || !v["iot"].IsArray() ||
-            !v.HasMember("ip") || !v["ip"].IsString())
+            !v.HasMember("source") || !v["source"].IsObject())
             return false;
         report_result result;
         memset(&result.hardware,0,sizeof(Report::hardware_result));
-        result.ip = string(v["ip"].GetString());
+        result.source.setJson(v["source"]);
 
         Value &val = v["hardware"];
 
@@ -378,13 +368,13 @@ bool Report::getReports(std::vector<report_result> &reports) {
 
         for (auto& v : v["latency"].GetArray()) {
             if( !v.IsObject() ||
-                !v.HasMember("target") || !v["target"].IsString() ||
+                !v.HasMember("target") || !v["target"].IsObject() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
                 !v.HasMember("variance") || !v["variance"].IsFloat() ||
                 !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
                 return false;
             test_result test;
-            test.target = string(v["target"].GetString());
+            test.target.setJson(v["target"]);
             test.mean = v["mean"].GetFloat();
             test.variance = v["variance"].GetFloat();
             test.lasttime = v["lasttime"].GetInt64();
@@ -394,13 +384,13 @@ bool Report::getReports(std::vector<report_result> &reports) {
 
         for (auto& v : v["bandwidth"].GetArray()) {
             if( !v.IsObject() ||
-                !v.HasMember("target") || !v["target"].IsString() ||
+                !v.HasMember("target") || !v["target"].IsObject() ||
                 !v.HasMember("mean") || !v["mean"].IsFloat() ||
                 !v.HasMember("variance") || !v["variance"].IsFloat() ||
                 !v.HasMember("lasttime") || !v["lasttime"].IsInt64())
                 return false;
             test_result test;
-            test.target = string(v["target"].GetString());
+            test.target.setJson(v["target"]);
             test.mean = v["mean"].GetFloat();
             test.variance = v["variance"].GetFloat();
             test.lasttime = v["lasttime"].GetInt64();

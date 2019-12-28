@@ -18,7 +18,7 @@ void IStorage::open(string path) {
     sqlite3_enable_load_extension(db, 1);
     char *zErrMsg = 0;
 
-    err = sqlite3_exec(this->db, "SELECT load_extension('./libsqlitefunctions.so')", 0, 0, &zErrMsg);
+    err = sqlite3_exec(this->db, "SELECT load_extension('./libsqlitefunctions')", 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error (load extension): %s\n", zErrMsg);
@@ -63,26 +63,32 @@ int IStorage::getHardwareCallback(void *R, int argc, char **argv, char **azColNa
 int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) {
     vector<Report::test_result> *r = (vector<Report::test_result>*)R;
     Report::test_result test;
-    test.target = string(argv[0]);
-    if(argv[1] == NULL)
+    test.target.id = string(argv[0]);
+    test.target.ip = string(argv[1]);
+    test.target.port = string(argv[2]);
+    if(argv[3] == NULL)
         test.mean = 0;
     else
-        test.mean = stof(argv[1]);
-    if(argv[2] == NULL)
+        test.mean = stof(argv[3]);
+    if(argv[4] == NULL)
         test.variance = 0;
     else
-        test.variance = stof(argv[2]);
-    if(argv[3] == NULL)
+        test.variance = stof(argv[4]);
+    if(argv[5] == NULL)
         test.lasttime = 0;
     else
-        test.lasttime = stoll(argv[3]);
+        test.lasttime = stoll(argv[5]);
     r->push_back(test);
     return 0;
 }
 
-int IStorage::VectorStringCallback(void *vec, int argc, char **argv, char **azColName) {
-    vector<string> *v = (vector<string>*)vec;
-    v->push_back(string(argv[0]));
+int IStorage::VectorNodeCallback(void *vec, int argc, char **argv, char **azColName) {
+    vector<Message::node> *v = (vector<Message::node>*)vec;
+    Message::node test;
+    test.id = string(argv[0]);
+    test.ip = string(argv[1]);
+    test.port = string(argv[2]);
+    v->push_back(test);
     return 0;
 }
 

@@ -1,5 +1,6 @@
 #include "message.hpp"
 
+#include "report.hpp"
 #include "rapidjson/reader.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -32,6 +33,7 @@ bool Message::parseJson(char *json) {
         !doc.HasMember("argument") || !doc["argument"].IsInt())
         return false;
     
+    this->sender.setJson(doc["sender"]);
     this->type = (Type)doc["type"].GetInt();
     this->command = (Command)doc["command"].GetInt();
     this->argument = (Argument)doc["argument"].GetInt();
@@ -42,6 +44,14 @@ bool Message::parseJson(char *json) {
     this->data = doc["data"]; 
 
     return true;
+}
+
+void Message::setSender(Message::node s) {
+    this->sender = s;
+}
+
+Message::node Message::getSender() {
+    return this->sender;
 }
 
 void Message::setType(Type t) {
@@ -75,109 +85,133 @@ bool Message::getData(int& i) {
     return true;
 }
 
-bool Message::getData(vector<string>& strings) {
+bool Message::getData(float& f) {
+    if(!this->data.IsFloat())
+        return false;
+    f = data.GetFloat();
+    return true;
+}
+
+bool Message::getData(node& node) {
+    return node.setJson(this->data);
+}
+
+bool Message::getData(vector<node>& nodes) {
     if(!this->data.IsArray())
         return false;
     for (auto& v : this->data.GetArray()) {
-        if(!v.IsString())
+        node node;
+        if(!node.setJson(v))
             return false;
-        strings.push_back(v.GetString());
+        nodes.push_back(node);
     }
     return true;
 }
 
-bool Message::getData(string& stringA, vector<string>& stringsB) {
-    if( !this->data.HasMember("A") || !this->data["A"].IsString() ||
+bool Message::getData(node& nodeA, vector<node>& nodesB) {
+    if( !this->data.HasMember("A") || !this->data["A"].IsObject() ||
         !this->data.HasMember("B") || !this->data["B"].IsArray())
         return false;
 
-    stringA = this->data["A"].GetString();
+    if(!nodeA.setJson(this->data["A"]))
+        return false;
 
     for (auto& v : this->data["B"].GetArray()) {
-        if(!v.IsString())
+        node node;
+        if(!node.setJson(v))
             return false;
-        stringsB.push_back(v.GetString());
+        nodesB.push_back(node);
     }
     return true;
 }
 
-bool Message::getData(vector<string>& stringsA, vector<string>& stringsB) {
+bool Message::getData(vector<node>& nodesA, vector<node>& nodesB) {
     if( !this->data.HasMember("A") || !this->data["A"].IsArray() ||
         !this->data.HasMember("B") || !this->data["B"].IsArray())
         return false;
 
     for (auto& v : this->data["A"].GetArray()) {
-        if(!v.IsString())
+        node node;
+        if(!node.setJson(v))
             return false;
-        stringsA.push_back(v.GetString());
+        nodesA.push_back(node);
     }
 
     for (auto& v : this->data["B"].GetArray()) {
-        if(!v.IsString())
+        node node;
+        if(!node.setJson(v))
             return false;
-        stringsB.push_back(v.GetString());
+        nodesB.push_back(node);
     }
     return true;
 }
 
- bool Message::getData(Report& report) {
-     return report.parseJson(this->data);
- }
+bool Message::getData(Report& report) {
+    return report.parseJson(this->data);
+}
+
+bool Message::getData(Message::leader_update& update) {
+    return update.setJson(this->data);
+}
 
 void Message::setData(int i) {
 
-    Value val(kNumberType);
-    val.SetInt(i);                                                                                                                                                                                                                                                                                                                                                                                                                               
+    Value val(i);                                                                                                                                                                                                                                                                                                                                                                                                                           
     
     this->data = val;
 }
 
-void Message::setData(std::vector<std::string> strings) {
+void Message::setData(float f) {
+
+    Value val(f);                                                                                                                                                                                                                                                                                                                                                                                                                             
+    
+    this->data = val;
+}
+
+void Message::setData(node node) {                                                                                                                                                                                                                                                                                                                                                                                                                      
+    
+    this->data = node.getJson(doc.GetAllocator());
+}
+
+void Message::setData(std::vector<node> nodes) {
 
     Value arr(kArrayType);
     Document::AllocatorType& allocator = doc.GetAllocator();
     
-    for(auto str : strings) {
-        Value val(str.c_str(), allocator);
-        arr.PushBack(val, allocator);
+    for(auto node : nodes) {
+        arr.PushBack(node.getJson(allocator), allocator);
     }                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     this->data = arr;
     
 }
 
-void Message::setData(string stringA, vector<string> stringsB) {
+void Message::setData(node nodeA, vector<node> nodesB) {
 
     Value obj(kObjectType);
-    Value strA(kStringType);
     Value arrB(kArrayType);
     Document::AllocatorType& allocator = doc.GetAllocator();
-    
-    strA.SetString(stringA.c_str(), allocator);
 
-    for(auto str : stringsB) {
-        Value val(str.c_str(), allocator);
-        arrB.PushBack(val, allocator);
+    for(auto node : nodesB) {
+        arrB.PushBack(node.getJson(allocator), allocator);
     }
 
-    obj.AddMember("A", strA, allocator);
+    obj.AddMember("A", nodeA.getJson(allocator), allocator);
     obj.AddMember("B", arrB, allocator);
     this->data = obj;
 }
 
-void Message::setData(std::vector<std::string> stringsA, std::vector<std::string> stringsB) {
+void Message::setData(std::vector<node> nodesA, std::vector<node> nodesB) {
 
     Value obj(kObjectType);
     Value arrA(kArrayType);
     Value arrB(kArrayType);
     Document::AllocatorType& allocator = doc.GetAllocator();
     
-    for(auto str : stringsA) {
-        Value val(str.c_str(), allocator);
-        arrA.PushBack(val, allocator);
+    for(auto node : nodesA) {
+        arrA.PushBack(node.getJson(allocator), allocator);
     }
-    for(auto str : stringsB) {
-        Value val(str.c_str(), allocator);
-        arrB.PushBack(val, allocator);
+    for(auto node : nodesB) {
+        arrB.PushBack(node.getJson(allocator), allocator);
     }
 
     obj.AddMember("A", arrA, allocator);
@@ -193,9 +227,15 @@ void Message::setData(Report& report) {
     this->data = *(report.getJson());
 }
 
+void Message::setData(Message::leader_update& update) {
+    Document::AllocatorType& allocator = doc.GetAllocator();
+    this->data = update.getJson(allocator);
+}
+
 void Message::buildString() {
     doc.RemoveAllMembers();
     
+    doc.AddMember("sender",this->sender.getJson(doc.GetAllocator()),doc.GetAllocator());
     doc.AddMember("type", this->type, doc.GetAllocator());
     doc.AddMember("command", this->command, doc.GetAllocator());
     doc.AddMember("argument", this->argument, doc.GetAllocator());

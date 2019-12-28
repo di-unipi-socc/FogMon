@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include <string>
 #include <vector>
+#include "message.hpp"
 #include "report.hpp"
 #include "ithing.hpp"
 
@@ -29,7 +30,7 @@ public:
      * get the vector of nodes
      * @return
     */
-    virtual std::vector<std::string> getNodes() = 0;
+    virtual std::vector<Message::node> getNodes() = 0;
 
     /**
      * get the state of the hardware saved
@@ -52,14 +53,14 @@ public:
      * @param ip the destination ip for the test
      * @param ms the result of the test in milliseconds
     */
-    virtual void saveLatencyTest(std::string ip, int ms) = 0;
+    virtual void saveLatencyTest(Message::node node, int ms) = 0;
     /**
      * save a bandwidth test
      * @param ip the destination ip for the test
      * @param kbps the result of the test in kilobit per seconds
      * @param state the state for the bandwidth measurement routine
     */
-    virtual void saveBandwidthTest(std::string ip, float kbps, int state) = 0;
+    virtual void saveBandwidthTest(Message::node node, float kbps, int state) = 0;
     /**
      * save a hardware test
      * @param hardware the result of the test
@@ -70,13 +71,13 @@ public:
      * add and reset the nodes in the list
      * @param nodes a vector of ips
     */
-    virtual void refreshNodes(std::vector<std::string> nodes) = 0;
+    virtual void refreshNodes(std::vector<Message::node> nodes) = 0;
     /**
      * add and remove nodes
      * @param add a vector of ips to be added
      * @param rem a vector of ips to be removed
     */
-    virtual void updateNodes(std::vector<std::string> add, std::vector<std::string> rem) = 0;
+    virtual void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem) = 0;
     
     /**
      * a function used to get the least recently tested node for the latency test
@@ -84,14 +85,14 @@ public:
      * @param seconds only the nodes with the test older than seconds are taken in consideration
      * @return a vector of ips representing the selected nodes
     */
-    virtual std::vector<std::string> getLRLatency(int num, int seconds) = 0;
+    virtual std::vector<Message::node> getLRLatency(int num, int seconds) = 0;
     /**
      * a function used to get the least recently tested node for the bandwidth test
      * @param num the max number of nodes to get
      * @param seconds only the nodes with the test older than seconds are taken in consideration
      * @return a vector of ips representing the selected nodes
     */
-    virtual std::vector<std::string> getLRBandwidth(int num, int seconds) = 0;
+    virtual std::vector<Message::node> getLRBandwidth(int num, int seconds) = 0;
 
     /**
      * the list of iots saved
@@ -111,23 +112,12 @@ public:
      * @param last the last bandwidth test against the ip
      * @return a negative value on fail (-1) else the test
     */
-    virtual int getTestBandwidthState(std::string ip, Report::test_result &last) = 0;
+    virtual int getTestBandwidthState(Message::node node, Report::test_result &last) = 0;
 
     /**
      * set the ip to filter the localhost
     */
-    virtual void setFilter(std::string ipS) = 0;
-
-    /**
-     * save the token
-     * @param duration the number of seconds the token will last
-    */
-    virtual void setToken(int duration) = 0;
-    /**
-     * get if has the token
-     * @return the number of seconds the token will still lasts, if the token is expired the number is negative
-    */
-    virtual int hasToken() = 0;
+    virtual void setFilter(std::string ip) = 0;
 
 protected:
 
@@ -138,7 +128,7 @@ protected:
 
     static int getHardwareCallback(void *R, int argc, char **argv, char **azColName);
     static int getTestCallback(void *R, int argc, char **argv, char **azColName);
-    static int VectorStringCallback(void *vec, int argc, char **argv, char **azColName);
+    static int VectorNodeCallback(void *vec, int argc, char **argv, char **azColName);
     static int VectorIntCallback(void *vec, int argc, char **argv, char **azColName);
     static int VectorIoTCallback(void *vec, int argc, char **argv, char **azColName);
 

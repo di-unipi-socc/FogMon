@@ -2,6 +2,8 @@
 #define REPORT_HPP_
 
 #include "rapidjson/document.h"
+
+#include "message.hpp"
 #include <vector> 
 
 /**
@@ -71,7 +73,7 @@ public:
         /**
          * the other node the tests are done against
         */
-        std::string target;
+        Message::node target;
         /**
          * the mean of the tests
         */
@@ -85,7 +87,7 @@ public:
         */
         int64_t lasttime;
         test_result() {mean = 0; variance = 0; lasttime = 0;}
-        test_result(std::string _target, float _mean, float _variance, long long _lasttime) : target(_target),mean(_mean),variance(_variance), lasttime(_lasttime) {}
+        test_result(Message::node _target, float _mean, float _variance, long long _lasttime) : target(_target),mean(_mean),variance(_variance), lasttime(_lasttime) {}
     }test_result;
     /**
      * holds a Thing measurement
@@ -111,9 +113,9 @@ public:
     */
     typedef struct report_result{
         /**
-         * the ip of the tester
+         * the tester
         */
-        std::string ip;
+        Message::node source;
         /**
          * an hardware test
         */
@@ -132,8 +134,8 @@ public:
         std::vector<IoT> iot;
 
         report_result() {}
-        report_result(std::string Ip, hardware_result Hardware, std::vector<test_result> Latency, std::vector<test_result> Bandwidth, std::vector<IoT> Iot)
-        : ip(Ip), hardware(Hardware), latency(Latency), bandwidth(Bandwidth), iot(Iot) {}
+        report_result(Message::node Source, hardware_result Hardware, std::vector<test_result> Latency, std::vector<test_result> Bandwidth, std::vector<IoT> Iot)
+        : source(Source), hardware(Hardware), latency(Latency), bandwidth(Bandwidth), iot(Iot) {}
     }report_result;
 
     /**
