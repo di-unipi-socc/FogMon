@@ -84,7 +84,7 @@ void Connections::request(int fd) {
 void Connections::worker() {
     while(this->running.load()) {
         int fd;
-        if(this->queue.pop(&fd)!=0)
+        if(!this->queue.pop(&fd))
             break;
 
         int error;
