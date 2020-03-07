@@ -4,7 +4,6 @@
 #include "iagent.hpp"
 #include "iconnections.hpp"
 #include "connections.hpp"
-#include "queue.hpp"
 #include "message.hpp"
 #include "storage.hpp"
 

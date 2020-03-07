@@ -2,7 +2,6 @@
 #define LEADER_CONNECTIONS_HPP_
 
 #include "follower_connections.hpp"
-#include "queue.hpp"
 #include "message.hpp"
 #include "leader_storage.hpp"
 #include "ileader.hpp"
