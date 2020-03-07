@@ -12,10 +12,10 @@
 template<typename E>
 class Queue {
 private:
-    typedef struct queue_str {
+    struct queue_elem_t {
         E info;
-        struct queue_str *next;
-    }queue_elem_t;
+        queue_elem_t *next;
+    };
 
     queue_elem_t *queue_h;
     queue_elem_t *queue_l;
@@ -27,18 +27,29 @@ private:
 public:
     Queue() {
         stop = false;
-        queue_h = NULL;
-        queue_l = NULL;
+        queue_h = nullptr;
+        queue_l = nullptr;
     }
 
-    int push(E info) {
-        std::unique_lock<std::mutex> lock(this->mutex);
+    ~Queue() {
+        for (queue_elem_t* p=this->queue_h;p!=nullptr;) {
+            queue_elem_t* next = p->next;
+            delete p;
+            p = next;
+        }
+    }
+    
+    bool push(E info) {
+        if (this->stop.load()) {
+            return false;
+        }
 
+        std::unique_lock<std::mutex> lock(this->mutex);
         queue_elem_t *new_el = new queue_elem_t;
         new_el->info = info;
-        new_el->next = NULL;
+        new_el->next = nullptr;
 
-        if( this->queue_l == NULL )
+        if( this->queue_l == nullptr )
         {
             this->queue_l = new_el;
             this->queue_h = new_el;
@@ -48,38 +59,32 @@ public:
             this->queue_l = new_el;
         }
 
-	    lock.unlock();
-        this->threadWait.notify_one();	
-        return 0;
+        this->threadWait.notify_one();
+        return true;
     }
 
-    int pop(E* ret) {
-        int err=0;
-        std::unique_lock<std::mutex> lock1(this->mutex);
+    bool pop(E* ret) {
+        std::unique_lock<std::mutex> lock(this->mutex);
+        this->threadWait.wait(lock, [=]{
+            return this->queue_h != nullptr || this->stop.load();
+        });
 
-        while( this->queue_h == NULL )
-        {
-            if(this->stop.load())
-            {
-                err = -1;
-                break;
+       if(this->queue_h!=nullptr)
+        { // there is a new element to pop
+            *ret = this->queue_h->info;
+            queue_elem_t* old_head = this->queue_h;
+            this->queue_h = this->queue_h->next;
+            delete old_head;
+
+            if(this->queue_h==nullptr) {
+                this->queue_l = nullptr;
             }
-            this->threadWait.wait(lock1);
+            return true;
         }
-        if(err>=0)
-        {
-            if(this->queue_h!=NULL)
-            {
-                *ret = this->queue_h->info;
-                this->queue_h = this->queue_h->next;
-            }
-            if(this->queue_h==NULL)
-                this->queue_l = NULL;
+        else
+        { // the queue was closed
+            return false;
         }
-
-        lock1.unlock();
-
-        return err;
     }
 
     void startqueue() {
@@ -87,22 +92,9 @@ public:
     }
 
     void stopqueue() {
-        std::unique_lock<std::mutex> lock(this->mutex);
-
-        while( this->queue_h )
-        {
-            this->queue_l = this->queue_h->next;
-            delete this->queue_h;
-            this->queue_h = this->queue_l;
-        }
         this->stop = true;
-        
         this->threadWait.notify_all();
-
-        lock.unlock();
     }
 };
-
-
 
 #endif
