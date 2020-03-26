@@ -392,10 +392,9 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
         
         string file = "";
 
-        while (std::regex_search (output,m,reg)) {
+        while (std::regex_search (output,m,reg)) {           
+            file = m[1].str();
             output = m.suffix().str();
-            
-            file = m[1];
         }
         if(!file.empty())
         {
@@ -416,13 +415,13 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
                     float mean = 0;
                     int num = 0;
                     while (std::regex_search (output,m,reg)) {
-                        output = m.suffix().str();
                         try {
-                        mean += stof(m[2]);
+                        mean += stof(m[2].str());
                         num++;
                         }catch(...) {
                             
                         }
+                        output = m.suffix().str();
                     }
                     if(num>0)  {
                         mean = mean/num;
