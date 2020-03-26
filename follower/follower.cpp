@@ -156,10 +156,10 @@ bool Follower::selectServer(vector<Message::node> mNodes) {
     int i=0;
     while(res.empty() && i<mNodes.size()) {
         cout << "trying "<<mNodes[i].ip<<endl;
-        for(int i=0; i<5; i++) {
-            res = this->connections->requestMNodes(mNodes[i]);
+        for(int k=0; k<5; k++) {
+            res = this->connections->requestMNodes(mNodes[k]);
             if(res.size() != 0)
-                i=5;
+                k=5;
             sleeper.sleepFor(chrono::seconds(3));
         }
         
