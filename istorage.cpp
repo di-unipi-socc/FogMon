@@ -31,7 +31,9 @@ void IStorage::open(string path) {
 }
 
 void IStorage::close() {
-    sqlite3_close(this->db);
+    if(this->db != nullptr)
+        sqlite3_close(this->db);
+    this->db = nullptr;
 }
 
 int IStorage::getHardwareCallback(void *R, int argc, char **argv, char **azColName) {

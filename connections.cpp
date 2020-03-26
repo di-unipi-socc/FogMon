@@ -144,7 +144,7 @@ bool Connections::getMessage(int fd, Message &m) {
 
     int error;
     int32_t len;
-
+    bool ret = false;
     error = readS(fd, &len, sizeof(len));
     if (error < 0)
     {
@@ -160,16 +160,17 @@ bool Connections::getMessage(int fd, Message &m) {
 
         error = readS(fd, data, len);
         if(error < 0) {
-            delete data;
             perror("   recv() failed at data");
         }else {
             m.Clear();
             //printf("ricevo: %s\n",data);
-            if(m.parseJson(data))
-                return true;
+            if(m.parseJson(data)) {
+                ret = true;
+            }
         }
+        delete[] data;
     }
-    return false;
+    return ret;
 }
 
 bool Connections::sendMessage(int fd, Message &m) {

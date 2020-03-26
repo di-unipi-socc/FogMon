@@ -132,6 +132,5 @@ int main(int argc, char *argv[]) {
     }while(a == 0);
 
 
-    node.stop();
     return 0;
 }

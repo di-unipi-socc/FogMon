@@ -146,9 +146,10 @@ std::string ReadProc::readoutput() {
         return ret;
     for (int i=0;true;i++)
     {
-        num_read = read(out[0], buf, sizeof(buf));
+        num_read = read(out[0], buf, sizeof(buf)-1);
         if (num_read > 0)
         {
+            buf[num_read] = 0x00;
             ret += string(buf);
         }
         else

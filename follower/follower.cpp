@@ -477,10 +477,10 @@ int Follower::testPing(string ip) {
         std::smatch m;
         
         while (std::regex_search (output,m,reg)) {
-            output = m.suffix().str();
             //this->storage->saveLatencyTest(ip, stoi(m[1]));
-            cout << ip << " ms " << stoi(m[1]) << endl;
-            return stoi(m[1]);
+            cout << ip << " ms " << stoi(m[1].str()) << endl;
+            return stoi(m[1].str());
+            //output = m.suffix().str();
         }
     }
     return -1;
