@@ -430,6 +430,7 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
                     }    
                 }
             }
+            fclose(in);
         }
     }
 
