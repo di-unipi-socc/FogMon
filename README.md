@@ -17,14 +17,10 @@ git submodule init
 git submodule update
 ```
 
-Two docker image representing the two nodes.
+There is a docker image for easily running the node.
 
 ```
-docker build --tag node . -f node.Dockerfile
-```
-
-```
-docker build --tag server . -f server.Dockerfile
+docker build --tag fogmon .
 ```
 
 The tool can be compiled outside docker (is not advised) as follow:
