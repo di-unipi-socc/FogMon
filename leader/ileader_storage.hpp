@@ -34,6 +34,8 @@ public:
     virtual std::vector<Report::test_result> getLatency(Message::node ip) = 0;
     virtual std::vector<Report::test_result> getBandwidth(Message::node ip) = 0;
 
+    virtual void removeOldNodes(int seconds) = 0;
+
     virtual void complete() = 0;
 };
 

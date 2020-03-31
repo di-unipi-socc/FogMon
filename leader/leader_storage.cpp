@@ -388,6 +388,45 @@ Report::report_result LeaderStorage::getReport(Message::node node) {
     return r;
 }
 
+void LeaderStorage::removeOldNodes(int seconds) {
+    char *zErrMsg = 0;
+    char buf[1024];
+
+    std::vector<Message::node> vec = this->getMLRHardware(100, seconds);
+
+    std::sprintf(buf,"DELETE FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%d-strftime('%%s','now') <= 0", this->nodeM.id.c_str(), seconds);
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
+    for(auto node : vec) {
+        std::sprintf(buf,"DELETE FROM MLinks WHERE idA = \"%s\" OR idB = \"%s\"", node.id.c_str(),node.id.c_str());
+
+        int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+        if( err!=SQLITE_OK )
+        {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            sqlite3_free(zErrMsg);
+            exit(1);
+        }
+
+        std::sprintf(buf,"DELETE FROM MIots WHERE idNode = \"%s\"", node.id.c_str());
+
+        err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+        if( err!=SQLITE_OK )
+        {
+            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            sqlite3_free(zErrMsg);
+            exit(1);
+        }
+    }    
+}
+
 void LeaderStorage::complete() {
     char *zErrMsg = 0;
     char buf[2048];

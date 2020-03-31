@@ -123,7 +123,7 @@ void Leader::timerFun() {
         //remove the nodes that failed to respond
         this->connections->sendRemoveNodes(ips);
         vector<Message::node> tmp;
-        this->getStorage()->updateNodes(tmp,rem);
+        this->getStorage()->updateNodes(tmp,rem);        
 
         //routine for LeaderNodes
         ips = this->getStorage()->getMNodes();
@@ -146,6 +146,10 @@ void Leader::timerFun() {
             this->getStorage()->complete();
 
             this->selector.checkSelection();
+        }
+
+        if(iter % 10 == 0) {
+            this->getStorage()->removeOldNodes(this->node->timeheartbeat);
         }
         
         iter++;

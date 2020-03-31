@@ -215,6 +215,7 @@ TEST(StorageLeaderTest, FailNullRef) {
     unlink("testB.db");
     LeaderStorage storage(nodeA);
     storage.open("testB.db");
+
     Report::hardware_result hw;
     hw.cores = 4;
     hw.disk = 100*1000*1000;
@@ -223,9 +224,11 @@ TEST(StorageLeaderTest, FailNullRef) {
     hw.memory = 10*1000*1000;
     hw.mean_free_memory = 1*1000*1000;
     storage.addNode(node_test,hw);
+    storage.addNode(node_testt,hw);
+    storage.addNode(node_testtt,hw);
 
     std::vector<Message::node> res = storage.getNodes();
-    int dim = 1;
+    int dim = 3;
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim)
         EXPECT_EQ("test", res[0].id);
@@ -245,10 +248,10 @@ TEST(StorageLeaderTest, FailNullRef) {
     tests.push_back(test);
     storage.addReportLatency(node_testtt,tests);
 
-    //missing test-testt
+    //missing test-testt and testt-testtt
 
     res = storage.getMLRLatency(3, 10);
-    dim = 0;
+    dim = 2;
     EXPECT_EQ(dim, res.size());
 
     storage.addReportBandwidth(node_testtt,tests);
@@ -261,7 +264,7 @@ TEST(StorageLeaderTest, FailNullRef) {
     storage.addReportBandwidth(node_testt,tests);
 
     res = storage.getMLRBandwidth(4, 10);
-    dim = 0;
+    dim = 1;
     EXPECT_EQ(dim, res.size()); 
 }
 
@@ -528,4 +531,10 @@ TEST(StorageLeaderTest, Complete) {
             EXPECT_EQ(test.mean, 200);
         }
     }
+}
+
+TEST(StorageLeaderTest, RemoveOldNodes) {
+    LeaderStorage storage(nodeA);
+    storage.open("testB.db");
+    storage.removeOldNodes(0);
 }
