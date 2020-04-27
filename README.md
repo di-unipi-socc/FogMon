@@ -23,6 +23,24 @@ There is a docker image for easily running the node.
 docker build --tag fogmon .
 ```
 
+Then run a leader with the command
+```
+docker run -it --net=host fogmon --leader
+```
+and the other nodes with
+```
+docker run -it --net=host fogmon --C ip_leader
+```
+The default used ports are:
+
+5555/TCP fogmon
+
+5201/TCP iperf
+
+8366/TCP assolo
+
+8365/UDP assolo
+
 The tool can be compiled outside docker (is not advised) as follow:
 
 install sqlite3 for development
