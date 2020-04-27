@@ -11,7 +11,6 @@ FogMon is described in the following paper:
 If you wish to reuse source code in this repo, please consider citing the above mentioned article.
 
 ## How To
-
 ```
 git submodule init
 git submodule update
@@ -41,20 +40,31 @@ The default used ports are:
 
 8365/UDP assolo
 
+-----
+
 The tool can be compiled outside docker (is not advised) as follow:
 
-install sqlite3 for development
+```
+cmake .
+```
+```
+make
+```
+dependencies:
 
-install libstdc++ for static linking
+sqlite3 for development
 
-install libserialport
+libstdc++ for static linking
 
-install sigar:
+libserialport
+
+sigar:
+
 https://github.com/hyperic/sigar
 
-it needs to install libtool first
+it needs libtool for compiling
 
-if not working with
+and if do not compile with
 ```
 ./autogen.sh && ./configure && make && sudo make install
 ```
