@@ -40,7 +40,7 @@ The default used ports are:
 
 8365/UDP assolo
 
------
+## Compile outside docker
 
 The tool can be compiled outside docker (is not advised) as follow:
 
