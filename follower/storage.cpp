@@ -2,7 +2,7 @@
 #include "iagent.hpp"
 #include <string.h>
 
-#include <ctime>
+#include <inttypes.h>
 
 using namespace std;
 
@@ -53,7 +53,7 @@ void Storage::createTables() {
     char *zErrMsg = 0;
 
     vector<string> query = {"CREATE TABLE IF NOT EXISTS Hardware (time TIMESTAMP PRIMARY KEY, cores INTEGER, free_cpu REAL, memory INTEGER, free_memory REAL, disk INTEGER, free_disk REAL)",
-                            "CREATE TABLE IF NOT EXISTS Nodes (id STRING PRIMARY KEY NOT NULL, ip STRING NOT NULL, port STRING NOT NULL, latencyTime TIMESTAMP, bandwidthTime TIMESTAMP, bandwidthState INTEGER, UNIQUE(ip, port))",
+                            "CREATE TABLE IF NOT EXISTS Nodes (id STRING PRIMARY KEY NOT NULL, ip STRING NOT NULL, port STRING NOT NULL, latencyTime TIMESTAMP, lastMeanL FLOAT, lastVarianceL FLOAT, bandwidthTime TIMESTAMP, bandwidthState INTEGER, lastMeanB FLOAT, lastVarianceB FLOAT, UNIQUE(ip, port))",
                             "CREATE TABLE IF NOT EXISTS Latency (time TIMESTAMP, idNodeB STRING REFERENCES Nodes(id) NOT NULL, ms INTEGER)",
                             "CREATE TABLE IF NOT EXISTS Bandwidth (time TIMESTAMP PRIMARY KEY, idNodeB STRING REFERENCES Nodes(id) NOT NULL, kbps FLOAT)",
                             "CREATE TABLE IF NOT EXISTS IoTs (id STRING PRIMARY KEY, desc STRING, ms INTEGER)"};
@@ -90,10 +90,10 @@ Report::hardware_result Storage::getHardware() {
     return r;
 }
 
-std::vector<Report::test_result> Storage::getLatency() {
+std::vector<Report::test_result> Storage::getLatency(int64_t last) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(L.ms) AS mean, variance(L.ms) AS var, strftime('%%s',max(L.time)) as time FROM Latency AS L JOIN Nodes AS N WHERE L.idNodeB = N.id group by N.id");
+    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(L.ms) AS mean, variance(L.ms) AS var, strftime('%%s',max(L.time)) as time FROM Latency AS L JOIN Nodes AS N WHERE L.idNodeB = N.id GROUP BY N.id HAVING strftime('%%s',max(L.time))>%" PRId64, last);
 
     vector<Report::test_result> tests;
 
@@ -110,10 +110,10 @@ std::vector<Report::test_result> Storage::getLatency() {
     return tests;
 }
 
-std::vector<Report::test_result> Storage::getBandwidth() {
+std::vector<Report::test_result> Storage::getBandwidth(int64_t last) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N WHERE B.idNodeB = N.id group by N.id");
+    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N WHERE B.idNodeB = N.id GROUP BY N.id HAVING strftime('%%s',max(B.time))>%" PRId64, last);
 
     vector<Report::test_result> tests;
 
@@ -126,6 +126,30 @@ std::vector<Report::test_result> Storage::getBandwidth() {
     }
     filterSend(tests);
     return tests;
+}
+
+void Storage::saveState() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,   "INSERT OR REPLACE INTO Nodes (id,ip,port, latencyTime, lastMeanL, lastVarianceL, bandwidthTime, bandwidthState, lastMeanB, lastVarianceB) "
+                        " SELECT A.id AS id, A.ip AS ip, A.port AS port, A.latencyTime AS latencyTime, "
+                        " L.mean AS lastMeanL, L.variance AS lastVarianceL,"
+                        " A.bandwidthTime AS bandwidthTime, A.bandwidthState AS bandwidthState,"
+                        " B.mean AS lastMeanB, B.variance AS lastVarianceB,"
+                        " from Nodes AS A"
+                        " join (SELECT N.id as id, avg(L1.kbps) AS mean, variance(L1.kbps) AS var FROM Latency AS L1 JOIN Nodes AS N WHERE L1.idNodeB = N.id group by N.id ) AS L "
+                        " join (SELECT N.id as id, avg(B1.kbps) AS mean, variance(B1.kbps) AS var FROM Bandwidth AS B1 JOIN Nodes AS N WHERE B1.idNodeB = N.id group by N.id ) AS B "
+                        " WHERE A.id == L.id AND A.id == L.id ");
+
+
+    int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+
 }
 
 void Storage::saveLatencyTest(Message::node node, int ms) {
@@ -134,7 +158,7 @@ void Storage::saveLatencyTest(Message::node node, int ms) {
 
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Latency (time ,idNodeB, ms) VALUES (DATETIME('now'), \"%s\", %ld)", node.id.c_str(),ms);
+    std::sprintf(buf,"INSERT INTO Latency (time ,idNodeB, ms) VALUES (DATETIME('now'), \"%s\", %d)", node.id.c_str(),ms);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -181,7 +205,7 @@ void Storage::saveBandwidthTest(Message::node node, float kbps, int state) {
         exit(1);
     }
 
-    std::sprintf(buf,"UPDATE Nodes SET bandwidthTime = DATETIME('now'), bandwidthState = %ld WHERE id = \"%s\"", state, node.id.c_str());
+    std::sprintf(buf,"UPDATE Nodes SET bandwidthTime = DATETIME('now'), bandwidthState = %d WHERE id = \"%s\"", state, node.id.c_str());
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -205,7 +229,7 @@ void Storage::saveBandwidthTest(Message::node node, float kbps, int state) {
 void Storage::saveHardware(Report::hardware_result hardware) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT INTO Hardware (time, cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (DATETIME('now'), %ld, %f, %ld, %f, %ld, %f)", hardware.cores, hardware.mean_free_cpu, hardware.memory, hardware.mean_free_memory, hardware.disk, hardware.mean_free_disk);
+    std::sprintf(buf,"INSERT INTO Hardware (time, cores, free_cpu, memory, free_memory, disk, free_disk) VALUES (DATETIME('now'), %d, %f, %ld, %f, %" PRId64", %f)", hardware.cores, hardware.mean_free_cpu, hardware.memory, hardware.mean_free_memory, hardware.disk, hardware.mean_free_disk);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
@@ -261,7 +285,7 @@ void Storage::refreshNodes(vector<Message::node> nodes) {
     for(auto node : nodes) {
         if(node.id != "") {
             //does not exists then insert
-            std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (id,ip,port, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
+            std::sprintf(buf,"INSERT OR REPLACE INTO Nodes (id,ip,port, latencyTime, lastMeanL, lastVarianceL, bandwidthTime, bandwidthState, lastMeanB, lastVarianceB) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), -1, -1, datetime('now', '-1 month'), 0, -1, -1)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
             err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
@@ -283,7 +307,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
     for(auto node : add) {
         if(node.id != "") {
             //does not exists then insert
-            std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (id,ip,port, latencyTime, bandwidthTime, bandwidthState) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), datetime('now', '-1 month'), 0)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
+            std::sprintf(buf,"INSERT OR IGNORE INTO Nodes (id,ip,port, latencyTime, lastMeanL, lastVarianceL, bandwidthTime, bandwidthState, lastMeanB, lastVarianceB) VALUES (\"%s\", \"%s\", \"%s\", datetime('now', '-1 month'), -1, -1, datetime('now', '-1 month'), 0, -1, -1)", node.id.c_str(),node.ip.c_str(),node.port.c_str());
             int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
@@ -352,7 +376,7 @@ vector<Message::node> Storage::getNodes() {
 std::vector<Message::node> Storage::getLRLatency(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT id,ip,port FROM Nodes WHERE strftime('%%s',latencyTime)+%ld-strftime('%%s','now') <= 0 ORDER BY latencyTime LIMIT %ld",seconds, num);
+    std::sprintf(buf,"SELECT id,ip,port FROM Nodes WHERE strftime('%%s',latencyTime)+%d-strftime('%%s','now') <= 0 ORDER BY latencyTime LIMIT %d",seconds, num);
 
     vector<Message::node> nodes;
 
@@ -370,7 +394,7 @@ std::vector<Message::node> Storage::getLRLatency(int num, int seconds) {
 std::vector<Message::node> Storage::getLRBandwidth(int num, int seconds) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT id,ip,port FROM Nodes WHERE strftime('%%s',bandwidthTime)+%ld-strftime('%%s','now') <= 0 ORDER BY RANDOM() LIMIT %ld",seconds, num);
+    std::sprintf(buf,"SELECT id,ip,port FROM Nodes WHERE strftime('%%s',bandwidthTime)+%d-strftime('%%s','now') <= 0 ORDER BY RANDOM() LIMIT %d",seconds, num);
 
     vector<Message::node> nodes;
 
@@ -464,7 +488,7 @@ void Storage::addIot(IThing *iot) {
         
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"INSERT OR REPLACE INTO IoTs (id, desc, ms) VALUES (\"%s\",\"%s\",%ld)", iot->getId().c_str(), iot->getDesc().c_str(), iot->getLatency());
+    std::sprintf(buf,"INSERT OR REPLACE INTO IoTs (id, desc, ms) VALUES (\"%s\",\"%s\",%d)", iot->getId().c_str(), iot->getDesc().c_str(), iot->getLatency());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )

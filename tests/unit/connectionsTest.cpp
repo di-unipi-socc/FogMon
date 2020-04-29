@@ -37,16 +37,18 @@ public:
     virtual Report::hardware_result getHardware() {
         return Report::hardware_result();
     }
-    virtual std::vector<Report::test_result> getLatency() {
+    virtual std::vector<Report::test_result> getLatency(int64_t last) {
         vector<Report::test_result> ret;
         ret.push_back(Report::test_result());
         return ret;
     }
-    virtual std::vector<Report::test_result> getBandwidth() {
+    virtual std::vector<Report::test_result> getBandwidth(int64_t last) {
         vector<Report::test_result> ret;
         ret.push_back(Report::test_result());
         return ret;
     }
+
+    virtual void saveState() {}
 
     virtual std::vector<Report::IoT> getIots() {
         std::vector<Report::IoT> iots;

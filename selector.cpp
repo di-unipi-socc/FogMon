@@ -108,8 +108,8 @@ bool Selector::checkSelection(bool doit) {
     }
     try {
     //calculate with a script the update and set the id on it
-    char *args[] = {"./scripts/quality.py",NULL};
-    ReadProc * proc = new ReadProc(args);
+    const char *args[] = {"./scripts/quality.py",NULL};
+    ReadProc * proc = new ReadProc((char**)args);
 
      {
         std::lock_guard<std::mutex> lock(this->clusterMutex);
@@ -161,8 +161,8 @@ void Selector::stopSelection() {
 Message::leader_update Selector::selection(int id) {
 
     //calculate with a script the update and set the id on it
-    char *args[] = {"./scripts/cluster.py",NULL};
-    ReadProc * proc = new ReadProc(args);
+    const char *args[] = {"./scripts/cluster.py",NULL};
+    ReadProc * proc = new ReadProc((char**)args);
 
      {
         std::lock_guard<std::mutex> lock(this->clusterMutex);

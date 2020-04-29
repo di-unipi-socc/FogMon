@@ -280,11 +280,12 @@ bool FollowerConnections::sendHello(Message::node ipS) {
     return result;
 }
 
-bool FollowerConnections::sendUpdate(Message::node ipS) {
+
+optional<pair<int64_t,Message::node>> FollowerConnections::sendUpdate(Message::node ipS, pair<int64_t,Message::node> update) {
     int Socket = openConnection(ipS.ip, ipS.port);
     
     if(Socket < 0) {
-        return false;
+        return nullopt;
     }
 
     fflush(stdout);
@@ -299,15 +300,23 @@ bool FollowerConnections::sendUpdate(Message::node ipS) {
     Report r;
     
     r.setHardware(this->parent->getStorage()->getHardware());
-    r.setLatency(this->parent->getStorage()->getLatency());
-    r.setBandwidth(this->parent->getStorage()->getBandwidth());
     r.setIot(this->parent->getStorage()->getIots());
 
+    int64_t now = this->parent->getStorage()->getTime();
+    if(ipS == update.second) {
+        int64_t time = update.first;
+        r.setLatency(this->parent->getStorage()->getLatency(time));
+        r.setBandwidth(this->parent->getStorage()->getBandwidth(time));
+        
+    } else { //send all data
+        r.setLatency(this->parent->getStorage()->getLatency());
+        r.setBandwidth(this->parent->getStorage()->getBandwidth());
+    }
     m.setData(r);
 
     
 
-    bool result = false;
+    std::optional<std::pair<int64_t,Message::node>> result = nullopt;
 
     //send update message
     if(this->sendMessage(Socket, m)) {
@@ -317,7 +326,8 @@ bool FollowerConnections::sendUpdate(Message::node ipS) {
                 res.getCommand() == Message::Command::UPDATE &&
                 res.getArgument() == Message::Argument::POSITIVE) {
                 
-                result = true;
+                result = std::make_pair(now, ipS);
+                this->parent->getStorage()->saveState();
             }
         }
     }

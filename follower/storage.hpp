@@ -21,12 +21,14 @@ public:
     void setFilter(std::string ip);
 
     virtual Report::hardware_result getHardware();
-    virtual std::vector<Report::test_result> getLatency();
-    virtual std::vector<Report::test_result> getBandwidth();
+    virtual std::vector<Report::test_result> getLatency(int64_t last = 0);
+    virtual std::vector<Report::test_result> getBandwidth(int64_t last = 0);
 
     void saveLatencyTest(Message::node node, int ms);
     void saveBandwidthTest(Message::node node, float kbps, int state);
     void saveHardware(Report::hardware_result hardware);
+
+    void saveState();
 
     void refreshNodes(std::vector<Message::node> nodes);
     void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem);

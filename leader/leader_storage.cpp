@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vector>
 #include <sstream>
+#include <inttypes.h>
 #include "storage.hpp"
 
 using namespace std;
@@ -123,17 +124,17 @@ void LeaderStorage::addTest(Message::node nodeA, Message::node nodeB, Report::te
     if(type == string("Latency")) {
         std::sprintf(buf,
                         "INSERT OR IGNORE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
-                        "   VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%lld,\"unixepoch\"), 0, 0, DATETIME('now', '-1 month'))"
+                        "   VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%" PRId64",\"unixepoch\"), 0, 0, DATETIME('now', '-1 month'))"
                         "; "
-                        "UPDATE MLinks SET meanL = %f, varianceL = %f, lasttimeL = DATETIME(%lld,\"unixepoch\") "
+                        "UPDATE MLinks SET meanL = %f, varianceL = %f, lasttimeL = DATETIME(%" PRId64",\"unixepoch\") "
                         "   WHERE idA = \"%s\" AND idB = \"%s\"",
                         nodeA.id.c_str(), nodeB.id.c_str(), test.mean, test.variance, test.lasttime, test.mean, test.variance, test.lasttime, nodeA.id.c_str(), nodeB.id.c_str());
     }else if(type == string("Bandwidth")) {
         std::sprintf(buf,
                         "INSERT OR IGNORE INTO MLinks (idA, idB, meanB, varianceB, lasttimeB, meanL, varianceL, lasttimeL) "
-                        "   VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%lld,\"unixepoch\"), 0, 0, DATETIME('now', '-1 month'))"
+                        "   VALUES (\"%s\", \"%s\", %f, %f, DATETIME(%" PRId64",\"unixepoch\"), 0, 0, DATETIME('now', '-1 month'))"
                         "; "
-                        "UPDATE MLinks SET meanB = %f, varianceB = %f, lasttimeB = DATETIME(%lld,\"unixepoch\") "
+                        "UPDATE MLinks SET meanB = %f, varianceB = %f, lasttimeB = DATETIME(%" PRId64",\"unixepoch\") "
                         "   WHERE idA = \"%s\" AND idB = \"%s\"",
                         nodeA.id.c_str(), nodeB.id.c_str(), test.mean, test.variance, test.lasttime, test.mean, test.variance, test.lasttime, nodeA.id.c_str(), nodeB.id.c_str());
     }
@@ -215,7 +216,7 @@ std::vector<Message::node> LeaderStorage::getMLRLatency(int num, int seconds) {
                         " (SELECT A.ip AS ip, A.port AS port, A.id AS id, B.id, Null as lasttimeL FROM MNodes as A join MNodes as B"
                         "  WHERE A.id != B.id AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND NOT EXISTS (SELECT * FROM MLinks WHERE A.id = idA and B.id = idB) "
                         " UNION SELECT A.ip AS ip, A.port AS port, A.id AS id, B.id, C.lasttimeL FROM MNodes as A JOIN MNodes as B JOIN MLinks as C"
-                        "  WHERE A.id != B.id and A.id = C.idA and B.id = C.idB AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND strftime('%%s',C.lasttimeL)+%ld-strftime('%%s','now') <= 0 "
+                        "  WHERE A.id != B.id and A.id = C.idA and B.id = C.idB AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND strftime('%%s',C.lasttimeL)+%d-strftime('%%s','now') <= 0 "
                         " order by lasttimeL limit %d) "
                         "group by id;",
                 this->nodeM.id.c_str(),this->nodeM.id.c_str(),this->nodeM.id.c_str(),this->nodeM.id.c_str(),seconds, num);
@@ -240,7 +241,7 @@ std::vector<Message::node> LeaderStorage::getMLRBandwidth(int num, int seconds) 
                         " (SELECT A.ip AS ip, A.port AS port, A.id AS id, B.id, Null as lasttimeB FROM MNodes as A join MNodes as B"
                         "  WHERE A.id != B.id AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND not exists (SELECT * FROM MLinks WHERE A.id = idA and B.id = idB) "
                         " UNION SELECT A.ip AS ip, A.port AS port, A.id AS id, B.id, C.lasttimeB FROM MNodes as A join MNodes as B left join MLinks as C"
-                        "  WHERE A.id != B.id and A.id = C.idA and B.id = C.idB AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND strftime('%%s',C.lasttimeB)+%ld-strftime('%%s','now') <= 0 "
+                        "  WHERE A.id != B.id and A.id = C.idA and B.id = C.idB AND A.monitoredBy = \"%s\" AND B.monitoredBy = \"%s\" AND strftime('%%s',C.lasttimeB)+%d-strftime('%%s','now') <= 0 "
                         " order by lasttimeB limit %d) "
                         "group by id;",
                 this->nodeM.id.c_str(),this->nodeM.id.c_str(),this->nodeM.id.c_str(),this->nodeM.id.c_str(),seconds, num);

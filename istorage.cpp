@@ -110,3 +110,26 @@ int IStorage::VectorIoTCallback(void *vec, int argc, char **argv, char **azColNa
 
     return 0;
 }
+
+int getInt64Callback(void *i, int argc, char **argv, char **azColName) {
+    int64_t *val = (int64_t*)i;
+    *val = stoll(argv[0]);
+    return 0;
+}
+
+int64_t IStorage::getTime() {
+    char *zErrMsg = 0;
+    char buf[1024];
+    std::sprintf(buf,"select strftime('%%s',DATETIME('now'))");
+
+    int64_t ret;
+
+    int err = sqlite3_exec(this->db, buf, getInt64Callback, &ret, &zErrMsg);
+    if( err!=SQLITE_OK )
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+    return ret;
+}

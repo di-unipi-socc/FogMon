@@ -36,10 +36,15 @@ public:
     virtual Server* getServer();
 
     virtual void changeRole(std::vector<Message::node> leaders);
+
 protected:
 
     //id and port saved here
     Message::node myNode;
+
+    //remember when the last update happened and the old server
+    //so that new updates can be selective on new information only
+    std::pair<int64_t,Message::node> update;
 
     //ports for tests
     int portIperf;

@@ -252,7 +252,7 @@ int Follower::startIperf() {
     char command[1024];
     sprintf(command, "%d", port);
 
-    char *args[] = {"/bin/iperf3", "-s","-p",command, NULL };
+    char *args[] = {(char*)"/bin/iperf3", (char*)"-s",(char*)"-p",command, NULL };
     ReadProc *proc = new ReadProc(args);
     sleeper.sleepFor(chrono::milliseconds(50));
     int res = proc->nowaitproc();
@@ -273,13 +273,13 @@ int Follower::startEstimate() {
 
     port = 8366;
 
-    char *args1[] = {"./assolo_rcv", NULL };
+    char *args1[] = {(char*)"./assolo_rcv", NULL };
     ReadProc *proc1 = new ReadProc(args1);
 
     char command[256];
     sprintf(command, "-U %d", port);
 
-    char *args2[] = {"./assolo_snd", command, NULL };
+    char *args2[] = {(char*)"./assolo_snd", command, NULL };
     ReadProc *proc2 = new ReadProc(args2);
 
     sleeper.sleepFor(chrono::milliseconds(50));
@@ -361,8 +361,8 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
     if(old < 1.0) {
         old = 5.0;
     }
-    char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", (char*)to_string(old*20).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, NULL };
-    ReadProc *proc = new ReadProc(args);
+    const char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "3", "-t", "30", "-u", (char*)to_string(old*20).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, NULL };
+    ReadProc *proc = new ReadProc((char**)args);
 
 
     {
@@ -546,11 +546,11 @@ void Follower::timer() {
         //generate hardware report and send it
         this->getHardware();
 
-        bool ris = this->connections->sendUpdate(this->nodeS);
+        std::optional<std::pair<int64_t,Message::node>> ris = this->connections->sendUpdate(this->nodeS, this->update);
 
-        if(ris == false) {
-            ris = this->connections->sendUpdate(this->nodeS);
-            if(ris == false) {
+        if(ris == nullopt) {
+            ris = this->connections->sendUpdate(this->nodeS,this->update);
+            if(ris == nullopt) {
                 //change server
                 cout << "Changing server..." << endl;
                 if(!selectServer(this->node->getMNodes())) {
@@ -560,7 +560,12 @@ void Follower::timer() {
             }
         }
 
-        //every 10 iteration ask the nodes in case the server cant reach this network
+        if(ris != nullopt) {
+            this->update.first= (*ris).first;
+            this->update.second= (*ris).second;
+        }
+
+        //every 10 iterations ask the nodes in case the server cant reach this network
         if(iter%10 == 0) {
             vector<Message::node> ips = this->connections->requestNodes(this->nodeS);
             vector<Message::node> tmp = this->getStorage()->getNodes();
@@ -582,7 +587,7 @@ void Follower::timer() {
             this->getStorage()->updateNodes(ips,rem);
         }
 
-        //every 10 iteration update the MNodes
+        //every leaderCheck iterations update the MNodes
         if(iter% this->node->leaderCheck == 9) {
             vector<Message::node> res = this->connections->requestMNodes(this->nodeS);
             if(!res.empty()) {
