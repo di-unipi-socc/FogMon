@@ -41,12 +41,12 @@ public:
      * get a vector of latency test
      * @return a vector of tests for the latency
     */
-    virtual std::vector<Report::test_result> getLatency(int64_t last = 0) = 0;
+    virtual std::vector<Report::test_result> getLatency(int64_t last = 0, int sensitivity = 10) = 0;
     /**
      * get a vector of bandwidth test
      * @return a vector of tests for the bandwidth
     */
-    virtual std::vector<Report::test_result> getBandwidth(int64_t last = 0) = 0;
+    virtual std::vector<Report::test_result> getBandwidth(int64_t last = 0, int sensitivity = 10) = 0;
 
     virtual void saveState() = 0;
 

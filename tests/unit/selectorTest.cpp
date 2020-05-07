@@ -51,8 +51,8 @@ public:
     virtual std::vector<Message::node> getNodes() {}
 
     virtual Report::hardware_result getHardware() {}
-    virtual std::vector<Report::test_result> getLatency(int64_t last) {}
-    virtual std::vector<Report::test_result> getBandwidth(int64_t last) {}
+    virtual std::vector<Report::test_result> getLatency(int64_t last, int sensibility) {}
+    virtual std::vector<Report::test_result> getBandwidth(int64_t last, int sensibility) {}
     virtual void saveState() {}
 
     virtual std::vector<Report::IoT> getIots() {}

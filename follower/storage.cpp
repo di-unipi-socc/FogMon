@@ -90,10 +90,10 @@ Report::hardware_result Storage::getHardware() {
     return r;
 }
 
-std::vector<Report::test_result> Storage::getLatency(int64_t last) {
+std::vector<Report::test_result> Storage::getLatency(int64_t last, int sensitivity) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(L.ms) AS mean, variance(L.ms) AS var, strftime('%%s',max(L.time)) as time FROM Latency AS L JOIN Nodes AS N WHERE L.idNodeB = N.id GROUP BY N.id HAVING strftime('%%s',max(L.time))>%" PRId64, last);
+    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(L.ms) AS mean, variance(L.ms) AS var, strftime('%%s',max(L.time)) as time FROM Latency AS L JOIN Nodes AS N WHERE L.idNodeB = N.id GROUP BY N.id HAVING (N.lastMeanL-avg(L.ms))/N.lastMeanL < %d AND (N.lastVarianceL-variance(L.ms))/N.lastVarianceL < %d AND strftime('%%s',max(L.time))>%" PRId64, sensitivity, sensitivity,last);
 
     vector<Report::test_result> tests;
 
@@ -110,10 +110,10 @@ std::vector<Report::test_result> Storage::getLatency(int64_t last) {
     return tests;
 }
 
-std::vector<Report::test_result> Storage::getBandwidth(int64_t last) {
+std::vector<Report::test_result> Storage::getBandwidth(int64_t last, int sensitivity) {
     char *zErrMsg = 0;
     char buf[1024];
-    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N WHERE B.idNodeB = N.id GROUP BY N.id HAVING strftime('%%s',max(B.time))>%" PRId64, last);
+    std::sprintf(buf,"SELECT N.id, N.ip, N.port, avg(B.kbps) AS mean, variance(B.kbps) AS var, strftime('%%s',max(B.time)) as time FROM Bandwidth AS B JOIN Nodes AS N WHERE B.idNodeB = N.id GROUP BY N.id HAVING (N.lastMeanL-avg(B.kbps))/N.lastMeanL < %d AND (N.lastVarianceL-variance(B.kbps))/N.lastVarianceL < %d AND strftime('%%s',max(B.time))>%" PRId64, sensitivity, sensitivity, last);
 
     vector<Report::test_result> tests;
 

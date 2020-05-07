@@ -21,8 +21,8 @@ public:
     void setFilter(std::string ip);
 
     virtual Report::hardware_result getHardware();
-    virtual std::vector<Report::test_result> getLatency(int64_t last = 0);
-    virtual std::vector<Report::test_result> getBandwidth(int64_t last = 0);
+    virtual std::vector<Report::test_result> getLatency(int64_t last = 0, int sensitivity= 10);
+    virtual std::vector<Report::test_result> getBandwidth(int64_t last = 0, int sensitivity= 10);
 
     void saveLatencyTest(Message::node node, int ms);
     void saveBandwidthTest(Message::node node, float kbps, int state);
