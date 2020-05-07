@@ -111,7 +111,7 @@ void Leader::timerFun() {
         //routine for Nodes
         
         //check database for reports
-        vector<Message::node> ips = this->getStorage()->getMLRHardware(100, this->node->timeheartbeat);
+        vector<Message::node> ips = this->getStorage()->getMLRHardware(100, this->node->timeheartbeat*3);
         vector<Message::node> rem;
         for(auto&& node : ips) {
             bool res = this->connections->sendRequestReport(node);
@@ -149,7 +149,7 @@ void Leader::timerFun() {
         }
 
         if(iter % 10 == 0) {
-            this->getStorage()->removeOldNodes(this->node->timeheartbeat);
+            this->getStorage()->removeOldNodes(this->node->timeheartbeat*3);
         }
         
         iter++;
