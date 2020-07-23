@@ -30,7 +30,9 @@ and the other nodes with
 ```
 docker run -it --net=host fogmon --C ip_leader
 ```
-The default used ports are:
+All the other parameters are visible reading the main.cpp, they can regulate the timings of the program (time between tests, time between checks etc).
+
+Some ports needs to be open for incoming connections, by default they are:
 
 5555/TCP fogmon
 
@@ -39,6 +41,20 @@ The default used ports are:
 8366/TCP assolo
 
 8365/UDP assolo
+
+## Example execution on 5 nodes
+Lets call the 5 nodes A, B, C, D, E and their ip IP_A, IP_B,..., IP_E.
+
+First run one of the nodes (A) as a default leader
+```
+docker run -it --net=host fogmon --leader
+```
+then connect all the other nodes to A
+```
+docker run -it --net=host fogmon --C IP_A
+```
+Now after 5 times the parameter "--time-propagation" a leader selection happens, and 2 new leaders are selected. This because the number of leaders is too low to sustain 5 nodes.
+
 
 ## Compile outside docker
 
