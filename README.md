@@ -43,9 +43,9 @@ Some ports needs to be open for incoming connections, by default they are:
 8365/UDP assolo
 
 ## Example execution on 5 nodes
-Lets call the 5 nodes A, B, C, D, E and their ip IP_A, IP_B,..., IP_E.
+Let's call the 5 nodes A, B, C, D, E and their ip IP_A, IP_B,..., IP_E.
 
-First run one of the nodes (A) as a default leader
+First run one of the nodes (A) as a default _Leader_
 ```
 docker run -it --net=host fogmon --leader
 ```
@@ -53,7 +53,7 @@ then connect all the other nodes to A
 ```
 docker run -it --net=host fogmon --C IP_A
 ```
-Now after 5 times the parameter "--time-propagation" a leader selection happens, and 2 new leaders are selected. This because the number of leaders is too low to sustain 5 nodes.
+Now after 5 times the parameter "--time-propagation" a _Leader_ selection happens, and 2 new leaders are selected. This because the number of _Leaders_ is too low to sustain 5 nodes.
 
 
 ## Compile outside docker
