@@ -2,7 +2,15 @@
 <img src="https://github.com/di-unipi-socc/FogMon/blob/master/img/logofogmon.png?raw=true" alt="Home Screen" width="250" />
 </center>
 
-FogMon was first described in the following article:
+The latest release of FogMon - extended with self-organising topology mechanisms and differential monitoring updates - has been described in the following article:
+
+> [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese, [Antonio Brogi](http://pages.di.unipi.it/brogi) <br>
+> [**Lightweight self-organising distributed monitoring of Fog infrastructures**](https://doi.org/10.1016/j.future.2020.08.011), <br>	
+> Future Generation Computer Systems (2020), DOI: 10.1016/j.future.2020.08.011. 
+
+```
+
+The first release of FogMon was described in the following article:
 
 > [Antonio Brogi](http://pages.di.unipi.it/brogi), [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese <br>
 > [**Measuring the Fog, Gently**](), <br>	
