@@ -8,15 +8,13 @@ The latest release of FogMon - extended with self-organising topology mechanisms
 > [**Lightweight self-organising distributed monitoring of Fog infrastructures**](https://doi.org/10.1016/j.future.2020.08.011), <br>	
 > Future Generation Computer Systems (2020), DOI: 10.1016/j.future.2020.08.011. 
 
-```
-
 The first release of FogMon was described in the following article:
 
 > [Antonio Brogi](http://pages.di.unipi.it/brogi), [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese <br>
 > [**Measuring the Fog, Gently**](), <br>	
 > 17th International Conference on Service-Oriented Computing (ICSOC), 2019. 
 
-If you wish to reuse source code in this repo, please consider citing it.
+If you wish to reuse source code in this repo, please consider citing them.
 
 ## How To
 ```
