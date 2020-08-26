@@ -11,7 +11,7 @@ The latest release of FogMon - extended with self-organising topology mechanisms
 The first release of FogMon was described in the following article:
 
 > [Antonio Brogi](http://pages.di.unipi.it/brogi), [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese <br>
-> [**Measuring the Fog, Gently**](), <br>	
+> [**Measuring the Fog, Gently**](https://doi.org/10.1007/978-3-030-33702-5_40), <br>	
 > 17th International Conference on Service-Oriented Computing (ICSOC), 2019. 
 
 If you wish to reuse source code in this repo, please consider citing them.
