@@ -1,0 +1,15 @@
+certifi==2020.6.20
+cycler==0.10.0
+Cython==0.29.21
+gpg==1.8.0
+iniparse==0.4
+kiwisolver==1.2.0
+matplotlib==3.3.2
+numpy==1.19.2
+Pillow==8.0.0
+pyclustering==0.10.0.1
+pyparsing==2.4.7
+python-dateutil==2.8.1
+rpm-python==4.13.0.2
+scipy==0.19.1
+six==1.10.0
