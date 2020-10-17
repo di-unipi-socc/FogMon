@@ -162,4 +162,5 @@ bool Node::setParam(std::string name, int value) {
         this->timePropagation = value;
     }else
         return this->agent->setParam(name,value);
+    return true;
 }

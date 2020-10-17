@@ -5,19 +5,19 @@ ADD_SUBDIRECTORY (googletest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../follower ${CMAKE_CURRENT_SOURCE_DIR}/../leader)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/follower ${CMAKE_CURRENT_SOURCE_DIR}/../src/leader)
 
 file(GLOB UNIT_SRCS "unit/*.cpp")
 file(GLOB INTEGRATION_SRCS "integration/*.cpp")
 
-file(GLOB SRCS "${CMAKE_CURRENT_SOURCE_DIR}/../*.cpp")
+file(GLOB SRCS "${CMAKE_CURRENT_SOURCE_DIR}/../src/*.cpp")
 
-file(GLOB SRCS_NODE "${CMAKE_CURRENT_SOURCE_DIR}/../follower/*.cpp")
+file(GLOB SRCS_NODE "${CMAKE_CURRENT_SOURCE_DIR}/../src/follower/*.cpp")
 
-file(GLOB SRCS_LEADER "${CMAKE_CURRENT_SOURCE_DIR}/../leader/*.cpp")
+file(GLOB SRCS_LEADER "${CMAKE_CURRENT_SOURCE_DIR}/../src/leader/*.cpp")
 
-file(GLOB SRCS_MICROBIT "${CMAKE_CURRENT_SOURCE_DIR}/../microbit/*.cpp")
+file(GLOB SRCS_MICROBIT "${CMAKE_CURRENT_SOURCE_DIR}/../src/microbit/*.cpp")
 
 SET(GCC_COVERAGE_COMPILE_FLAGS "-g -O0 -coverage -fprofile-arcs -ftest-coverage")
 SET(GCC_COVERAGE_LINK_FLAGS    "-coverage -lgcov")

@@ -4,10 +4,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(FogMon CXX)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/follower ${CMAKE_CURRENT_SOURCE_DIR}/leader ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include ${CMAKE_CURRENT_SOURCE_DIR}/sigar/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/src/follower ${CMAKE_CURRENT_SOURCE_DIR}/src/leader ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include ${CMAKE_CURRENT_SOURCE_DIR}/sigar/include)
 
-file(GLOB SRCS "*.cpp")
-file(GLOB HDRS "*.hpp")
+file(GLOB SRCS "src/*.cpp")
+file(GLOB HDRS "src/*.hpp")
 
 find_library(UUID_LIBRARY uuid)
 find_library(PTHREAD_LIBRARY pthread)
@@ -21,20 +21,20 @@ message(${SQLITE_LIBRARY})
 message(${SERIALPORT_LIBRARY})
 message(${SIGAR_LIBRARY})
 
-file(GLOB SRCS_NODE "follower/*.cpp")
-file(GLOB HDRS_NODE "follower/*.hpp")
+file(GLOB SRCS_NODE "src/follower/*.cpp")
+file(GLOB HDRS_NODE "src/follower/*.hpp")
 
-file(GLOB SRCS_MICROBIT "microbit/*.cpp")
-file(GLOB HDRS_MICROBIT "microbit/*.hpp")
+file(GLOB SRCS_MICROBIT "src/microbit/*.cpp")
+file(GLOB HDRS_MICROBIT "src/microbit/*.hpp")
 
-file(GLOB SRCS_LEADER "leader/*.cpp")
-file(GLOB HDRS_LEADER "leader/*.hpp")
+file(GLOB SRCS_LEADER "src/leader/*.cpp")
+file(GLOB HDRS_LEADER "src/leader/*.hpp")
 
-add_executable(FogMon main/main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER}  ${SRCS_MICROBIT} ${HDRS_MICROBIT})
+add_executable(FogMon src/main/main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER}  ${SRCS_MICROBIT} ${HDRS_MICROBIT})
 
-#add_executable(FogMonNode main/node_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER}  ${SRCS_MICROBIT} ${HDRS_MICROBIT})
+#add_executable(FogMonNode src/main/node_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER}  ${SRCS_MICROBIT} ${HDRS_MICROBIT})
 
-#add_executable(FogMonServer main/leader_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
+#add_executable(FogMonServer src/main/leader_main.cpp ${SRCS} ${HDRS} ${SRCS_NODE} ${HDRS_NODE} ${SRCS_LEADER} ${HDRS_LEADER} ${SRCS_MICROBIT} ${HDRS_MICROBIT})
 
 include_directories(/usr/include)
 link_directories(/usr/lib)
@@ -58,7 +58,7 @@ target_link_libraries(FogMon ${SERIALPORT_LIBRARY})
 #target_link_libraries(FogMonServer ${SERIALPORT_LIBRARY})
 
 add_subdirectory(sqlite3)
-if(${ENABLE_TESTS})
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_definitions("-DENABLE_TESTS")
 	add_subdirectory(tests)
 endif()
