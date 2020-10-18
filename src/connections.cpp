@@ -357,8 +357,8 @@ std::string Connections::getSource(int fd, Message &m) {
         else
             inet_ntop(AF_INET6, &s->sin6_addr, ip, sizeof(ip));
     }else {
-        cerr << "error socket family" << endl;
 #ifndef ENABLE_TESTS
+        cerr << "error socket family" << endl;
         return string("");
 #endif
         strcpy(ip, "::1");

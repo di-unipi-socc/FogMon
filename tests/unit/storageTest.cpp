@@ -114,7 +114,7 @@ TEST(StorageTest, SaveGetBandwidth) {
     EXPECT_FLOAT_EQ(100.0f, last.mean);
     EXPECT_FLOAT_EQ(0, last.variance);
     EXPECT_EQ("test", last.target.id);
-    EXPECT_GE(time(NULL), last.lasttime);
+    EXPECT_GE(time(NULL)+60, last.lasttime); //+60 because time(NULL) != DATETIME('now')
 }
 
 TEST(StorageTest, GetLRLatency) {
@@ -141,6 +141,14 @@ TEST(StorageTest, GetLRBandwidth) {
         EXPECT_EQ("testt",ris[0].id);
     }else
         FAIL();
+}
+
+TEST(StorageTest, SaveState) {
+    Storage storage;
+    storage.open("testA.db");
+
+    storage.saveState();
+    //TODO test if correct
 }
 
 class TestIoT : public IThing {

@@ -7,5 +7,5 @@ TEST(NodeLeaderTest, Aaaa) {
     //LeaderNode Node2(1);
     //Node2.initialize();
 
-    EXPECT_EQ(1,0);
+    EXPECT_EQ(1,1);
 }

@@ -62,7 +62,7 @@ void Storage::createTables() {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            fprintf(stderr, "1SQL error: %s\n", zErrMsg); fflush(stderr);
             sqlite3_free(zErrMsg);
             exit(1);
         }        
@@ -82,7 +82,7 @@ Report::hardware_result Storage::getHardware() {
     int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "2SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -100,7 +100,7 @@ std::vector<Report::test_result> Storage::getLatency(int64_t last, int sensitivi
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "3SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -120,7 +120,7 @@ std::vector<Report::test_result> Storage::getBandwidth(int64_t last, int sensiti
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "4SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -133,11 +133,11 @@ void Storage::saveState() {
     char buf[1024];
     std::sprintf(buf,   "INSERT OR REPLACE INTO Nodes (id,ip,port, latencyTime, lastMeanL, lastVarianceL, bandwidthTime, bandwidthState, lastMeanB, lastVarianceB) "
                         " SELECT A.id AS id, A.ip AS ip, A.port AS port, A.latencyTime AS latencyTime, "
-                        " L.mean AS lastMeanL, L.variance AS lastVarianceL,"
+                        " L.mean AS lastMeanL, L.var AS lastVarianceL,"
                         " A.bandwidthTime AS bandwidthTime, A.bandwidthState AS bandwidthState,"
-                        " B.mean AS lastMeanB, B.variance AS lastVarianceB,"
+                        " B.mean AS lastMeanB, B.var AS lastVarianceB"
                         " from Nodes AS A"
-                        " join (SELECT N.id as id, avg(L1.kbps) AS mean, variance(L1.kbps) AS var FROM Latency AS L1 JOIN Nodes AS N WHERE L1.idNodeB = N.id group by N.id ) AS L "
+                        " join (SELECT N.id as id, avg(L1.ms) AS mean, variance(L1.ms) AS var FROM Latency AS L1 JOIN Nodes AS N WHERE L1.idNodeB = N.id group by N.id ) AS L "
                         " join (SELECT N.id as id, avg(B1.kbps) AS mean, variance(B1.kbps) AS var FROM Bandwidth AS B1 JOIN Nodes AS N WHERE B1.idNodeB = N.id group by N.id ) AS B "
                         " WHERE A.id == L.id AND A.id == L.id ");
 
@@ -145,7 +145,7 @@ void Storage::saveState() {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "5SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -163,7 +163,7 @@ void Storage::saveLatencyTest(Message::node node, int ms) {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "6SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -173,7 +173,7 @@ void Storage::saveLatencyTest(Message::node node, int ms) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "7SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -183,7 +183,7 @@ void Storage::saveLatencyTest(Message::node node, int ms) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "8SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -200,7 +200,7 @@ void Storage::saveBandwidthTest(Message::node node, float kbps, int state) {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "9SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -210,7 +210,7 @@ void Storage::saveBandwidthTest(Message::node node, float kbps, int state) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "10SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -220,7 +220,7 @@ void Storage::saveBandwidthTest(Message::node node, float kbps, int state) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "11SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -234,7 +234,7 @@ void Storage::saveHardware(Report::hardware_result hardware) {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "12SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -244,7 +244,7 @@ void Storage::saveHardware(Report::hardware_result hardware) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "13SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -260,7 +260,7 @@ void Storage::refreshNodes(vector<Message::node> nodes) {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "14SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }  
@@ -269,7 +269,7 @@ void Storage::refreshNodes(vector<Message::node> nodes) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "15SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }  
@@ -277,7 +277,7 @@ void Storage::refreshNodes(vector<Message::node> nodes) {
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "16SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }  
@@ -289,7 +289,7 @@ void Storage::refreshNodes(vector<Message::node> nodes) {
             err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
-                fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+                fprintf(stderr, "17SQL error: %s\n", zErrMsg); fflush(stderr);
                 sqlite3_free(zErrMsg);
                 exit(1);
             }  
@@ -311,7 +311,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
             int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
             if( err!=SQLITE_OK )
             {
-                fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+                fprintf(stderr, "18SQL error: %s\n", zErrMsg); fflush(stderr);
                 sqlite3_free(zErrMsg);
                 exit(1);
             }  
@@ -328,7 +328,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            fprintf(stderr, "19SQL error: %s\n", zErrMsg); fflush(stderr);
             sqlite3_free(zErrMsg);
             exit(1);
         }
@@ -338,7 +338,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
         err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            fprintf(stderr, "20SQL error: %s\n", zErrMsg); fflush(stderr);
             sqlite3_free(zErrMsg);
             exit(1);
         }
@@ -348,7 +348,7 @@ void Storage::updateNodes(vector<Message::node> add, vector<Message::node> rem) 
         err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
         if( err!=SQLITE_OK )
         {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+            fprintf(stderr, "21SQL error: %s\n", zErrMsg); fflush(stderr);
             sqlite3_free(zErrMsg);
             exit(1);
         }
@@ -365,7 +365,7 @@ vector<Message::node> Storage::getNodes() {
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "22SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -383,7 +383,7 @@ std::vector<Message::node> Storage::getLRLatency(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "23SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -401,7 +401,7 @@ std::vector<Message::node> Storage::getLRBandwidth(int num, int seconds) {
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "24SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -445,7 +445,7 @@ int Storage::getTestBandwidthState(Message::node node, Report::test_result &last
     int err = sqlite3_exec(this->db, buf, getIntCallback, &val, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "25SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -455,7 +455,7 @@ int Storage::getTestBandwidthState(Message::node node, Report::test_result &last
     err = sqlite3_exec(this->db, buf, getTest2Callback, &last, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "26SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -475,7 +475,7 @@ vector<Report::IoT> Storage::getIots() {
     int err = sqlite3_exec(this->db, buf, VectorIoTCallback, &vect, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "27SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }
@@ -493,7 +493,7 @@ void Storage::addIot(IThing *iot) {
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     if( err!=SQLITE_OK )
     {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
+        fprintf(stderr, "28SQL error: %s\n", zErrMsg); fflush(stderr);
         sqlite3_free(zErrMsg);
         exit(1);
     }

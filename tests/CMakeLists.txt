@@ -19,14 +19,17 @@ file(GLOB SRCS_LEADER "${CMAKE_CURRENT_SOURCE_DIR}/../src/leader/*.cpp")
 
 file(GLOB SRCS_MICROBIT "${CMAKE_CURRENT_SOURCE_DIR}/../src/microbit/*.cpp")
 
+
+
+SET(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+
 SET(GCC_COVERAGE_COMPILE_FLAGS "-g -O0 -coverage -fprofile-arcs -ftest-coverage")
 SET(GCC_COVERAGE_LINK_FLAGS    "-coverage -lgcov")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
-SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS} -fprofile-arcs -ftest-coverage" )
 
 
 add_executable(UnitTests main_test.cpp ${UNIT_SRCS} ${INTEGRATION_SRCS} ${SRCS} ${SRCS_LEADER} ${SRCS_NODE} ${SRCS_MICROBIT})
-
 
 find_library(SQLITE_LIBRARY sqlite3)
 find_library(SERIALPORT_LIBRARY serialport)
@@ -39,3 +42,15 @@ target_link_libraries(UnitTests ${SQLITE_LIBRARY})
 target_link_libraries(UnitTests gtest ${PTHREAD_LIBRARY} ${SIGAR_LIBRARY})
 target_link_libraries(UnitTests ${SERIALPORT_LIBRARY})
 add_test( UnitTests UnitTests )
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../cmake_modules")
+include(CodeCoverage)
+APPEND_COVERAGE_COMPILER_FLAGS()
+SETUP_TARGET_FOR_COVERAGE_LCOV(NAME foo_coverage
+                              EXECUTABLE UnitTests
+                              DEPENDENCIES UnitTests
+                              BASE_DIRECTORY "../src/"
+                              EXCLUDE "../rapidjson/*" "../tests/*" "/usr/*")
+endif()
+
