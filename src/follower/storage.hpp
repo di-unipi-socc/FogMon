@@ -14,6 +14,8 @@ protected:
 
     std::string ip;
 
+    void isError(int err, char *zErrMsg, std::string mess);
+
 public:
     Storage();
     virtual ~Storage();

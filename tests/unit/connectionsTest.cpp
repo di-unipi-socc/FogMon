@@ -401,7 +401,7 @@ TEST(ConnectionsLeaderTest, sendChangeRoleTest) {
     mess.setData(update);
     
     EXPECT_EQ(mConn.sendMessage(pipefd[1],mess), true);
-    sleep(1);
+    usleep(10000);
     EXPECT_EQ(close(pipefd[1]), 0);
     conn.stop();
     EXPECT_EQ(mNode.change, true);

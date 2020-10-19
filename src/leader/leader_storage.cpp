@@ -26,12 +26,7 @@ void LeaderStorage::createTables() {
     
     for(string str : query) {
         int err = sqlite3_exec(this->db, str.c_str(), 0, 0, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error (creating tables %s): %s\n", str.c_str(), zErrMsg);
-            sqlite3_free(zErrMsg);
-            exit(1);
-        }
+        isError(err, zErrMsg, "createTablesLeader");
     }
 }
 
@@ -56,12 +51,7 @@ std::string LeaderStorage::addNode(Message::node node, Report::hardware_result h
     }
     
     int err = sqlite3_exec(this->db, query.str().c_str(), 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (insert node %s): %s\n", query.str().c_str(),zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "addNodeLeader");
     return node.id;
 }
 
@@ -74,12 +64,7 @@ void LeaderStorage::addIot(Message::node node, Report::IoT iot) {
     std::sprintf(buf,"INSERT OR REPLACE INTO MIots (id, desc, ms, idNode) VALUES (\"%s\", \"%s\", %d, \"%s\")",iot.id.c_str(), iot.desc.c_str(), iot.latency, node.id.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "addIotLeader");
 }
 
 std::vector<Message::node> LeaderStorage::getAllNodes() {
@@ -90,12 +75,7 @@ std::vector<Message::node> LeaderStorage::getAllNodes() {
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getAllNodesLeader");
 
     return nodes;
 }
@@ -108,12 +88,7 @@ vector<Message::node> LeaderStorage::getNodes() {
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getNodesLeader");
 
     return nodes;
 }
@@ -141,12 +116,7 @@ void LeaderStorage::addTest(Message::node nodeA, Message::node nodeB, Report::te
 
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (insert test): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "addTestLeader");
 }
 
 void LeaderStorage::addReportLatency(Message::node node, vector<Report::test_result> latency) {
@@ -171,12 +141,7 @@ void LeaderStorage::addReportBandwidth(Message::node node, vector<Report::test_r
     std::sprintf(buf,"DELETE FROM MIots WHERE idNode = \"%s\"", node.id.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "addReportIotLeader");
 
     for(auto iot : iots) {
         this->addIot(node, iot);
@@ -224,12 +189,7 @@ std::vector<Message::node> LeaderStorage::getMLRLatency(int num, int seconds) {
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stdout, "SQL error (MLRL): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getMLRLatencyLeader");
 
     return nodes;
 }
@@ -248,12 +208,7 @@ std::vector<Message::node> LeaderStorage::getMLRBandwidth(int num, int seconds) 
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (MLRB): %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getMLRBandwidthLeader");
 
     return nodes;
 }
@@ -266,12 +221,7 @@ std::vector<Message::node> LeaderStorage::getMLRHardware(int num, int seconds) {
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (MLRH): %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getMLRHardwareLeader");
 
     return nodes;
 }
@@ -284,12 +234,7 @@ vector<Message::node> LeaderStorage::getMNodes() {
     vector<Message::node> nodes;
 
     int err = sqlite3_exec(this->db, buf, VectorNodeCallback, &nodes, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (SELECT nodes): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getMNodesLeader");
 
     return nodes;
 }
@@ -303,12 +248,7 @@ void LeaderStorage::addMNode(Message::node node) {
     std::sprintf(buf,"INSERT OR REPLACE INTO MMNodes (id, ip, port) VALUES (\"%s\",\"%s\",\"%s\")", node.id.c_str(),node.ip.c_str(),node.port.c_str());
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (insert node): %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "addMNodeLeader");
 }
 
 vector<Report::report_result> LeaderStorage::getReport() {
@@ -330,12 +270,7 @@ Report::hardware_result LeaderStorage::getHardware(Message::node node) {
     Report::hardware_result r(-1,0,0,0,0,0);
 
     int err = sqlite3_exec(this->db, buf, IStorage::getHardwareCallback, &r, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (get hardware): %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getHardwareLeader");
 
     return r;
 }
@@ -348,12 +283,7 @@ std::vector<Report::test_result> LeaderStorage::getLatency(Message::node node) {
     vector<Report::test_result> tests;
 
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (get latency): %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getLatencyLeader");
 
     return tests;
 }
@@ -366,12 +296,7 @@ std::vector<Report::test_result> LeaderStorage::getBandwidth(Message::node node)
     vector<Report::test_result> tests;
 
     int err = sqlite3_exec(this->db, buf, IStorage::getTestCallback, &tests, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error (get bandwidth): %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "getBandwidthLeader");
  
     return tests;
 }
@@ -398,33 +323,18 @@ void LeaderStorage::removeOldNodes(int seconds) {
     std::sprintf(buf,"DELETE FROM MNodes WHERE monitoredBy = \"%s\" AND strftime('%%s',lasttime)+%d-strftime('%%s','now') <= 0", this->nodeM.id.c_str(), seconds);
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "removeOldNodesLeader1");
 
     for(auto node : vec) {
         std::sprintf(buf,"DELETE FROM MLinks WHERE idA = \"%s\" OR idB = \"%s\"", node.id.c_str(),node.id.c_str());
 
         int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
-            sqlite3_free(zErrMsg);
-            exit(1);
-        }
+        isError(err, zErrMsg, "removeOldNodesLeader2");
 
         std::sprintf(buf,"DELETE FROM MIots WHERE idNode = \"%s\"", node.id.c_str());
 
         err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-        if( err!=SQLITE_OK )
-        {
-            fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
-            sqlite3_free(zErrMsg);
-            exit(1);
-        }
+        isError(err, zErrMsg, "removeOldNodesLeader3");
     }    
 }
 
@@ -451,14 +361,9 @@ void LeaderStorage::complete() {
                 "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy AND A.id IN (SELECT id FROM MMNodes) AND B.id NOT IN (SELECT id FROM MMNodes)");
 
     int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error1: %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "completeLeader1");
 
-        std::sprintf(buf,
+    std::sprintf(buf,
                 "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
                 " SELECT A.id AS idA, B.id AS idB, "
                     "((SELECT M.meanL from MLinks AS M WHERE M.idA = A.id AND M.idB = (SELECT MMN.id FROM MMNodes AS MMN WHERE MMN.id = A.monitoredBy)) + "
@@ -479,14 +384,9 @@ void LeaderStorage::complete() {
 
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error2: %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "completeLeader2");
 
-        std::sprintf(buf,
+    std::sprintf(buf,
                 "INSERT OR REPLACE INTO MLinks (idA, idB, meanL, varianceL, lasttimeL, meanB, varianceB, lasttimeB) "
                 " SELECT A.id AS idA, B.id AS idB, "
                     "((SELECT M.meanL from MLinks AS M WHERE M.idA = (SELECT MMN.id FROM MMNodes AS MMN WHERE MMN.id = A.monitoredBy) AND M.idB = (SELECT MMN.id FROM MMNodes AS MMN WHERE MMN.id = B.monitoredBy)) + "
@@ -508,10 +408,5 @@ void LeaderStorage::complete() {
                 "  FROM MNodes AS A JOIN MNodes AS B WHERE A.id <> B.id AND A.monitoredBy <> B.monitoredBy AND A.id NOT IN (SELECT id FROM MMNodes) AND B.id NOT IN (SELECT id FROM MMNodes)");
 
     err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
-    if( err!=SQLITE_OK )
-    {
-        fprintf(stderr, "SQL error3: %s\n", zErrMsg); fflush(stderr);
-        sqlite3_free(zErrMsg);
-        exit(1);
-    }
+    isError(err, zErrMsg, "completeLeader3");
 }
