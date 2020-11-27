@@ -57,7 +57,7 @@ docker run -it --net=host fogmon --leader
 ```
 then connect all the other nodes to A
 ```
-docker run -it --net=host fogmon --C IP_A
+docker run -it --net=host fogmon -C IP_A
 ```
 After 5 rounds the parameter "--time-propagation" a _Leader_ selection happens, and 2 new leaders are selected. This is because the number of _Leaders_ is too low to sustain 5 nodes.
 
