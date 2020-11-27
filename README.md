@@ -34,7 +34,7 @@ docker run -it --net=host fogmon --leader
 ```
 and the other nodes with
 ```
-docker run -it --net=host fogmon --C ip_leader
+docker run -it --net=host fogmon -C ip_leader
 ```
 All the other parameters are visible reading the main.cpp, they can set up all FogMon parameters (time between tests, time between checks etc).
 
