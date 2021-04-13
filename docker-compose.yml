@@ -1,0 +1,64 @@
+version: '3'
+services:
+  leader:
+    image: diunipisocc/liscio-fogmon:test2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    command: --leader -i 131.114.72.76:8248 -s 10
+    stdin_open: true
+    # tty: true
+    networks:
+      default:
+    expose:
+      - "1024-65535"
+  follower1:
+    image: diunipisocc/liscio-fogmon:test2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    command: -C leader -i 131.114.72.76:8248 -s 10
+    stdin_open: true
+    depends_on:
+      - leader
+    networks:
+      default:
+    expose:
+      - "1024-65535"
+  follower2:
+    image: diunipisocc/liscio-fogmon:test2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    command: -C leader -i 131.114.72.76:8248 -s 10
+    stdin_open: true
+    depends_on:
+      - leader
+    networks:
+      default:
+    expose:
+      - "1024-65535"
+  follower3:
+    image: diunipisocc/liscio-fogmon:test2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    command: -C leader -i 131.114.72.76:8248 -s 10
+    stdin_open: true
+    depends_on:
+      - leader
+    networks:
+      default:
+    expose:
+      - "1024-65535"
+networks:
+  default:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+          gateway: 172.16.238.1
+        - subnet: 2001:3984:3989::/64
+          gateway: 2001:3984:3989::1

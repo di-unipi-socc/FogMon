@@ -1,0 +1,49 @@
+CC = @CC@
+CFLAGS = @CFLAGS@ -I.
+
+LIBS = @LIBS@
+CPU = @host_cpu@
+
+SRC=	Src
+BIN=	Bin/$(CPU)
+UOBJS=   $(SRC)/assolo_run.c 
+SOBJS=   $(SRC)/assolo_snd.c $(SRC)/realtime.c $(SRC)/hash.c
+ROBJS=   $(SRC)/realtime.c $(SRC)/assolo_rcv.c $(SRC)/alloc_rcv.c $(SRC)/chirps_rcv.c $(SRC)/compute_bw_contextsw_rcv.c $(SRC)/loss_reorder_rcv.c $(SRC)/open_files_rcv.c $(SRC)/parse_cmd_line_rcv.c $(SRC)/signal_alrm_rcv.c  $(SRC)/control_rcv.c $(SRC)/hash.c
+OBJS=    $(SOBJS) $(ROBJS)
+
+TARGETS=$(BIN)/assolo_run $(BIN)/assolo_snd $(BIN)/assolo_rcv 
+
+all: $(TARGETS)
+
+$(BIN)/assolo_snd: $(SRC)/assolo_snd.c $(SRC)/assolo.h \
+			$(SRC)/delay.h config.h $(SRC)/assolo_snd.h \
+			$(SRC)/realtime.c $(SRC)/realtime.h $(SRC)/hash.c
+	./mkinstalldirs $(BIN)
+	$(CC) $(CFLAGS) $(SOBJS) -o $(BIN)/assolo_snd $(LIBS) 
+
+$(BIN)/assolo_rcv: $(SRC)/assolo_rcv.c $(SRC)/assolo.h \
+		      $(SRC)/realtime.c $(SRC)/realtime.h config.h \
+		      $(SRC)/alloc_rcv.c $(SRC)/chirps_rcv.c \
+                  $(SRC)/compute_bw_contextsw_rcv.c $(SRC)/loss_reorder_rcv.c \
+                  $(SRC)/open_files_rcv.c $(SRC)/parse_cmd_line_rcv.c \
+		  $(SRC)/signal_alrm_rcv.c  $(SRC)/control_rcv.c \
+		  $(SRC)/assolo_rcv.h $(SRC)/hash.c \
+	./mkinstalldirs $(BIN)
+	$(CC) $(CFLAGS) $(ROBJS) -o $(BIN)/assolo_rcv $(LIBS) 
+
+$(BIN)/assolo_run: $(SRC)/assolo_run.c $(SRC)/assolo_run.h
+	./mkinstalldirs $(BIN)
+	$(CC) $(CFLAGS) $(UOBJS) -o $(BIN)/assolo_run $(LIBS) 
+
+clean: 
+#	rm -f ${TARGETS}
+	rm -f config.cache config.log config.status
+
+distclean: clean
+	rm -f Makefile configure config.h
+
+configure: configure.in
+	autoconf
+
+Makefile: Makefile.in configure
+	./configure

@@ -1,0 +1,9 @@
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson/tree/master
+[submodule "tests/googletest"]
+	path = tests/googletest
+	url = https://github.com/google/googletest/tree/master
+[submodule "sigar"]
+	path = sigar
+	url = https://github.com/hyperic/sigar/tree/master

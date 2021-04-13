@@ -1,0 +1,16 @@
+--- sigar/src/os/linux/linux_sigar.c	2021-03-30 07:29:05.641454784 +0200
++++ sigar/src/os/linux/linux_sigar2.c	2021-03-30 07:28:59.468000000 +0200
+@@ -30,6 +30,13 @@
+ #include "sigar_util.h"
+ #include "sigar_os.h"
+ 
++#include <sys/types.h>
++
++#ifdef __GNU_LIBRARY__
++#include <sys/sysmacros.h>
++#endif
++
++
+ #define pageshift(x) ((x) << sigar->pagesize)
+ 
+ #define PROC_MEMINFO PROC_FS_ROOT "meminfo"

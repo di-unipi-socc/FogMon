@@ -1,0 +1,86 @@
+[
+    {
+       "num":30,
+       "name":"base and nodes default",
+       "session":41,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 4 0, ['node4', 'node6', 'node5', 'node1']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes default",
+       "session":42,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 2 6, ['node7', 'node5', 'node24', 'node28', 'node29', 'node12', 'node19', 'node9']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes default",
+       "session":47,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 4 12, ['node6', 'node5', 'node7', 'node0', 'node1', 'node22', 'node10', 'node29', 'node20', 'node25', 'node17', 'node14', 'node15', 'node21', 'node27', 'node12']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes thrash reactive",
+       "session":85,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 2 6, ['node1', 'node16', 'node28', 'node18', 'node22', 'node0', 'node8', 'node9']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes reactive",
+       "session":86,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 4 12, ['node5', 'node0', 'node25', 'node20', 'node27', 'node10', 'node9', 'node4', 'node2', 'node29', 'node8', 'node24', 'node22', 'node23', 'node7', 'node28']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes reactive",
+       "session":87,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 4 0, ['node1', 'node5', 'node15', 'node6']"
+          }
+       ],
+       "version":1
+    },
+    {
+       "num":30,
+       "name":"base and nodes reactive",
+       "session":88,
+       "moments":[
+          {
+             "moment":1,
+             "name":"kill 2 6, ['node0', 'node5', 'node4', 'node6', 'node13', 'node23', 'node24', 'node19']"
+          }
+       ],
+       "version":1
+    }
+ ]
