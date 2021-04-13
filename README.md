@@ -8,7 +8,7 @@
 
 FogMon 2.0 was assessed and tuned in lifelike experimental settings on Cloud-IoT resources across the [Virtual Wall](https://www.fed4fire.eu/testbeds/virtual-wall/) and [CityLab](https://www.fed4fire.eu/testbeds/citylab/) testbeds, featuring 20, 30 and 40 monitored nodes.
 
-The previous versions of FogMon (1.x) have been fully described in the following articles:
+FogMon 1.x and the overall functioning of the tool have been fully described in the following articles:
 
 > [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese, [Antonio Brogi](http://pages.di.unipi.it/brogi) <br>
 > [**Lightweight self-organising distributed monitoring of Fog infrastructures**](https://doi.org/10.1016/j.future.2020.08.011), <br>	
