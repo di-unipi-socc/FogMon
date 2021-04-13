@@ -1,0 +1,182 @@
+<?xml version='1.0'?>
+      <rspec xmlns="http://www.geni.net/resources/rspec/3" type="request" generated_by="jFed RSpec Editor" generated="2020-11-30T18:35:22.186+01:00" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:delay="http://www.protogeni.net/resources/rspec/ext/delay/1" xmlns:jfed-command="http://jfed.iminds.be/rspec/ext/jfed-command/1" xmlns:client="http://www.protogeni.net/resources/rspec/ext/client/1" xmlns:jfed-ssh-keys="http://jfed.iminds.be/rspec/ext/jfed-ssh-keys/1" xmlns:jfed="http://jfed.iminds.be/rspec/ext/jfed/1" xmlns:sharedvlan="http://www.protogeni.net/resources/rspec/ext/shared-vlan/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd "><node client_id="node0" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="0" y="0"/>
+</node>
+<node client_id="node1" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="10" y="10"/>
+</node>
+<node client_id="node2" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="20" y="20"/>
+</node>
+<node client_id="node3" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="30" y="30"/>
+</node>
+<node client_id="node4" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="40" y="40"/>
+</node>
+<node client_id="node5" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="50" y="50"/>
+</node>
+<node client_id="node6" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="60" y="60"/>
+</node>
+<node client_id="node7" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="70" y="70"/>
+</node>
+<node client_id="node8" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="80" y="80"/>
+</node>
+<node client_id="node9" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="90" y="90"/>
+</node>
+<node client_id="node10" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="100" y="100"/>
+</node>
+<node client_id="node11" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="110" y="110"/>
+</node>
+<node client_id="node12" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="120" y="120"/>
+</node>
+<node client_id="node13" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="130" y="130"/>
+</node>
+<node client_id="node14" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="140" y="140"/>
+</node>
+<node client_id="node15" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="150" y="150"/>
+</node>
+<node client_id="node16" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="160" y="160"/>
+</node>
+<node client_id="node17" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="170" y="170"/>
+</node>
+<node client_id="node18" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="180" y="180"/>
+</node>
+<node client_id="node19" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="190" y="190"/>
+</node>
+<node client_id="node20" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="200" y="200"/>
+</node>
+<node client_id="node21" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="210" y="210"/>
+</node>
+<node client_id="node22" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="220" y="220"/>
+</node>
+<node client_id="node23" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="230" y="230"/>
+</node>
+<node client_id="node24" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="240" y="240"/>
+</node>
+<node client_id="node25" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="250" y="250"/>
+</node>
+<node client_id="node26" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="260" y="260"/>
+</node>
+<node client_id="node27" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="270" y="270"/>
+</node>
+<node client_id="node28" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="280" y="280"/>
+</node>
+<node client_id="node29" exclusive="true" component_manager_id="urn:publicid:IDN+wall1.ilabt.iminds.be+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+wall1.ilabt.iminds.be+image+emulab-ops:UBUNTU18-64-STD"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="290" y="290"/>
+</node>
+</rspec>

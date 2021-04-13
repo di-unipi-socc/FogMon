@@ -1,0 +1,6 @@
+version: '3'
+volumes:
+  # appdata:
+  #   driver: local
+  nginxdata:
+    driver: local

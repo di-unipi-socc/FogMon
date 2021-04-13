@@ -1,0 +1,34 @@
+AC_INIT(Src/assolo.h)
+
+AC_PROG_CC
+
+if test "$GCC" = "yes" ; then
+	CFLAGS=`echo "foo$CFLAGS" | sed -e 's/foo//' -e 's/O2/O4/'`
+	CFLAGS="$CFLAGS -Wall"
+fi
+
+dnl AC_PROG_INSTALL
+
+AC_CANONICAL_HOST
+
+AC_CHECK_HEADERS(sched.h sys/mman.h)
+
+AC_SEARCH_LIBS(socket,[socket xnet]) 
+AC_SEARCH_LIBS(floor,[m]) 
+AC_SEARCH_LIBS(sched_setscheduler,posix4)
+AC_SEARCH_LIBS(gethostbyname,nsl) 
+
+AC_EGREP_HEADER(in_addr_t, sys/types.h,AC_DEFINE(HAVE_IN_ADDR_T)) 
+AC_EGREP_HEADER(in_addr_t, netinet/in.h,AC_DEFINE(HAVE_IN_ADDR_T)) 
+
+AC_EGREP_HEADER(u_int32_t, sys/types.h,AC_DEFINE(HAVE_U_INT32_T)) 
+
+
+AC_TRY_COMPILE([#include <sys/socket.h>],[foo(SIOCGSTAMP);],
+		AC_DEFINE(HAVE_TIMESTAMP_IOCTL),[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>]
+,[foo(SO_TIMESTAMP);],AC_DEFINE(HAVE_SO_TIMESTAMP))])
+
+AC_CONFIG_HEADER(config.h)
+
+AC_OUTPUT(Makefile)
