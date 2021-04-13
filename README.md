@@ -2,7 +2,9 @@
 <img src="https://github.com/di-unipi-socc/FogMon/blob/master/img/logofogmon.png?raw=true" alt="Home Screen" width="250" />
 </center>
 
-The latest release of FogMon - extended with self-organising topology mechanisms, improved churn handling, and differential monitoring updates - has been described in the following article:
+**NOTE: A new release of the tool, FogMon 2.0, is available [here](https://github.com/di-unipi-socc/FogMon/tree/liscio-2.0)**: *[FogMon 2.0](https://github.com/di-unipi-socc/FogMon/tree/liscio-2.0) has been released as a result of the experimental activities of the project *Lightweight Self-adaptive Cloud-IoT Monitoring across Fed4FIRE+ Testbeds (LiSCIo)* funded within the [*8th Fed4FIRE+ Competitive Call – Innovative Experiments | Category “Medium Experiments”*](https://www.fed4fire.eu/news/discover-the-8th-open-call-winners/). FogMon 2.0 was assessed and tuned in lifelike experimental settings on Cloud-IoT resources across the [Virtual Wall](https://www.fed4fire.eu/testbeds/virtual-wall/) and [CityLab](https://www.fed4fire.eu/testbeds/citylab/) testbeds, featuring 20, 30 and 40 monitored nodes.*
+
+The self-organising topology mechanisms, improved churn handling, and differential monitoring updates of FogMon have been described in the following article:
 
 > [Stefano Forti](http://pages.di.unipi.it/forti), Marco Gaglianese, [Antonio Brogi](http://pages.di.unipi.it/brogi) <br>
 > [**Lightweight self-organising distributed monitoring of Fog infrastructures**](https://doi.org/10.1016/j.future.2020.08.011), <br>	
