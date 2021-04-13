@@ -1,0 +1,62 @@
+<?xml version='1.0'?>
+      <rspec xmlns="http://www.geni.net/resources/rspec/3" type="request" generated_by="jFed RSpec Editor" generated="2020-11-30T18:35:22.186+01:00" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:delay="http://www.protogeni.net/resources/rspec/ext/delay/1" xmlns:jfed-command="http://jfed.iminds.be/rspec/ext/jfed-command/1" xmlns:client="http://www.protogeni.net/resources/rspec/ext/client/1" xmlns:jfed-ssh-keys="http://jfed.iminds.be/rspec/ext/jfed-ssh-keys/1" xmlns:jfed="http://jfed.iminds.be/rspec/ext/jfed/1" xmlns:sharedvlan="http://www.protogeni.net/resources/rspec/ext/shared-vlan/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/request.xsd "><node client_id="node10" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="100" y="100"/>
+</node>
+<node client_id="node11" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="110" y="110"/>
+</node>
+<node client_id="node12" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="120" y="120"/>
+</node>
+<node client_id="node13" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="130" y="130"/>
+</node>
+<node client_id="node14" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="140" y="140"/>
+</node>
+<node client_id="node15" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="150" y="150"/>
+</node>
+<node client_id="node16" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="160" y="160"/>
+</node>
+<node client_id="node17" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="170" y="170"/>
+</node>
+<node client_id="node18" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="180" y="180"/>
+</node>
+<node client_id="node19" exclusive="true" component_manager_id="urn:publicid:IDN+lab.cityofthings.eu+authority+cm">
+<sliver_type name="raw-pc">
+<disk_image name="urn:publicid:IDN+lab.cityofthings.eu+image+emulab-ops:UBUNTU18-64-CoT-armgcc"/>
+</sliver_type>
+<location xmlns="http://jfed.iminds.be/rspec/ext/jfed/1" x="190" y="190"/>
+</node>
+</rspec>

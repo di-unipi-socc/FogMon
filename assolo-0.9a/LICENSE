@@ -1,0 +1,96 @@
+ASSOLO is a new active probing tool for estimating available
+bandwidth developed by Emanuele Goldoni and Alberto Torelli
+(University of Pavia).
+
+ASSOLO re-uses basic low-level network functions of pathChirp,
+another great measuremet tool devoleped by Vinay Ribeiro,
+Ryan Christopher King and Niels Kang Hoven (Rice University).
+A copy of pathChirp source code can be obtained from
+http://www.spin.rice.edu/Software/pathChirp/
+
+Some network functions of pathChirp are, in their turn, based on
+the NetDyn tool. A copy of the original tool can be downloaded from
+http://www.cs.umd.edu/~suman/netdyn/
+
+
+These programs are released under the following licenses:
+
+
+Assolo
+Copyright (c) 2008 University of Pavia
+All Rights Reserved.
+Authors: Emanuele Goldoni (emanuele.goldoni@unipv.it),
+         Alberto Torelli (alberto.torelli01@ateneopv.it).
+
+Permission to use, copy, modify, distribute, and sell this software
+and its documentation is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of Università degli Studi di Pavia
+not be used in advertising or publicity pertaining to distribution 
+of the software without specific, written prior permission.
+Università degli Studi di Pavia makes no representations about the
+suitability of this software for any purpose. It is provided "as
+is" without express or implied warranty. 
+
+UNIVERSITA' DEGLI STUDI DI PAVIA DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL RICE UNIVERSITY BE
+LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS 
+ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+
+
+pathChirp
+Copyright (c) 2003-2005 Rice University
+All Rights Reserved.
+Authors: Vinay Ribeiro, (vinay@rice.edu),
+         Ryan Christopher King (ryanking@rice.edu),
+         Niels Kang Hoven (nhoven@rice.edu).
+
+Permission to use, copy, modify, distribute, and sell this software
+and its documentation is hereby granted without 
+fee, provided that the above copyright notice appear in all copies
+and that both that copyright notice and this permission notice
+appear in supporting documentation, and that the name of Rice
+University not be used in advertising or publicity pertaining to
+distribution of the software without specific, written prior
+permission.  Rice University makes no representations about the
+suitability of this software for any purpose.  It is provided "as
+is" without express or implied warranty. 
+
+RICE UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS, IN NO EVENT SHALL RICE UNIVERSITY BE LIABLE FOR ANY
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
+
+
+
+udpread.c, udpsend.c (NetDyn)
+Copyright (c) 1991 University of Maryland
+All Rights Reserved.
+Author:  Dheeraj Sanghi, Department of Computer Science.
+
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of U.M. not be used in advertising or
+publicity pertaining to distribution of the software without specific,
+written prior permission.  U.M. makes no representations about the
+suitability of this software for any purpose.  It is provided "as is"
+without express or implied warranty.
+
+U.M. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL U.M.
+BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

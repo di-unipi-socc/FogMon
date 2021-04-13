@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}Testbeds{% endblock %}
+{% block head %}
+  {{ super() }}
+  <script src="/static/testbeds.js"></script>
+  <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+  <link type="text/css" rel="stylesheet" href="static/force.css"/>
+{% endblock %}
+{% set active_page = "testbeds" %}
+{% block content %}
+<div class="container">
+    <h2> Found sessions: {{ num }}</h2> <br>
+    <table id="sessions" class="table table-hover">
+        <thead>
+        <tr>
+            <th>Session id</th>
+            <th>Last Update</th>
+            <th>Spec</th>
+        </tr>
+        </thead>
+{% if num > 0 %}
+        <tbody>
+{% endif %}
+{% for r in data %}
+            <tr session={{ r.session }} spec={{ "1" if r.specs is defined else "0" }}>
+                <td>{{ r.session }}</td>
+                <td>{{ r.datetime }}</td>
+                <td>{{ r.specs if r.specs is defined else "False" }}</td>
+            </tr>
+{% endfor %}
+{% if num > 0 %}
+        </tbody>
+{% endif %}
+    </table>
+    <h2> Selected session:</h2> <br>
+    <div id="session"></div>
+
+    <svg width="960" height="600"></svg>
+</div>
+{% endblock %}
