@@ -1,7 +1,9 @@
 <center>
 <img src="https://github.com/di-unipi-socc/FogMon/blob/master/img/logofogmon.png?raw=true" alt="Home Screen" width="250" />
 </center>
+
 *A distributed monitoring tool for Fog computing infrastructures*
+
 
 **NOTE: A new release of the tool, FogMon 2.0, is available [here](https://github.com/di-unipi-socc/FogMon/tree/liscio-2.0)**
 
