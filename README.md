@@ -20,7 +20,7 @@ FogMon 1.x and the overall functioning of the tool have been fully described in 
 
 If you wish to reuse source code in this repo, please consider citing them.
 
-## Improvements
+## New in FogMon 2.0
 
 Overall, the new version of FogMon substantially improves and tune the previous one. The experiments carried out in LiSCIo definitely improved on the technology readiness level (TRL) of FogMon, bringing it from TRL 4 (validation in a laboratory environment, over only 13 nodes) to TRL 5 (validation in a relevant environment, with up to 40 nodes).
 
