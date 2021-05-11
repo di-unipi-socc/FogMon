@@ -1,0 +1,10 @@
+docker-compose.yml
+Fed4Fire+
+**/build
+**/.vscode
+**/__pycache__
+.*
+**/*.md
+**/*Dockerfile
+**/.dockerignore
+build.sh

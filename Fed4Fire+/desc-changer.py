@@ -13,7 +13,7 @@ sessions_present = {}
 
 for file in os.listdir('./sessions/'):
     if "sessions" in file:
-        with open(file, "r") as rd:
+        with open("./sessions/"+file, "r") as rd:
             print(file,flush=True)
             version = "2.0" if "2.0" in file else "1.1" if "links" in file else "1.0"
             modifier = "bugged" if "old" in file else ""
@@ -29,6 +29,8 @@ stats = {"b":0,"u":0,"g":0, "1": {"base and nodes": 0, "":0}}
 
 not_sessions = [35, 36, 37, 38, 58, 59, 64, 65, 92, 93, 95, 96, 97, 98, 99, 100, 102, 112, 111, 103, 110, 106, 108, 121, 122, 123, 120, 124, 125, 28, 40, 148, 126, 187, 188, 189, 193, 195, 197, 183, 194, 196, 158, 161, 162, 164, 165, 163, 178, 179, 180, 181]
 
+stats["g"]+=len(not_sessions)
+
 for id in sessions:
     if id in not_sessions:
         continue
@@ -38,7 +40,7 @@ for id in sessions:
         modifier = sessions_present[id]["modifier"]
         if modifier == "":
             if "th" in name or "bad" in name:
-                modifier = "bugged or repeated, "
+                modifier = "preliminary tests: contains inaccurate data, "
         desc = modifier + name + " " + sessions_present[id]["version"] + "\n"
 
         for moment in sessions_present[id]["moments"]:
