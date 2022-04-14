@@ -4,7 +4,7 @@ from datetime import datetime
 from bson.son import SON
 import json
 from collections import OrderedDict
-from model import clean_results, deaggregate, get_spec
+from model import clean_results, deaggregate, get_spec, remove_older_than
 import logging
 
 def get_sessions():
@@ -163,20 +163,27 @@ def unify_reports(reports,updates):
     return {"Reports":reports,"Leaders":updates[0]}
 
 def save_report(report):
+    session = report["argument"]
     item = {
         'report': report["data"],
-        'session': report["argument"],
+        'session': session,
         'sender': report["sender"],
         'datetime': datetime.utcnow()
     }
     #logging.info(str(item))
     mongo.db.reports.insert_one(item)
 
+    spec = get_spec(session)
+    if "monitor" in spec:
+        if spec["monitor"]:
+            remove_older_than(session,600)
+
 
 def save_update(update):
+    session = report["argument"]
     item = {
         'update': update["data"],
-        'session': update["argument"],
+        'session': session,
         'sender': update["sender"],
         'datetime': datetime.utcnow()
     }

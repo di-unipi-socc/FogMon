@@ -1,11 +1,38 @@
-from model import mongo, get_leaders, get_lastreports, get_updates, get_spec, get_reports
+from model import mongo, get_leaders, get_updates, get_spec, get_reports
 import logging
+import dns.resolver
+import ipaddress
+def dns_check4(ip, DSTs):
+    if ip == "::1":
+        return None
+    try:
+        ip = ipaddress.ip_address(ip)
+        try:
+            ip = str(ip.ipv4_mapped)
+        except:
+            pass
+    except:
+        if "." in ip:
+            result = dns.resolver.query(ip, 'A')
+            for val in result:
+                logging.info(f"{val} {ip}")
+                val = str(val)
+                if val in DSTs:
+                    return val
+    if ip in DSTs:
+        return ip
+    logging.info("None"+ip)
+    return None
+        
 
 def get_associations(session, reports=None):
     spec = get_spec(session)
-    Nodes = [k for k,v in spec["specs"][0]["nodes"].items()]
+    if type(spec["specs"][0]["nodes"]) is list:
+        Nodes = [k for k in spec["specs"][0]["nodes"]]
+    else:
+        Nodes = [k for k,v in spec["specs"][0]["nodes"].items()]
     Nodes = {i:"None" for i in Nodes}
-
+    Nodes_ = {}
     if reports is None:
         reports = get_reports(session,limit=len(Nodes)*3)
     elif type(reports) == dict:
@@ -16,17 +43,20 @@ def get_associations(session, reports=None):
         for node in report["report"]["reports"]:
             for test in node["latency"]:
                 ip = test["target"]["ip"]
-                if ip in Nodes:
-                    Nodes[ip] = test["target"]["id"]
+                Nodes_[ip] = test["target"]["id"]
             for test in node["bandwidth"]:
                 ip = test["target"]["ip"]
-                if ip in Nodes:
-                    Nodes[ip] = test["target"]["id"]
+                Nodes_[ip] = test["target"]["id"]
+    
+    for ip,id in Nodes_.items():
+        ip = dns_check4(ip,Nodes)
+        if ip is not None:
+            Nodes[ip] = id
 
     Ids = {}
     for k,v in Nodes.items():
         Ids[v] = k
-        #logging.info("node: "+str(k)+" "+str(v))
+        logging.info("node: "+str(k)+" "+str(v))
     return Nodes,Ids
 
 def associate_spec(reports, spec, session):

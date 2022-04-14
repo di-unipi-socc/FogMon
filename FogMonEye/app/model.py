@@ -1,5 +1,7 @@
 from flask_pymongo import PyMongo
 import logging
+import datetime
+from datetime import timedelta
 
 mongo = PyMongo()
 
@@ -135,62 +137,7 @@ def change_desc(session, desc):
     spec["desc"] = desc
     mongo.db.spec.replace_one({"session": session}, spec, upsert=True)
 
-def get_lastreports(session):
-    import datetime
-    # date1 = datetime.datetime.strptime("2021-03-10 16:09:20.918000", '%Y-%m-%d %H:%M:%S.%f')
-    # date2 = datetime.datetime.strptime("2021-03-10 16:16:52.135000", '%Y-%m-%d %H:%M:%S.%f')
-    
-    # mongo.db.reports.remove({"session": session,"datetime": {"$lt": date2, "$gt": date1}})
-    #mongo.db.update.remove({"session": session,"update.selected": {"$eq": []}})
-    
-    spec = get_spec(session)
-    if session == 113:
-        pass
-        #mongo.db.update.remove({"session":113,"datetime": datetime.datetime(2021, 3, 21, 0, 18, 16, 340000)})
-        #spec["change_dates"] = [datetime.datetime.strptime("2021-03-25 17:47:26.918000", '%Y-%m-%d %H:%M:%S.%f')]
-        #mongo.db.spec.replace_one({"session": session}, spec, upsert=True)
-
-    return spec
-    cursor = mongo.db.update.find({"session": session}).sort([("datetime", 1)])
-
-    cursor = mongo.db.update.find({"session": session}).sort([("datetime", 1)])
-    updates = list(cursor)
-    date = updates[0]["datetime"]
-    cursor = mongo.db.reports.find({"session": session,"datetime": {"$lt": date}}).sort([("datetime", 1)])
-    els = list(cursor)
-    ids2 = [(len(el["report"]["reports"]),el["sender"]["id"],el["datetime"]) for el in els ]
-    for el in updates:
-        date = el["datetime"]
-        logging.info(date)
-    logging.info("\n\n\n")
-    logging.info(ids2)
-    logging.info(date)
-    for el in updates[1:]:
-        first_date = date
-        date = el["datetime"]
-        cursor = mongo.db.reports.find({"session": session,"datetime": {"$lt": date, "$gt": first_date}}).sort([("datetime", 1)])
-        els = list(cursor)
-        ids2 = [(len(el["report"]["reports"]),el["sender"]["id"],el["datetime"]) for el in els ]
-        logging.info(ids2)
-        logging.info(date)
-    cursor = mongo.db.reports.find({"session": session,"datetime": {"$gt": date}}).sort([("datetime", 1)])
-    els = list(cursor)
-    ids2 = [(len(el["report"]["reports"]),el["sender"]["id"],el["datetime"]) for el in els ]
-    logging.info(ids2)
-
-    ids = [el["id"] for el in updates[0]["update"]["selected"]]
-    logging.info(ids)
-    cursor = mongo.db.reports.find({"session": session, "sender.id": {"$in": ids }, "datetime": {"$gt": date}}).sort([("datetime", -1)])
-    els = list(cursor)
-    logging.info(len(els))
-    ids2 = [el["sender"]["id"] for el in els]
-    logging.info(ids2)
-    reports = []
-    checked = []
-    for report in els:
-        id = report["sender"]["id"]
-        if id in ids and id not in checked:
-            reports.append(report)
-            checked.append(id)
-    reports = clean_results(reports)
-    return reports
+def remove_older_than(session,seconds):
+    date = datetime.datetime.now()-timedelta(seconds=-seconds)
+    mongo.db.reports.remove({"session": session,"datetime": {"$lt": date}})
+    mongo.db.update.remove({"session": session,"datetime": {"$lt": date}})

@@ -1,8 +1,5 @@
-from model import mongo, get_leaders, get_lastreports, get_updates, get_spec, get_reports
-from bson.son import SON
-from bson import json_util
+from model import get_updates, get_spec, get_reports
 from .spec import associate_spec
-import json
 import logging
 from statistics import mean
 
@@ -48,9 +45,7 @@ def accuracy(session):
         else:
             accuracy["stable"] = f"{stable>=10} ({stable})"
             accuracy["time"] = (end-begin).total_seconds()
-        logging.info(accuracy)
         accuracies.append(accuracy)
-    logging.info("HELLOOOOOOOOOOOOOOOOOOOOOOOOOO0")
     return accuracies
 
 def compute_accuracy(report, spec, log=True):
@@ -61,14 +56,6 @@ def compute_accuracy(report, spec, log=True):
         src_id = node["source"]["id"]
         ldr_id = node["leader"]
         leaders[src_id] = ldr_id
-
-    # snd_id = report["sender"]["id"]
-    # try:
-    #     snd = spec["ids"][snd_id]
-    # except:
-    #     import traceback
-    #     logging.info(traceback.format_exc())
-    #     return None
 
     zeros = 0
 
@@ -81,28 +68,18 @@ def compute_accuracy(report, spec, log=True):
             same_leader = leaders[dst_id] == leaders[src_id]
             val = spec["links"][T][src][dst]
             err = (abs(val-test["mean"]))/val
-            if err < 0:
+            if err < 0: # how?
                 err = 0
             diff = abs(val-test["mean"])
-            diff = diff-1
-            if diff < 0:
-                diff = 0
+            diff = max(diff-1,0)
             if abs((diff/val) - err) > 0.1: # minimal differences produces great differences
                 # logging.info(f"minimal diff {(diff/val)} {err} {val}-{test['mean']}")
                 err = diff/val
 
-            if T == "L" and val > 500 and test["mean"] > 500:
+            if T == "L" and val > 500 and test["mean"] > 500: #latency high in both
                 err = 0
-            if T == "B" and val < 150 and test["mean"] <150:
+            if T == "B" and val < 150 and test["mean"] <150: # bandwidth is very low in both 150 Kbps
                 err = max(err-0.5, 0)
-            
-            if test["mean"] == 0 and val > 2:
-                pass
-                # logging.info("test: "+T + " " + ("intra" if same_leader else "inter") + " " + ( "same" if snd_id == leaders[src_id] else "diff")+" "+ src+" "+ dst)
-                # logging.info(val)
-                # logging.info(test["mean"])
-            #if val == 100:
-            #    logging.info(f"high error[same={same_leader}]: {src} {dst} {err} {val} {test['mean']}")
                   
             if same_leader: # same leader
                 if err>0.4:
@@ -313,22 +290,6 @@ def stability(session, spec, begin=None, end=None):
         id = report["sender"]["id"]
         reports_ids[id].append(report)
 
-    # rem_ids = []
-
-    # last = begin2
-
-    # for id in ids:
-    #     from datetime import datetime
-    #     if (reports_ids[id][0]["datetime"]
-
-    # for id in ids:
-    #     from datetime import datetime
-    #     if (reports_ids[id][0]["datetime"]-) > 200:
-    #         rem_ids.append(id)
-    # for id in rem_ids:
-    #     ids.remove(id)
-    #     del reports_ids[id]
-
     # now search from the last, a no change
     changes = {}
     for id in ids:
@@ -380,10 +341,6 @@ def stability(session, spec, begin=None, end=None):
 def change1(spec, reportA, reportB=None):
     if reportB == None:
         return False
-    #logging.info("computing change")
-
-    #stri = json.dumps(reportA, default=json_util.default)
-    #logging.info(stri[:500])
 
     leaders = {}
 
@@ -398,9 +355,6 @@ def change1(spec, reportA, reportB=None):
         src_id = node["source"]["id"]
         ldr_id = node["leader"]
         leaders2[src_id] = ldr_id
-
-    #logging.info(leaders)
-    #logging.info(leaders2)
 
     for node in leaders:
         if leaders[node] != leaders2[node]:
@@ -459,69 +413,6 @@ def change2(spec, reportB, reportA=None):
                 return False
 
     return True
-
-    valsA = compute_accuracy(reportA, spec)
-    valsB = compute_accuracy(reportB, spec)
-    for k,v in valsB.items():
-        if k != "B":
-            continue
-        for k2,v in v.items():
-            if k2 != "inter":
-                continue
-            if v["num"] != valsA[k][k2]["num"]:
-                logging.info("Change2")
-                return True
-            diff = (v["mean"]-valsA[k][k2]["mean"])/v["mean"]
-            if diff > 0.01: # gain in error
-                logging.info("Change3 diff "+str(diff))
-                return True
-
-    # def build_data(data, report):
-    #     for node1,leader1 in leaders.items():
-    #         data[node1] = {}
-    #         for node2,leader2 in leaders.items():
-    #             data[node1][node2] = {}
-
-    #     # for every link check diff
-    #     for nodeA in report["report"]["reports"]:
-    #         id1 = nodeA["source"]["id"]
-    #         for test in nodeA["latency"]:
-    #             id2 = test["target"]["id"]
-    #             data[id1][id2]["L"] = test["mean"]
-    #         for test in nodeA["bandwidth"]:
-    #             id2 = test["target"]["id"]
-    #             data[id1][id2]["B"] = test["mean"]
-
-    # dataA = {}
-    # dataB = {}
-    # build_data(dataA, reportA)
-    # build_data(dataB, reportB)
-    # try:
-    #     for node1,leader1 in leaders.items():
-    #         for node2,leader2 in leaders.items():
-    #             for k in dataA[node1][node2]:
-    #                 valA = dataA[node1][node2][k]
-    #                 valB = dataB[node1][node2][k]
-    #                 if valB == 0:
-    #                     if valA != 0:
-    #                         diff = 1
-    #                     elif valA == 0:
-    #                         diff = 0
-    #                 else:
-    #                     diff = (valA - valB)/valB
-    #                 if leader1 == leader2:
-    #                     if diff >= 0.4:
-    #                         logging.info("Change4 diff1 "+str(diff) +" "+k)
-    #                         return True
-    #                 else:
-    #                     if diff >= 1:
-    #                         logging.info("Change4 diff2 "+str(diff) +" "+k)
-    #                         return True
-    # except:
-    #     logging.info(dataA)
-    #     logging.info(dataB)
-    #     raise
-    return False
 
 def baseErrors(report, spec):
     leaders = {}

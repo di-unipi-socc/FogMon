@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.testbed import get_sessions, get_session, save_update, save_report, add_testbed, change_testbed, remove
 from utils.accuracy import accuracy
+from utils.exports import export_stabilities
 from utils.footprint import save_footprints, compute_footprint
 from model import change_desc
 
@@ -91,6 +92,15 @@ def get_accuracy(session):
         data=data,
     )
 
+@api.route('/testbed/<int:session>/export-stabilities')
+def get_export_stabilities(session):
+    data = export_stabilities(session)
+
+    return jsonify(
+        status=True,
+        data=data,
+    )
+
 @api.route('/testbed/<int:session>/footprint', methods=['GET'])
 def get_footprint(session):
     data = compute_footprint(session)    
@@ -137,39 +147,10 @@ def post_data():
 
 @api.route('/test/<int:session>', methods=['GET'])
 def test(session):
-    from model import get_spec, get_updates, get_reports2,mongo,get_lastreports
 
     data = get_lastreports(session)
     return jsonify(
         status=True,
         message='Saved successfully!',
         data = data
-    ), 201
-    import logging
-    spec = get_spec(session)
-    spec = spec["specs"][-1]
-    begin=None
-    end=None
-    updates = get_updates(session, begin=begin, end=end)
-    # search last significant report: change!=0
-    try:
-        update = updates[0]
-        for up in updates:
-            if up["update"]["changes"] != 0:
-                update = up
-                break
-        begin2 = update["datetime"]
-    except:
-        updates = get_updates(session, begin=None, end=begin)
-        update = updates[0]
-        begin2 = begin
-
-
-    logging.info("stability:")
-    logging.info(begin2)
-    ids = [el["id"] for el in update["update"]["selected"]]
-    reports = get_reports2(session, ids=None, begin=None, end=None)
-    return jsonify(
-        status=True,
-        message='Saved successfully!'
     ), 201
