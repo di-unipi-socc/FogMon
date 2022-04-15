@@ -3,6 +3,7 @@ from utils.testbed import get_sessions, get_session, save_update, save_report, a
 from utils.accuracy import accuracy
 from utils.exports import export_stabilities
 from utils.footprint import save_footprints, compute_footprint
+from utils.monitor import monitor
 from model import change_desc
 
 api = Blueprint('api', __name__)
@@ -63,6 +64,20 @@ def get_testbed(session):
         data = None
         raise
 
+    return jsonify(
+        status=True,
+        data=data,
+    )
+
+@api.route('/testbed/<int:session>/monitor')
+def get_monitor(session):
+    data = monitor(session)
+    if "error" in data:
+        return jsonify(
+            status=False,
+            message=data["error"]
+        ), 400
+        
     return jsonify(
         status=True,
         data=data,

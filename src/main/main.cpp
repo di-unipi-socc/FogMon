@@ -102,6 +102,8 @@ int main(int argc, char *argv[]) {
     int leader_formula = 0;
 
     bool leader = false;
+
+    int reverseDns = 0;
     
     std::string interfaceIp = "";
     int session = 0;
@@ -151,6 +153,8 @@ int main(int argc, char *argv[]) {
     if(input.cmdOptionExists("-s"))
         session = stoi(input.getCmdOption("-s"));
 
+    if(input.cmdOptionExists("--reverse-dns"))
+        reverseDns = stoi(input.getCmdOption("--reverse-dns"));
 
     Node node(myPort, leader, threads);
 
@@ -180,6 +184,7 @@ int main(int argc, char *argv[]) {
 
     node.setParam(string("interface"), interfaceIp);
     node.setParam(string("session"), session);
+    node.setParam(string("reverse-dns"), reverseDns);
     node.start();
 
     int a = -1;

@@ -33,6 +33,8 @@ Node::Node(string port, bool isLeader, int threads) {
     this->threads = threads;
     this->id = this->genId();
 
+    this->reverseDns = 0;
+
     cout << "Generated id: "<< this->id << endl;
 
     unlink("leader_node.db");
@@ -192,6 +194,8 @@ bool Node::setParam(std::string name, int value) {
         this->leaderFormula = value;
     }else if(name == string("session")) {
         this->session = value;
+    }else if(name == string("reverse-dns")) {
+        this->reverseDns = value;
     }else
         return this->agent->setParam(name,value);
     cout << "setting: "<<name << " = "<< value << endl;

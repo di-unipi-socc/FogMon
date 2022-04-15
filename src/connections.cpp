@@ -405,7 +405,7 @@ std::string Connections::getSource(int fd, Message &m) {
     if(strcmp(ip,"127.0.0.1")==0)
         strcpy(ip,"::1");
     string strIp = string(ip);
-    if(strcmp(ip,"::1")!=0 && status==0) {
+    if(strcmp(ip,"::1")!=0 && status==0 && this->parent->node->reverseDns==1) {
         strIp = strHostName;
     }
     //change the ip of the sender

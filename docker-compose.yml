@@ -1,7 +1,7 @@
 version: '3'
 services:
   leader:
-    image: diunipisocc/liscio-fogmon:test2
+    image: diunipisocc/liscio-fogmon:fogmon2
     # build:
     #   context: .
     #   dockerfile: Dockerfile
@@ -13,7 +13,7 @@ services:
     expose:
       - "1024-65535"
   follower1:
-    image: diunipisocc/liscio-fogmon:test2
+    image: diunipisocc/liscio-fogmon:fogmon2
     # build:
     #   context: .
     #   dockerfile: Dockerfile
@@ -26,7 +26,7 @@ services:
     expose:
       - "1024-65535"
   follower2:
-    image: diunipisocc/liscio-fogmon:test2
+    image: diunipisocc/liscio-fogmon:fogmon2
     # build:
     #   context: .
     #   dockerfile: Dockerfile
@@ -39,7 +39,7 @@ services:
     expose:
       - "1024-65535"
   follower3:
-    image: diunipisocc/liscio-fogmon:test2
+    image: diunipisocc/liscio-fogmon:fogmon2
     # build:
     #   context: .
     #   dockerfile: Dockerfile

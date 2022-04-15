@@ -4,7 +4,7 @@ from datetime import datetime
 from bson.son import SON
 import json
 from collections import OrderedDict
-from model import clean_results, deaggregate, get_spec, remove_older_than
+from model import clean_results, deaggregate, get_spec, remove_reports_older_than, remove_updates_older_than
 import logging
 
 def get_sessions():
@@ -153,14 +153,18 @@ def search_lasts(reports, update):
 def unify_reports(reports,updates):
     updates = clean_results(updates)
     logging.info("clean")
+    reports = clean_results(reports)
+    logging.info("clean2")
     try:
         reports = search_lasts(reports, updates[0])
         logging.info("search_lasts")
-        reports = clean_results(reports)
-        logging.info("clean2")
+
+        
     except:
         return {"Reports":[reports[0]["report"]],"Leaders":None}
     return {"Reports":reports,"Leaders":updates[0]}
+
+from .monitor import check_monitor
 
 def save_report(report):
     session = report["argument"]
@@ -173,14 +177,12 @@ def save_report(report):
     #logging.info(str(item))
     mongo.db.reports.insert_one(item)
 
-    spec = get_spec(session)
-    if "monitor" in spec:
-        if spec["monitor"]:
-            remove_older_than(session,600)
+    if check_monitor(session) is not None:
+        remove_reports_older_than(session,600)
 
 
 def save_update(update):
-    session = report["argument"]
+    session = update["argument"]
     item = {
         'update': update["data"],
         'session': session,
@@ -189,3 +191,6 @@ def save_update(update):
     }
     logging.info(str(item))
     mongo.db.update.insert_one(item)
+
+    if check_monitor(session) is not None:
+        remove_updates_older_than(session,600)

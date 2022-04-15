@@ -137,7 +137,10 @@ def change_desc(session, desc):
     spec["desc"] = desc
     mongo.db.spec.replace_one({"session": session}, spec, upsert=True)
 
-def remove_older_than(session,seconds):
+def remove_reports_older_than(session,seconds):
     date = datetime.datetime.now()-timedelta(seconds=-seconds)
     mongo.db.reports.remove({"session": session,"datetime": {"$lt": date}})
+
+def remove_updates_older_than(session,seconds):
+    date = datetime.datetime.now()-timedelta(seconds=-seconds)
     mongo.db.update.remove({"session": session,"datetime": {"$lt": date}})

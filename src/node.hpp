@@ -56,6 +56,10 @@ public:
     std::string interfaceIp;
     int session;
 
+    // 0 = false
+    // 1 = use reverse dns for node ip
+    int reverseDns;
+
 protected:
     IAgent * agent;
     bool isLeader;

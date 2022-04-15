@@ -2,6 +2,7 @@ from model import mongo, get_leaders, get_updates, get_spec, get_reports
 import logging
 import dns.resolver
 import ipaddress
+
 def dns_check4(ip, DSTs):
     if ip == "::1":
         return None
@@ -10,7 +11,7 @@ def dns_check4(ip, DSTs):
         try:
             ip = str(ip.ipv4_mapped)
         except:
-            pass
+            ip = str(ip)
     except:
         if "." in ip:
             result = dns.resolver.query(ip, 'A')
@@ -21,7 +22,7 @@ def dns_check4(ip, DSTs):
                     return val
     if ip in DSTs:
         return ip
-    logging.info("None"+ip)
+    logging.info("None "+ip)
     return None
         
 
