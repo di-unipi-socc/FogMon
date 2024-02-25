@@ -210,6 +210,7 @@ int bindParameters(sqlite3_stmt* stmt, const std::vector<std::variant<int, int64
             return rc;
         }
     }
+    return rc;
 }
 
 void IStorage::isError(int err, char *zErrMsg, std::string mess) {

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from pyclustering.cluster.kmedoids import kmedoids
 from pyclustering.cluster import cluster_visualizer
 from pyclustering.utils import read_sample

@@ -216,7 +216,7 @@ Message::leader_update Selector::selection(int id, int formula) {
     //flush the storage so the script can read the new data
     this->parent->getStorage()->flush();
     
-    vector<string> args = {"./scripts/cluster.py", std::to_string(formula).c_str()};
+    vector<string> args = {"/usr/bin/python3","./scripts/cluster.py",std::to_string(formula)};
     ReadProc * proc = new ReadProc(args);
 
      {
@@ -264,7 +264,7 @@ Message::leader_update Selector::selection(int id, int formula) {
     }
     int changes = doc["changes"].GetInt();
 
-    if (quality == 0) {
+    if (quality == 0 && changes == 0 && leaders.size() == 0) {
         printf("empty [zero]: %s\n",output.c_str());
         return Message::leader_update();
     }
@@ -353,7 +353,7 @@ void Selector::startSelection() {
                 }
             }
             printf("selected (cost = %f, changes = %d):\n",sel.cost,sel.changes);
-            if ( sel.cost == 0 ) {
+            if ( sel.cost == 0 and sel.changes == 0 and sel.selected.size() == 0) {
                 printf("zero!!!!\n");
                 this->parent->getConnections()->sendEndSelection(Message::leader_update(),false);
                 printf("aborted selection zero\n");

@@ -9,10 +9,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 #python3-setuptools python3-venv python3-wheel libpq-dev
 #RUN pip3 install wheel
-ADD scripts /compile/scripts
-WORKDIR /compile
+RUN mkdir /scripts
+ADD scripts/requirements.txt /scripts
 RUN cat scripts/requirements.txt | xargs -n 1 -L 1 pip3 install
-RUN cp -R ./scripts /
 
 ADD assolo /compile/assolo
 WORKDIR /compile/assolo
@@ -29,11 +28,11 @@ RUN patch < sigar2.patch src/Makefile.am
 RUN ./autogen.sh && ./configure && make CFLAGS=-fgnu89-inline && make install 
 
 # RUN cmake . && make && make install
-
+ADD scripts /scripts
 ADD . /compile
 WORKDIR /compile
-#RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends lcov valgrind && rm -rf /var/lib/apt/lists/*
-#RUN cmake . -DCMAKE_BUILD_TYPE=Debug
+# RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends lcov valgrind && rm -rf /var/lib/apt/lists/*
+# RUN cmake . -DCMAKE_BUILD_TYPE=Debug
 RUN cmake .
 RUN make
 RUN cp ./FogMon /

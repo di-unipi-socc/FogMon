@@ -51,6 +51,7 @@ bool sendToInterface(string ip,string str) {
             return false;
         }
     }
+    return false;
 }
 
 bool UIConnection::sendTopology(vector<Report::report_result> report) {   
