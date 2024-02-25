@@ -18,7 +18,12 @@ FogMon 1.x and the overall functioning of the tool have been fully described in 
 > [**Measuring the Fog, Gently**](https://doi.org/10.1007/978-3-030-33702-5_40), <br>	
 > 17th International Conference on Service-Oriented Computing (ICSOC), 2019. 
 
-Experimental data collected throughout LiSCIo is publicly available at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4682987.svg)](https://doi.org/10.5281/zenodo.4682987).
+Experimental data collected throughout LiSCIo is publicly available at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4682987.svg)](https://doi.org/10.5281/zenodo.4682987) and experiments are described in the following article:
+
+>  Marco Gaglianese, [Stefano Forti](http://pages.di.unipi.it/forti), Federica Paganelli, [Antonio Brogi](http://pages.di.unipi.it/brogi) <br>
+> [**Assessing and enhancing a Cloud-IoT monitoring service over federated testbeds**](https://doi.org/10.1016/j.future.2020.08.011), <br>	
+> Future Generation Computer Systems (2023), DOI: 10.1016/j.future.2020.08.011. 
+
 
 If you wish to reuse source code in this repo, please consider citing the articles above.
 
