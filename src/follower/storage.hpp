@@ -5,7 +5,7 @@
 
 class Storage : virtual public IStorage {
 protected:
-    virtual void createTables();
+    virtual void createTables() override;
 
     void filterRecv(std::vector<Message::node> &list);
     void filterSend(std::vector<Message::node> &list);
@@ -14,38 +14,34 @@ protected:
 
     std::string ip;
 
-    void isError(int err, char *zErrMsg, std::string mess);
-
 public:
     Storage();
-    virtual ~Storage();
+    virtual ~Storage() override;
 
-    void setFilter(std::string ip);
+    void setFilter(std::string ip) override;
 
-    virtual Report::hardware_result getHardware();
-    virtual std::vector<Report::test_result> getLatency(int sensitivity, int64_t last = 0);
-    virtual std::vector<Report::test_result> getBandwidth(int sensitivity, int64_t last = 0);
+    virtual Report::hardware_result getHardware() override;
+    virtual std::vector<Report::test_result> getLatency(int sensitivity, int64_t last = 0) override;
+    virtual std::vector<Report::test_result> getBandwidth(int sensitivity, int64_t last = 0) override;
 
-    void saveLatencyTest(Message::node node, int ms, int window);
-    void saveBandwidthTest(Message::node node, float kbps, int state, int window);
-    void saveHardware(Report::hardware_result hardware, int window);
+    void saveLatencyTest(Message::node node, int ms, int window) override;
+    void saveBandwidthTest(Message::node node, float kbps, int state, int window) override;
+    void saveHardware(Report::hardware_result hardware, int window) override;
 
-    void saveState(int64_t last, int sensitivity);
+    void refreshNodes(std::vector<Message::node> nodes) override;
+    void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem) override;
 
-    void refreshNodes(std::vector<Message::node> nodes);
-    void updateNodes(std::vector<Message::node> add, std::vector<Message::node> rem);
-
-    std::vector<Message::node> getNodes();
+    std::vector<Message::node> getNodes() override;
     
-    std::vector<Message::node> getLRLatency(int num, int seconds);
-    std::vector<Message::node> getLRBandwidth(int num, int seconds);
+    std::vector<Message::node> getLRLatency(int num, int seconds) override;
+    std::vector<Message::node> getLRBandwidth(int num, int seconds) override;
 
     //return -1 on fail
-    int getTestBandwidthState(Message::node ip, Report::test_result &last);
+    int getTestBandwidthState(Message::node ip, Report::test_result &last) override;
 
-    std::vector<Report::IoT> getIots();
+    std::vector<Report::IoT> getIots() override;
 
-    void addIot(IThing *iot);
+    void addIot(IThing *iot) override;
 };
 
 

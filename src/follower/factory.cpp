@@ -1,6 +1,6 @@
 #include "factory.hpp"
 
-IStorage* Factory::newStorage(std::string path) {
+IStorage* Factory::newStorage(std::string path, Message::node node) {
     IStorage* ret = new Storage();
     ret->open(path);
     return ret;

@@ -156,8 +156,8 @@ bool Selector::checkSelection(bool qualityCheck, bool doit) {
     if(qualityCheck) {
         try {
             //calculate with a script the update and set the id on it
-            const char *args[] = {"./scripts/quality.py",NULL};
-            ReadProc * proc = new ReadProc((char**)args);
+            vector<string> args = {"./scripts/quality.py"};
+            ReadProc * proc = new ReadProc(args);
 
             {
                 std::lock_guard<std::mutex> lock(this->clusterMutex);
@@ -212,8 +212,12 @@ void Selector::stopSelection() {
 
 Message::leader_update Selector::selection(int id, int formula) {
     //calculate with a script the update and set the id on it
-    const char *args[] = {"./scripts/cluster.py", std::to_string(formula).c_str(),NULL};
-    ReadProc * proc = new ReadProc((char**)args);
+    
+    //flush the storage so the script can read the new data
+    this->parent->getStorage()->flush();
+    
+    vector<string> args = {"./scripts/cluster.py", std::to_string(formula).c_str()};
+    ReadProc * proc = new ReadProc(args);
 
      {
         std::lock_guard<std::mutex> lock(this->clusterMutex);
@@ -223,13 +227,18 @@ Message::leader_update Selector::selection(int id, int formula) {
         this->clusterProc = proc;
     }
 
-    int res = proc->waitproc();
-
+    proc->waitproc();
+    int res = proc->getexitcode();
+    printf("selection result: %d\n",res);
+    fflush(stdout);
+    string output = proc->readoutput();
+    printf("selection output: %s\n",output.c_str());
+    fflush(stdout);
     if(res != 0) {
         return Message::leader_update();
     }
-
-    string output = proc->readoutput();
+    
+    
     rapidjson::Document doc;
     rapidjson::ParseResult ok = doc.Parse((const char*)output.c_str());
     if(!ok)

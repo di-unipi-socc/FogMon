@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
+#include "node.hpp"
 #include "selector.hpp"
 #include "leader_storage.hpp"
 #include "follower.hpp"
 
-class MSelector : public Selector {
+
+class MMSelector : public Selector {
 public:
-    MSelector(ILeader * leader) : Selector(leader) {}
+    MMSelector(ILeader * leader) : Selector(leader) {}
 
     void setId(int id) {
         this->id = id;
@@ -20,7 +22,8 @@ public:
         return this->status;
     }
 
-    virtual Message::leader_update selection(int id) {
+    virtual Message::leader_update selection(int id, int formula) override {
+        printf("selection\n");
         if(id == 153) {
             return Selector::selection(id, this->parent->node->leaderFormula);
         }
@@ -40,6 +43,8 @@ protected:
     void createTables() {}
 
 public:
+    MStorage2() {}
+    ~MStorage2() {}
 
     void setFilter(string ip) {
         
@@ -88,7 +93,7 @@ public:
     virtual std::vector<Message::node> getMLRHardware(int num, int seconds) {return vector<Message::node>();}
 
     virtual void addMNode(Message::node ip) {}
-    virtual Report::report_result getReport(Message::node ip) {}
+    virtual Report::report_result getReport(Message::node ip, bool complete = false) {}
     virtual std::vector<Message::node> getAllNodes() {
         vector<Message::node> vect;
         for(int i=0; i<10; i++) {
@@ -99,11 +104,11 @@ public:
     virtual vector<Message::node> getMNodes() {
         return vector<Message::node>();
     }
-    virtual vector<Report::report_result> getReport() {}
+    virtual vector<Report::report_result> getReport(bool complete = false) {}
 
     virtual Report::hardware_result getHardware(Message::node ip) {}
-    virtual std::vector<Report::test_result> getLatency(Message::node ip) {}
-    virtual std::vector<Report::test_result> getBandwidth(Message::node ip) {}
+    virtual std::vector<Report::test_result> getLatency(Message::node ip, bool complete = false) {}
+    virtual std::vector<Report::test_result> getBandwidth(Message::node ip, bool complete = false) {}
     virtual std::string addNode(Message::node strIp, Report::hardware_result hardware, Message::node *monitored = NULL) {}
     virtual void addReport(Report::report_result result, Message::node *monitored = NULL) {}
     virtual void addReport(std::vector<Report::report_result> results, Message::node ip) {}
@@ -155,8 +160,8 @@ public:
 
     virtual bool sendChangeRoles(Message::leader_update update) {}
 
-    MSelector *selectorA = NULL;
-    MSelector *selectorB = NULL;
+    MMSelector *selectorA = NULL;
+    MMSelector *selectorB = NULL;
     bool sent = false;
     bool ended = false;
 };
@@ -166,7 +171,7 @@ public:
 
     MConnections conn;
     Message::leader_update update;
-    MStorage2 store;
+    ILeaderStorage *store;
 
     void start() {};
     void stop() {};
@@ -192,26 +197,40 @@ public:
 
     void changeRole(std::vector<Message::node> leaders) {}
 
-    ILeaderStorage* getStorage() {return &store;}
+    ILeaderStorage* getStorage() {return store;}
+    void setStorage(ILeaderStorage* store) {this->store = store;}
 
 };
 
-class MNode : public Node {
+class MMNode : public Node {
 public:
+    MMNode() : Node("a", false, 0) {}
 
-    MNode() : Node("a",false,0) {}
+    void promote(std::vector<Message::node> nodes) override {
+        printf("promote\n");
+        sent = true;
+    }
 
-    void promote() {
-        sent=true;
+    void demote(std::vector<Message::node> nodes) override {
+        printf("demote\n");
+        sent = true;
     }
     bool sent = false;
 };
+
 
 TEST(SelectorTest, calcSelectionTest) {
 
     MParent2 parent;
 
-    MSelector sel(&parent);
+    MMSelector sel(&parent);
+
+    ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
+    parent.setStorage(stor);
+
+    // add a node
+    Message::node node("a","1","2");
+    
 
     bool e = sel.initSelection(10);
     EXPECT_EQ(e, true);
@@ -242,11 +261,14 @@ TEST(SelectorTest, interactionTest1) {
 
     MParent2 parent;
 
-    MNode node;
+    MMNode node;
     parent.setParent(&node);
 
-    MSelector sel(&parent);
-    MSelector sel2(&parent);
+    ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
+    parent.setStorage(stor);
+    stor->open("leader_node.db");
+    MMSelector sel(&parent);
+    MMSelector sel2(&parent);
 
     parent.conn.selectorA = &sel;
     parent.conn.selectorB = &sel2;
@@ -267,8 +289,8 @@ TEST(SelectorTest, interactionTest1) {
     sel2.setStatus(Selector::Status::FREE);
     sel2.start2();
     EXPECT_EQ(sel2.getStatus(), Selector::Status::STARTED);
-    usleep(10000000);
-
+    usleep(25000000);
+    printf("sel2: %d\n", sel2.getStatus());
     EXPECT_EQ(sel2.getStatus(), Selector::Status::FREE);
     EXPECT_EQ(sel.getStatus(), Selector::Status::FREE);
     EXPECT_EQ(parent.conn.ended, true);
@@ -278,58 +300,43 @@ TEST(SelectorTest, interactionTest1) {
 
 TEST(SelectorTest, interactionTest2) {
     MParent2 parent;
-    MNode node;
+    MMNode node;
     parent.setParent(&node);
-
-    MSelector sel(&parent);
-    MSelector sel2(&parent);
+    MMSelector sel(&parent);
+    MMSelector sel2(&parent);
 
     parent.conn.selectorA = &sel;
     parent.conn.selectorB = &sel2;
 
-    EXPECT_EQ(sel.checkSelection(),true);
-    EXPECT_EQ(sel.getStatus(), Selector::Status::STARTED);
-    usleep(10000000);
-
-    EXPECT_EQ(sel.getStatus(), Selector::Status::FREE);
-    EXPECT_EQ(sel2.getStatus(), Selector::Status::FREE);
-    EXPECT_EQ(parent.conn.ended, true);
-    EXPECT_EQ(parent.conn.sent, true);
-}
-
-
-TEST(SelectorTest, ScriptTest) {
-    MParent2 parent;
-
-    MNode node;
-    parent.setParent(&node);
-
-    MSelector sel(&parent);
-    MSelector sel2(&parent);
-
-    parent.conn.selectorA = &sel;
-    parent.conn.selectorB = &sel2;
+unlink("leader_node.db");
+    ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
+    parent.setStorage(stor);
+    stor->open("leader_node.db");
 
     float table[10][10] {
-        {0,0,0,50,50,50,500,500,500,500},
-        {0,5,5,50,50,50,500,500,500,500},
-        {0,5,5,50,50,50,500,500,500,500},
-        {50,50,50,0,0,0,500,500,500,500},
-        {50,50,50,0,5,5,500,500,500,500},
-        {50,50,50,0,5,5,500,500,500,500},
+        {0,0,0,500,500,500,500,500,500,500},
+        {0,5,5,500,500,500,500,500,500,500},
+        {0,5,5,500,500,500,500,500,500,500},
+        {500,500,500,0,0,0,500,500,500,500},
+        {500,500,500,0,5,5,500,500,500,500},
+        {500,500,500,0,5,5,500,500,500,500},
         {500,500,500,500,500,500,0,0,0,0},
         {500,500,500,500,500,500,0,1,1,1},
         {500,500,500,500,500,500,0,1,1,1},
         {500,500,500,500,500,500,0,1,1,1},
     };
-    unlink("leader_node.db");
-    ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
-    stor->open("leader_node.db");
-    
+    Report::hardware_result hw;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
+    hw.lasttime = stor->getTime()-2;
     for(int i=0; i< 10; i++) {
-        stor->addNode(Message::node(to_string(i),to_string(i),""),Report::hardware_result());
+        stor->addNode(Message::node(to_string(i),to_string(i),""),hw);
     }
-
+    hw.lasttime = stor->getTime();
     vector<Report::report_result> reports;
     for(int i=0; i<10; i++) {
         Report::report_result report;
@@ -344,7 +351,7 @@ TEST(SelectorTest, ScriptTest) {
             }
             else 
                 val = to_string(j);
-            Report::test_result test(Message::node(to_string(j),val,""),table[i][j],0,0);
+            Report::test_result test(Message::node(to_string(j),val,""),table[i][j],0,stor->getTime());
             
             lat.push_back(test);
         }
@@ -356,24 +363,116 @@ TEST(SelectorTest, ScriptTest) {
         else 
             val = to_string(i);
         report.source = Message::node(to_string(i),val,"");
+        report.hardware = hw;
         reports.push_back(report);
     }
     
     stor->addReport(reports,Message::node("0","::1",""));
+
+    EXPECT_EQ(sel.checkSelection(),true);
+    EXPECT_EQ(sel.getStatus(), Selector::Status::STARTED);
+    usleep(25000000);
+
+    EXPECT_EQ(sel.getStatus(), Selector::Status::FREE);
+    EXPECT_EQ(sel2.getStatus(), Selector::Status::FREE);
+    EXPECT_EQ(parent.conn.ended, true);
+    EXPECT_EQ(parent.conn.sent, true);
+}
+
+
+
+TEST(SelectorTest, ScriptTest) {
+    MParent2 parent;
+
+    MMNode node;
+    parent.setParent(&node);
+    
+
+    MMSelector sel(&parent);
+    MMSelector sel2(&parent);
+
+    parent.conn.selectorA = &sel;
+    parent.conn.selectorB = &sel2;
+
+    unlink("leader_node.db");
+    ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
+    parent.setStorage(stor);
+    stor->open("leader_node.db");
+
+    float table[10][10] {
+        {0,0,0,500,500,500,500,500,500,500},
+        {0,5,5,500,500,500,500,500,500,500},
+        {0,5,5,500,500,500,500,500,500,500},
+        {500,500,500,0,0,0,500,500,500,500},
+        {500,500,500,0,5,5,500,500,500,500},
+        {500,500,500,0,5,5,500,500,500,500},
+        {500,500,500,500,500,500,0,0,0,0},
+        {500,500,500,500,500,500,0,1,1,1},
+        {500,500,500,500,500,500,0,1,1,1},
+        {500,500,500,500,500,500,0,1,1,1},
+    };
+    Report::hardware_result hw;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
+    hw.lasttime = stor->getTime()-2;
+    for(int i=0; i< 10; i++) {
+        stor->addNode(Message::node(to_string(i),to_string(i),""),hw);
+    }
+    hw.lasttime = stor->getTime();
+    vector<Report::report_result> reports;
+    for(int i=0; i<10; i++) {
+        Report::report_result report;
+        vector<Report::test_result> lat;
+        for(int j=0; j<10; j++) {
+            string val;
+            if(i==j) {
+                continue;
+            }
+            if(j==0) {
+                val = "::1";
+            }
+            else 
+                val = to_string(j);
+            Report::test_result test(Message::node(to_string(j),val,""),table[i][j],0,stor->getTime());
+            
+            lat.push_back(test);
+        }
+        report.latency = lat;
+        string val;
+        if(i==0) {
+            val = "::1";
+        }
+        else 
+            val = to_string(i);
+        report.source = Message::node(to_string(i),val,"");
+        report.hardware = hw;
+        reports.push_back(report);
+    }
+    
+    stor->addReport(reports,Message::node("0","::1",""));
+    auto nodes = stor->getAllNodes();
+    printf("nodes[1]: %d\n", nodes.size());
+    for (auto n : nodes) {
+        printf("node[1]: %s\n", n.id.c_str());
+    }
+    // stor->flush();
     usleep(10000);
-    Message::leader_update up = sel.selection(153);
+    Message::leader_update up = sel.selection(153, 0);
     int i = 0;
-    while(up.cost > 0.0141 || up.cost < 0.014) {
-        up = sel.selection(153);
+    while(up.cost > 0.0027 || up.cost < 0.0026) {
+        up = sel.selection(153, 0);
         if (i > 2) {
             FAIL();
-            return;
         }
         i++;
     }
     EXPECT_EQ(up.changes,2);
-    EXPECT_NEAR(up.cost, 0.014,0.001);
-    int vect[] = {0,3,6};
+    EXPECT_NEAR(up.cost, 0.0026,0.0001);
+    int vect[] = {0,3,7};
     EXPECT_EQ(up.selected.size(), 3);
     for(int i=0; i<up.selected.size(); i++) {
         EXPECT_EQ(to_string(vect[i]),up.selected[i].id);
@@ -383,12 +482,12 @@ TEST(SelectorTest, ScriptTest) {
 TEST(SelectorTest, ScriptTest2) {
     MParent2 parent;
 
-    MNode node;
+    MMNode node;
     node.leaderFormula = 5;
     parent.setParent(&node);
 
-    MSelector sel(&parent);
-    MSelector sel2(&parent);
+    MMSelector sel(&parent);
+    MMSelector sel2(&parent);
 
     parent.conn.selectorA = &sel;
     parent.conn.selectorB = &sel2;
@@ -407,11 +506,22 @@ TEST(SelectorTest, ScriptTest2) {
     };
     unlink("leader_node.db");
     ILeaderStorage * stor = new LeaderStorage(Message::node("0","::1",""));
+    parent.setStorage(stor);
     stor->open("leader_node.db");
     
+    Report::hardware_result hw;
+    hw.cores = 4;
+    hw.disk = 100*1000*1000;
+    hw.mean_free_disk = 10*1000*1000;
+    hw.mean_free_cpu = 0.4;
+    hw.memory = 10*1000*1000;
+    hw.mean_free_memory = 1*1000*1000;
+    hw.lasttime = stor->getTime()-2;
+
     for(int i=0; i< 10; i++) {
-        stor->addNode(Message::node(to_string(i),to_string(i),""),Report::hardware_result());
+        stor->addNode(Message::node(to_string(i),to_string(i),""),hw);
     }
+    hw.lasttime = stor->getTime();
 
     vector<Report::report_result> reports;
     for(int i=0; i<10; i++) {
@@ -427,7 +537,7 @@ TEST(SelectorTest, ScriptTest2) {
             }
             else 
                 val = to_string(j);
-            Report::test_result test(Message::node(to_string(j),val,""),table[i][j],0,0);
+            Report::test_result test(Message::node(to_string(j),val,""),table[i][j],0,stor->getTime());
             
             lat.push_back(test);
         }
@@ -439,23 +549,58 @@ TEST(SelectorTest, ScriptTest2) {
         else 
             val = to_string(i);
         report.source = Message::node(to_string(i),val,"");
+        report.hardware = hw;
         reports.push_back(report);
     }
     
     stor->addReport(reports,Message::node("0","::1",""));
     usleep(10000);
-    Message::leader_update up = sel.selection(153);
+    Message::leader_update up = sel.selection(153, 0);
     int i = 0;
     EXPECT_EQ(up.changes,4);
     
 }
+class Base;
+class Base {
+public:
+    Base(int a) {};
+    ~Base() {};
+
+    void Display() {
+        this->vDisplay(vector<Message::node>());
+        cout << "Base: Non-virtual display." << endl;
+    };
+    virtual void vDisplay(std::vector<Message::node> nodes);
+};
+
+void Base::vDisplay(std::vector<Message::node> nodes) {
+        cout << "Base: Virtual display." << endl;
+}
+
+class Derived : public Base {
+public:
+    Derived() : Base(3) {};
+    void Display() {
+        this->vDisplay(vector<Message::node>());
+        cout << "Derived: Non-virtual display." << endl;
+    };
+    virtual void vDisplay(std::vector<Message::node> nodes) {
+        cout << "Derived: Virtual display." << endl;
+    };
+};
 
 TEST(SelectorTest, FollowerTest) {
 
+    Derived d;
+    Base *b = &d;
+    b->Display();
+
     Follower A(Message::node("a","1","2"),1);
 
-    MNode node;
+    MMNode node;
+    node.promote(vector<Message::node>());
     A.setParent(&node);
+    // A.node->promote(vector<Message::node>());
 
     vector<Message::node> vect;
     vect.push_back(Message::node("a","1","2"));

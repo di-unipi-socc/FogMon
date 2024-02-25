@@ -12,7 +12,7 @@
 
 class FollowerConnections : public Connections {
 protected:
-    void handler(int fd, Message &m);
+    void handler(int fd, Message &m) override;
 
     IAgent* parent;
 
@@ -20,7 +20,7 @@ public:
     FollowerConnections(int nThread);
     ~FollowerConnections();
 
-    void initialize(IAgent *parent);
+    void initialize(IAgent *parent) override;
 
     std::vector<Message::node> requestMNodes(Message::node ipS); 
     std::vector<Message::node> requestNodes(Message::node ipS);

@@ -1,10 +1,11 @@
-from model import get_updates, get_spec, get_reports, mongo
+from model import get_updates, get_spec, get_reports, mongo, remove_reports_older_than
 from .testbed import unify_reports
 from .spec import dns_check4
 import logging
 from statistics import mean
 
-def check_monitor(spec):
+def check_monitor(session):
+    spec = get_spec(session)
     if spec["change_dates"] == []:
         if "monitor" in spec["specs"][-1]:
             if spec["specs"][-1]["monitor"] == True:
@@ -101,19 +102,18 @@ def compat(data, ips):
 
 
 def monitor(session):
-    spec = get_spec(session)
-
-    ips = check_monitor(spec)
+    ips = check_monitor(session)
     if ips is None:
-        return False
+        return {"error": "no monitor: session not monitorable)"}
     
     logging.info("monitor True")
 
     updates = mongo.db.update.find({"session":session}, projection={'_id': False}).sort([("datetime", -1)])
     reports = mongo.db.reports.find({"session":session}, projection={'_id': False}).sort([("datetime", -1)])
-
+    
     updates = list(updates)
     reports = list(reports)
+
     if len(updates) == 0:
         return {"error": "such empty: no update (nodes < 4 or too fast?)"}
 
@@ -127,6 +127,8 @@ def monitor(session):
                 break
         if leader["id"] not in lasts:
             return {"error": "such empty2: not found report about leader (too fast?)"}
+
+    remove_reports_older_than(session, 600, reports[0]["datetime"])
 
     data = {"Reports":lasts,"Leaders":updates[0]}
 

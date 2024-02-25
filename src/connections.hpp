@@ -48,13 +48,13 @@ public:
     Connections(int nThread);
     ~Connections();
 
-    void initialize(IAgent *parent);
+    void initialize(IAgent *parent) override;
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
     //put the request on a queue to be processed by another thread
-    void request(int fd);
+    void request(int fd) override;
 };
 
 #endif

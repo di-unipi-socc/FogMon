@@ -301,9 +301,9 @@ bool FollowerConnections::sendHello(Message::node ipS) {
 
 
 optional<pair<int64_t,Message::node>> FollowerConnections::sendUpdate(Message::node ipS, pair<int64_t,Message::node> update) {
-    cout << "sendUpdate0" << endl;
+    // cout << "sendUpdate0" << endl;
     int Socket = openConnection(ipS.ip, ipS.port);
-    cout << "sendUpdate0.5" << endl;
+    // cout << "sendUpdate0.5" << endl;
     if(Socket < 0) {
         return nullopt;
     }
@@ -337,10 +337,10 @@ optional<pair<int64_t,Message::node>> FollowerConnections::sendUpdate(Message::n
     
 
     std::optional<std::pair<int64_t,Message::node>> result = nullopt;
-    cout << "sendUpdate1" << endl;
+    // cout << "sendUpdate1" << endl;
     //send update message
     if(this->sendMessage(Socket, m)) {
-        cout << "sendUpdate2" << endl;
+        // cout << "sendUpdate2" << endl;
         Message res;
         if(this->getMessage(Socket, res)) {
             if( res.getType()==Message::Type::RESPONSE &&
@@ -348,7 +348,6 @@ optional<pair<int64_t,Message::node>> FollowerConnections::sendUpdate(Message::n
                 res.getArgument() == Message::Argument::POSITIVE) {
                 
                 result = std::make_pair(now, ipS);
-                this->parent->getStorage()->saveState(time,this->parent->node->sensitivity);
             }
         }
     }

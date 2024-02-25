@@ -89,6 +89,7 @@ def add_testbed(data):
             for el in els:
                 if data == el["specs"][0]:
                     if len(el["specs"]) != 1:
+                        logging.info("find but more than 1 spec already")
                         continue
                         # if (datetime.now()-el["change_dates"][0]).total_seconds() > 60*60*5:
                         #     continue
@@ -130,11 +131,11 @@ def change_testbed(session, data):
 def remove(session, all=False):
     with mongo.cx.start_session() as mongo_session:
         with mongo_session.start_transaction():
-            mongo.db.update.remove({"session": session})
-            mongo.db.reports.remove({"session": session})
-            mongo.db.footprint.remove({"session": session})
+            mongo.db.update.delete_many({"session": session})
+            mongo.db.reports.delete_many({"session": session})
+            mongo.db.footprint.delete_many({"session": session})
             if all:
-                mongo.db.spec.remove({"session": session})
+                mongo.db.spec.delete_many({"session": session})
 
 
 

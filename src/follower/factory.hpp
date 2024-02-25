@@ -8,9 +8,9 @@
 
 class Factory : public IFactory {
 public:
-    virtual IStorage* newStorage(std::string path);
-    virtual FollowerConnections* newConnections(int nThread);
-    virtual Server* newServer(IConnections* conn, int port);
+    virtual IStorage* newStorage(std::string path, Message::node node) override;
+    virtual FollowerConnections* newConnections(int nThread) override;
+    virtual Server* newServer(IConnections* conn, int port) override;
 };
 
 #endif

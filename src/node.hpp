@@ -28,7 +28,7 @@ public:
     virtual void promote(std::vector<Message::node> nodes);
 
     //demote to follower if leader
-    void demote(std::vector<Message::node> nodes);
+    virtual void demote(std::vector<Message::node> nodes);
 
     void setMNodes(std::vector<Message::node> nodes);
     std::vector<Message::node> getMNodes();

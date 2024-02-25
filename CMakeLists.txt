@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.16.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -16,7 +16,14 @@ file(GLOB HDRS "src/*.hpp")
 find_library(UUID_LIBRARY uuid)
 find_library(PTHREAD_LIBRARY pthread)
 find_library(SERIALPORT_LIBRARY serialport)
-find_library(SIGAR_LIBRARY sigar)
+find_library(SIGAR_LIBRARY sigar
+	PATHS
+	/usr/lib
+	/usr/lib64
+	/usr/local/lib
+	/usr/local/lib64
+	PATH_SUFFIXES debug
+)
 find_library(SQLITE_LIBRARY sqlite3)
 find_library(CURL_LIBRARY curl)
 
@@ -68,6 +75,7 @@ target_link_libraries(FogMon ${CURL_LIBRARY})
 
 add_subdirectory(sqlite3)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	enable_testing()
 	add_definitions("-DENABLE_TESTS")
 	add_subdirectory(tests)
 endif()

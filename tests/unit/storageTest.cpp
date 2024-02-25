@@ -144,14 +144,6 @@ TEST(StorageTest, GetLRBandwidth) {
         FAIL();
 }
 
-TEST(StorageTest, SaveState) {
-    Storage storage;
-    storage.open("testA.db");
-
-    storage.saveState(0,10);
-    //TODO test if correct
-}
-
 class TestIoT : public IThing {
 public:
     string id;
@@ -374,14 +366,19 @@ TEST(StorageLeaderTest, ReportGetMLRLatency) {
     test.target = node_test;
     test.mean = 50;
     tests.push_back(test);
+
+    sleep(3);
     storage.addReportLatency(node_testtt,tests);
 
     //missing test-testt
 
-    vector<Message::node> res = storage.getMLRLatency(3, 10);
+    vector<Message::node> res = storage.getMLRLatency(3, 3);
     int dim = 2;
+    printf("%s\n",res[0].id.c_str());
     EXPECT_EQ(dim, res.size());
     if(res.size() == dim) {
+        printf("%s\n",res[0].id.c_str());
+        printf("%s\n",res[1].id.c_str());
         EXPECT_EQ("test", res[0].id);
         EXPECT_EQ("testt", res[1].id);
     }
@@ -425,7 +422,7 @@ TEST(StorageLeaderTest, GetLatency) {
     LeaderStorage storage(nodeA);
     storage.open("testB.db");
 
-    vector<Report::test_result> tests = storage.getLatency(node_testtt);
+    vector<Report::test_result> tests = storage.getLatency(node_testtt, false);
 
     int dim = 2;
     EXPECT_EQ(tests.size(),dim);
@@ -438,7 +435,7 @@ TEST(StorageLeaderTest, GetLatency) {
 TEST(StorageLeaderTest, GetBandiwdth) {
     LeaderStorage storage(nodeA);
     storage.open("testB.db");
-    vector<Report::test_result> tests = storage.getBandwidth(node_testtt);
+    vector<Report::test_result> tests = storage.getBandwidth(node_testtt, false);
 
     int dim = 2;
     EXPECT_EQ(tests.size(),dim);
@@ -449,6 +446,10 @@ TEST(StorageLeaderTest, GetBandiwdth) {
 }
 
 TEST(StorageLeaderTest, Complete) {
+    // nodeA is a MNode
+    // nodeB is a MNode
+    // nodeB1, node_testt, node_testtt are nodes monitored by nodeB
+    // node_test is a node monitored by nodeA 
     LeaderStorage storage(nodeA);
     storage.open("testB.db");
     Report::hardware_result hw;
@@ -459,10 +460,18 @@ TEST(StorageLeaderTest, Complete) {
     hw.memory = 10*1000*1000;
     hw.mean_free_memory = 1*1000*1000;
     hw.lasttime = storage.getTime();
+
+    // first cluster
+    storage.addNode(nodeA,hw, nullptr);
+    storage.addNode(node_test,hw, nullptr);
+
+    // second cluster
     storage.addMNode(nodeB);
     storage.addNode(nodeB,hw,&nodeB);
-    storage.addNode(nodeA,hw,&nodeA);
-
+    storage.addNode(nodeB1,hw,&nodeB);
+    storage.addNode(node_testt,hw,&nodeB);
+    storage.addNode(node_testtt,hw,&nodeB);
+    
     Report::test_result test;
     test.mean = 100;
     test.variance = 9999.0;
@@ -519,13 +528,13 @@ TEST(StorageLeaderTest, Complete) {
     tests.push_back(test);
     storage.addReportBandwidth(nodeA,tests);
     storage.addReportLatency(nodeA,tests);
-
+    
     storage.complete();
-
-    vector<Report::test_result> res = storage.getLatency(node_test);
-    int dim = 4;
+    vector<Report::test_result> res = storage.getLatency(node_test, true);
+    int dim = 5; // all the others
     EXPECT_EQ(res.size(),dim);
-    vector<Message::node> nodes = {node_testtt, nodeA, nodeB1, nodeB};
+    vector<Message::node> nodes = {node_testt, node_testtt, nodeB1, nodeB, nodeA};
+    
     for(auto &node : nodes) {
         bool found = false;
         for(auto &test : res) {
@@ -537,7 +546,7 @@ TEST(StorageLeaderTest, Complete) {
             FAIL() << "Not found " << node.id << endl;
         }
     }
-
+    
     for(auto &test : res) {
         if(test.target == nodeB1) {
             EXPECT_EQ(test.mean, 300);

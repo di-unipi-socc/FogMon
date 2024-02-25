@@ -1,5 +1,6 @@
 #include "istorage.hpp"
 #include <string.h>
+#include <iostream>
 
 using namespace std;
 
@@ -18,6 +19,11 @@ void IStorage::stop() {
     {
         this->workerThread.join();
     }
+}
+
+void IStorage::flush() {
+    // flush database to file
+    sqlite3_exec(this->db, "PRAGMA wal_checkpoint;", 0, 0, 0);
 }
 
 void IStorage::worker() {
@@ -72,6 +78,7 @@ void IStorage::open(string path) {
 }
 
 void IStorage::close() {
+    
     if(this->db != nullptr)
         sqlite3_close(this->db);
     this->db = nullptr;
@@ -111,18 +118,23 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     test.target.id = string(argv[0]);
     test.target.ip = string(argv[1]);
     test.target.port = string(argv[2]);
-    if(argv[3] == NULL)
+    printf("lasttime: %s, %s, %s, %s, %s, %s\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+    if(argv[3] == NULL) {
         test.mean = 0;
-    else
+    }else {
         test.mean = stof(argv[3]);
-    if(argv[4] == NULL)
+    }
+    if(argv[4] == NULL) {
         test.variance = 0;
-    else
+    }else {
         test.variance = stof(argv[4]);
-    if(argv[5] == NULL)
+    }
+    if(argv[5] == NULL) {
         test.lasttime = 0;
-    else
+    }else {
+        // printf("lasttime: %s\n", argv[5]);
         test.lasttime = stoll(argv[5]);
+    }
     r->push_back(test);
     return 0;
 }
@@ -168,12 +180,11 @@ int getInt64Callback(void *i, int argc, char **argv, char **azColName) {
 
 int64_t IStorage::getTime() {
     char *zErrMsg = 0;
-    char buf[1024];
-    std::sprintf(buf,"select strftime('%%s',DATETIME('now'))");
+    string query = "select strftime('%s',DATETIME('now'))";
 
     int64_t ret;
 
-    int err = sqlite3_exec(this->db, buf, getInt64Callback, &ret, &zErrMsg);
+    int err = this->executeQuery(query, {}, getInt64Callback, &ret, &zErrMsg);
     if( err!=SQLITE_OK )
     {
         fprintf(stderr, "SQL error: %s\n", zErrMsg); fflush(stderr);
@@ -181,4 +192,119 @@ int64_t IStorage::getTime() {
         exit(1);
     }
     return ret;
+}
+
+int bindParameters(sqlite3_stmt* stmt, const std::vector<std::variant<int, int64_t, float, std::string>>& params) {
+    int rc = SQLITE_OK;
+    for (size_t i = 0; i < params.size(); ++i) {
+        if (std::holds_alternative<int>(params[i])) {
+            rc = sqlite3_bind_int(stmt, i + 1, std::get<int>(params[i]));
+        } else if (std::holds_alternative<int64_t>(params[i])) {
+            rc = sqlite3_bind_int64(stmt, i + 1, std::get<int64_t>(params[i]));
+        } else if (std::holds_alternative<float>(params[i])) {
+            rc = sqlite3_bind_double(stmt, i + 1, std::get<float>(params[i]));
+        } else if (std::holds_alternative<std::string>(params[i])) {
+            rc = sqlite3_bind_text(stmt, i + 1, std::get<std::string>(params[i]).c_str(), -1, SQLITE_TRANSIENT);
+        }
+        if (rc != SQLITE_OK) {
+            return rc;
+        }
+    }
+}
+
+void IStorage::isError(int err, char *zErrMsg, std::string mess) {
+    if( err!=SQLITE_OK )
+    {
+        cerr << "[" << mess << "] SQL error: " << zErrMsg << endl; 
+        fflush(stderr);
+        sqlite3_free(zErrMsg);
+        exit(1);
+    }
+}
+
+char *IStorage::getErrorMessage() {
+    // create the error message and clone
+    char* tmp =  (char*)sqlite3_errmsg(this->db);
+    char* errMsg = (char*)sqlite3_malloc(strlen(tmp) + 1);
+    strcpy(errMsg, tmp);
+    return errMsg;
+}
+
+// define varint vector
+typedef std::vector<std::variant<int, int64_t, float, std::string>> param_type;
+
+int IStorage::executeQuery(const std::string& sql, const param_type &params, Callback callback, void* callbackParam, char** errMsg) {
+    sqlite3_stmt* stmt;
+    int rc;
+    const char * query = sql.c_str();
+    const char * tail = nullptr;
+    param_type params_query = params;
+    // while query is not empty
+    while (*query != '\0') {
+
+        rc = sqlite3_prepare_v2(this->db, query, -1, &stmt, &tail);
+        if (rc != SQLITE_OK) {
+            *errMsg = this->getErrorMessage();
+            return SQLITE_ABORT;
+        }
+        // cut parameters in 2, one long the ? present in the query and the rest
+        int numParams = 0;
+        for (const char* p = query; *p; ++p) {
+            if (p == tail) {
+                break;
+            }
+            if (*p == '?') {
+                ++numParams;
+            }
+        }
+
+        param_type tailParams = param_type(params_query.begin() + numParams, params_query.end());
+        param_type headParams = param_type(params_query.begin(), params_query.begin() + numParams);
+        rc = bindParameters(stmt, headParams);
+        if (rc != SQLITE_OK) {
+            *errMsg = this->getErrorMessage();
+            return SQLITE_ABORT;
+        }
+
+        do  {
+            rc = sqlite3_step(stmt);
+            if(rc == SQLITE_ROW)
+            {
+                if (callback == nullptr) {
+                    continue;
+                }
+
+                int argc = sqlite3_column_count(stmt);
+                char** argv = new char*[argc];
+                char** azColName = new char*[argc];
+                for(int i=0; i<argc; i++) {
+                    argv[i] = (char*)sqlite3_column_text(stmt, i);
+                    azColName[i] = (char*)sqlite3_column_name(stmt, i);
+                }
+                int r = callback(callbackParam, argc, argv, azColName);
+                delete[] argv;
+                delete[] azColName;
+                if (r != 0) {
+                    *errMsg = this->getErrorMessage();
+                    return SQLITE_ABORT;
+                }
+            } 
+        } while(rc != SQLITE_ERROR && rc != SQLITE_DONE && rc != SQLITE_MISUSE);
+
+
+        if (rc != SQLITE_DONE) {
+            *errMsg = this->getErrorMessage();
+            return SQLITE_ABORT;
+        }
+        
+        rc = sqlite3_finalize(stmt);
+        if (rc != SQLITE_OK) {
+            *errMsg = this->getErrorMessage();
+            return SQLITE_ABORT;
+        }
+        query = tail;
+        params_query = tailParams;
+    }
+    errMsg = nullptr;
+    return 0;
 }

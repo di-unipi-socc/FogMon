@@ -51,7 +51,7 @@ void Follower::initialize(Factory* fact) {
         this->factory = fact;
     }
     if(this->storage == NULL)
-        this->storage = this->factory->newStorage("leader_node.db");
+        this->storage = this->factory->newStorage("leader_node.db", this->myNode);
     if(this->connections == NULL) {
         this->connections = this->factory->newConnections(this->nThreads);
     }
@@ -267,17 +267,20 @@ int Follower::startIperf() {
     char command[1024];
     sprintf(command, "%d", port);
 
-    char *args[] = {(char*)"/usr/bin/iperf3", (char*)"-s",(char*)"-p",command, NULL };
+    vector<string> args = {"/usr/bin/iperf3", "-s", "-p", command};
     ReadProc *proc = new ReadProc(args);
+    
     sleeper.sleepFor(chrono::milliseconds(100));
-    int res = proc->nowaitproc();
 
-    if(res != 0) {
+    int res = proc->nowaitproc();
+    
+    if(res == -1) { //still running (good)
         this->portIperf = port;
         this->pIperf = proc;
         return 0;
     }
     cout << proc->readoutput();
+    delete proc; //kill the process if it is still running
     return -1;
 }
 
@@ -288,62 +291,49 @@ int Follower::startEstimate() {
 
     port = 8366;
 
-    char *args1[] = {(char*)"./assolo_rcv", NULL };
+    vector<string> args1 = {"./assolo_rcv" };
     ReadProc *proc1 = new ReadProc(args1);
 
     char command[256];
     sprintf(command, "-U %d", port);
 
-    char *args2[] = {(char*)"./assolo_snd", command, NULL };
+    vector<string> args2 = {"./assolo_snd", command };
     ReadProc *proc2 = new ReadProc(args2);
 
-    sleeper.sleepFor(chrono::milliseconds(50));
+    sleeper.sleepFor(chrono::milliseconds(100));
+
     int res1 = proc1->nowaitproc();
     int res2 = proc2->nowaitproc();
 
-    if(res1 != 0 && res2 != 0) {
+    if(res1 == -1 && res2 == -1) {
         this->pAssoloRcv = proc1;
         this->pAssoloSnd = proc2;
         this->portAssolo = port;
         return 0;
-    }else {
-        delete proc1;
-        delete proc2;
-
     }
+    //kill the process if it is still running
+    delete proc1;
+    delete proc2;
     return -1;
 }
 
 float Follower::testBandwidthIperf(string ip, int port) {
-    char command[256];
-    if(port > 0) {
-        sprintf(command, "iperf3 -c %s -p %d -t 1 -i 1 -J 2>&1", ip.c_str(), port);
-    }else
-        sprintf(command, "iperf3 -c %s -t 1 -i 1 -J 2>&1", ip.c_str());
-    string mode = "r";
-    string output;
-
-    std::stringstream sout;
-
-    // Run Popen
-    FILE *in;
-    char buff[512];
-
-    // Test output
-    if(!(in = popen(command, mode.c_str()))){
-        return -1;
+    vector<string> args;
+    if (port > 0) {
+        args = {"/usr/bin/iperf3", "-c", ip, "-p", to_string(port), "-t", "5", "-i", "1", "-J"};
+    }else {
+        args = {"/usr/bin/iperf3", "-c", ip, "-t", "5", "-i", "1", "-J"};
     }
 
-    // Parse output
-    while(fgets(buff, sizeof(buff), in)!=NULL){
-        sout << buff;
+    ReadProc *proc = new ReadProc(args);
+
+    while (proc->nowaitproc() != 0) {
+        sleeper.sleepFor(chrono::milliseconds(100));
     }
 
-    // Close
-    int exit_code = pclose(in);
-
-    // set output
-    output = sout.str();
+    int exit_code = proc->getexitcode();
+    string output = proc->readoutput();
+    
     if(exit_code == 0) {
         Document doc;
         ParseResult ok = doc.Parse((const char*)output.c_str());
@@ -377,8 +367,8 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
         return -1;
         //old = 5.0;
     }
-    const char *args[] = {"./assolo_run","-R",(char*)ip.c_str(),"-S",(char*)myIp.c_str(),"-J", "1", "-t", "5", "-u", (char*)to_string(old*2).c_str(), "-l", (char*)to_string(old/5).c_str(), "-U",command, "-s", "1.1", "-a", "1Mbps", NULL };
-    ReadProc *proc = new ReadProc((char**)args);
+    vector<string> args = {"./assolo_run", "-R", ip, "-S", myIp, "-J", "1", "-t", "5", "-u", to_string(old*2), "-l", to_string(old/5), "-U", command, "-s", "1.1", "-a", "1Mbps"};
+    ReadProc *proc = new ReadProc(args);
 
 
     {
@@ -391,17 +381,16 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
     }
     
 
-    while(proc->nowaitproc() != 0) {
+    while (proc->nowaitproc() != 0) {
         sleeper.sleepFor(chrono::milliseconds(100));
     }
-
-    int exit_code = 0;
+    int res = proc->getexitcode();
 
     // set output
     string output = proc->readoutput();
     char buff[512];
     float ret = -1;
-    if(exit_code == 0) {
+    if(res == 0) {
         std::regex reg("Opening file: ([0-9a-zA-Z_\\.]*)\n");
 
         std::smatch m;
@@ -460,32 +449,15 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
 }
 
 int Follower::testPing(string ip) {
-    char command[1024];
-    sprintf(command, "ping -c 3 %s 2>&1", ip.c_str());
-    string mode = "r";
-    string output;
+    vector<string> args = {"/bin/ping", "-c", "3", ip};
+    ReadProc *proc = new ReadProc(args);
 
-    std::stringstream sout;
-
-    // Run Popen
-    FILE *in;
-    char buff[512];
-
-    // Test output
-    if(!(in = popen(command, mode.c_str()))){
-        return -1;
+    while (proc->nowaitproc() != 0) {
+        sleeper.sleepFor(chrono::milliseconds(100));
     }
 
-    // Parse output
-    while(fgets(buff, sizeof(buff), in)!=NULL){
-        sout << buff;
-    }
-
-    // Close
-    int exit_code = pclose(in);
-
-    // set output
-    output = sout.str();
+    int exit_code = proc->getexitcode();
+    string output = proc->readoutput();
 
     if(exit_code == 0) {
         std::regex reg("time=([0-9\\.]*) ms");

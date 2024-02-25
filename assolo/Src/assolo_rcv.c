@@ -68,9 +68,9 @@ FILE *fd_debug;/* file pointers for debug files*/
 FILE *fd_tmp;/*for debugging*/
 #ifdef HAVE_SO_TIMESTAMP
 struct  msghdr msg;
-   struct  iovec iov[1];
-
-   struct cmsghdr *cmptr;
+struct  iovec iov[1];
+ControlUnion control_un;
+struct cmsghdr *cmptr;
 #endif
 
 struct in_addr src_addr;

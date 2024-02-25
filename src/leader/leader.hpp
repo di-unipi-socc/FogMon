@@ -16,24 +16,24 @@ public:
     Leader(Message::node node, int nThreads);
     ~Leader();
 
-    bool setParam(std::string name, int value);
+    bool setParam(std::string name, int value) override;
 
-    virtual void initialize(LeaderFactory* factory = NULL);
+    virtual void initialize(LeaderFactory* factory = NULL); //not override
 
-    virtual void start(std::vector<Message::node> mNodes);
-    virtual void stop();
+    virtual void start(std::vector<Message::node> mNodes) override;
+    virtual void stop() override;
 
-    ILeaderConnections* getConnections();
-    ILeaderStorage* getStorage();
-    Message::node getMyNode();
+    ILeaderConnections* getConnections() override;
+    ILeaderStorage* getStorage() override;
+    Message::node getMyNode() override;
 
-    virtual bool initSelection(int id);
-    virtual bool calcSelection(Message::node from, int id, bool &res);
-    virtual bool updateSelection(Message::leader_update update);
-    virtual void stopSelection();
+    virtual bool initSelection(int id) override;
+    virtual bool calcSelection(Message::node from, int id, bool &res) override;
+    virtual bool updateSelection(Message::leader_update update) override;
+    virtual void stopSelection() override;
 
-    virtual void changeRoles(Message::leader_update update);
-    virtual void changeRole(std::vector<Message::node> leaders);
+    virtual void changeRoles(Message::leader_update update) override;
+    virtual void changeRole(std::vector<Message::node> leaders) override;
 protected:
     void timerFun();
 

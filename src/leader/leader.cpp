@@ -126,20 +126,20 @@ void Leader::timerFun() {
                 rem.push_back(node);
             }
         }
-        {
-            auto t_end2 = std::chrono::high_resolution_clock::now();
-            auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
-            cout << "timerFun1 " << elapsed_time2 << endl;
-        }
+        // {
+        //     auto t_end2 = std::chrono::high_resolution_clock::now();
+        //     auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
+        //     cout << "timerFun1 " << elapsed_time2 << endl;
+        // }
         //remove the nodes that failed to respond
         this->connections->sendRemoveNodes(rem);
         vector<Message::node> tmp;
         this->getStorage()->updateNodes(tmp,rem);   
-        {
-            auto t_end2 = std::chrono::high_resolution_clock::now();
-            auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
-            cout << "timerFun2 " << elapsed_time2 << endl;
-        }
+        // {
+        //     auto t_end2 = std::chrono::high_resolution_clock::now();
+        //     auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
+        //     cout << "timerFun2 " << elapsed_time2 << endl;
+        // }
         //routine for LeaderNodes
         ips = this->getStorage()->getMNodes();
 
@@ -164,11 +164,11 @@ void Leader::timerFun() {
             tmp.clear();
             this->getStorage()->updateNodes(tmp,rem);
         }
-        {
-            auto t_end2 = std::chrono::high_resolution_clock::now();
-            auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
-            cout << "timerFun3 " << elapsed_time2 << endl;
-        }
+        // {
+        //     auto t_end2 = std::chrono::high_resolution_clock::now();
+        //     auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
+        //     cout << "timerFun3 " << elapsed_time2 << endl;
+        // }
         int i=0;
         int sent=0;
         while(i < ips.size() && sent < 2) {
@@ -185,11 +185,11 @@ void Leader::timerFun() {
             }
             i++;
         }
-        {
-            auto t_end2 = std::chrono::high_resolution_clock::now();
-            auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
-            cout << "timerFun4 " << elapsed_time2 << endl;
-        }
+        // {
+        //     auto t_end2 = std::chrono::high_resolution_clock::now();
+        //     auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
+        //     cout << "timerFun4 " << elapsed_time2 << endl;
+        // }
         if(iter % 4 == 0) {
             this->getStorage()->complete();
             {
@@ -205,11 +205,11 @@ void Leader::timerFun() {
                 this->selector.checkSelection(param);
             }
         }
-        {
-            auto t_end2 = std::chrono::high_resolution_clock::now();
-            auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
-            cout << "timerFun5 " << elapsed_time2 << endl;
-        }
+        // {
+        //     auto t_end2 = std::chrono::high_resolution_clock::now();
+        //     auto elapsed_time2 = std::chrono::duration_cast<std::chrono::duration<float>>(t_end2-t_start).count();
+        //     cout << "timerFun5 " << elapsed_time2 << endl;
+        // }
         auto t_end = std::chrono::high_resolution_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<float>>(t_end-t_start).count();
         //std::cout << "timerFun1: "<< elapsed_time << " s"<< endl;

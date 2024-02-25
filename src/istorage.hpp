@@ -11,6 +11,9 @@
 #include <thread>
 #include <atomic>
 #include <functional>
+#include <variant>
+
+using Callback = int (*)(void*, int, char**, char**);
 
 /**
  * An sqlite3 abstract class for the database
@@ -41,6 +44,16 @@ public:
     void stop();
 
     /**
+     * Flush the database to file
+    */
+    void flush();
+
+    /**
+     * handle db errors
+    */
+    virtual void isError(int err, char *zErrMsg, std::string mess);
+
+    /**
      * get the vector of nodes
      * @return
     */
@@ -61,8 +74,6 @@ public:
      * @return a vector of tests for the bandwidth
     */
     virtual std::vector<Report::test_result> getBandwidth(int sensitivity, int64_t last = 0) = 0;
-
-    virtual void saveState(int64_t last, int sensitivity) = 0;
 
     /**
      * save a latency test
@@ -151,6 +162,8 @@ protected:
     static int VectorIntCallback(void *vec, int argc, char **argv, char **azColName);
     static int VectorIoTCallback(void *vec, int argc, char **argv, char **azColName);
 
+    int executeQuery(const std::string& sql, const std::vector<std::variant<int, int64_t, float, std::string>>& params, Callback callback, void* callbackParam, char** errMsg);
+    char *getErrorMessage();
     /**
      * 
     */

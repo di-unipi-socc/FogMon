@@ -8,9 +8,9 @@
 
 class LeaderFactory : public Factory {
 public:
-    virtual ILeaderStorage* newStorage(std::string path, Message::node node);
-    virtual LeaderConnections* newConnections(int nThread);
-    virtual Server* newServer(IConnections* conn, int port);
+    virtual ILeaderStorage* newStorage(std::string path, Message::node node) override;
+    virtual LeaderConnections* newConnections(int nThread) override;
+    virtual Server* newServer(IConnections* conn, int port) override;
 };
 
 #endif

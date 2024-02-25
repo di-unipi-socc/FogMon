@@ -11,7 +11,7 @@
 
 class LeaderConnections : public FollowerConnections, virtual public ILeaderConnections {
 protected:
-    void handler(int fd, Message &m);
+    void handler(int fd, Message &m) override;
 
     ILeader* parent;
     
@@ -21,20 +21,20 @@ public:
     LeaderConnections(int nThread);
     ~LeaderConnections();
 
-    void initialize(ILeader* parent);
+    void initialize(ILeader* parent) override;
     
-    bool sendMHello(Message::node ip);
+    bool sendMHello(Message::node ip) override;
 
-    bool sendRemoveNodes(std::vector<Message::node> ips);
-    bool sendRequestReport(Message::node ip);
-    bool sendMReport(Message::node ip, vector<Report::report_result> report);
+    bool sendRemoveNodes(std::vector<Message::node> ips) override;
+    bool sendRequestReport(Message::node ip) override;
+    bool sendMReport(Message::node ip, vector<Report::report_result> report) override;
 
-    bool sendInitiateSelection(int id);
-    bool sendStartSelection(int id);
-    bool sendSelection(Message::leader_update update,Message::node node);
-    bool sendEndSelection(Message::leader_update update, bool result);
+    bool sendInitiateSelection(int id) override;
+    bool sendStartSelection(int id) override;
+    bool sendSelection(Message::leader_update update,Message::node node) override;
+    bool sendEndSelection(Message::leader_update update, bool result) override;
 
-    bool sendChangeRoles(Message::leader_update update);
+    bool sendChangeRoles(Message::leader_update update) override;
 };
 
 #endif

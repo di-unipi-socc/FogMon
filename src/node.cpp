@@ -76,6 +76,7 @@ void Node::create() {
 }
 
 void Node::promote(std::vector<Message::node> nodes) {
+    printf("Promoting to leader\n");
     if(!isLeader) {
 
         isLeader = true;

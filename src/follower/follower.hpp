@@ -11,31 +11,31 @@
 class Follower : virtual public IAgent {
 public:
     Follower(Message::node node, int nThreads);
-    ~Follower();
+    virtual ~Follower() override;
 
-    bool setParam(std::string name, int value);
+    bool setParam(std::string name, int value) override;
 
     virtual void initialize(Factory* factory = NULL);
 
     //start listener for incoming ping and directions
-    virtual void start(vector<Message::node> mNodes);
+    virtual void start(vector<Message::node> mNodes) override;
     //stop everything
-    virtual void stop();
+    virtual void stop() override;
 
-    virtual IConnections* getConnections();
-    virtual IStorage* getStorage();
+    virtual IConnections* getConnections() override;
+    virtual IStorage* getStorage() override;
 
-    virtual void setMyId(std::string id);
-    virtual Message::node getMyNode();
+    virtual void setMyId(std::string id) override;
+    virtual Message::node getMyNode() override;
 
     //start iperf command line server and return the port it is open in
-    virtual int getIperfPort();
+    virtual int getIperfPort() override;
     //start estimate tool (assolo) server and return the port it is open in
-    virtual int getEstimatePort();
+    virtual int getEstimatePort() override;
 
-    virtual Server* getServer();
+    virtual Server* getServer() override;
 
-    virtual void changeRole(std::vector<Message::node> leaders);
+    virtual void changeRole(std::vector<Message::node> leaders) override;
 
 protected:
 
@@ -73,9 +73,9 @@ protected:
 
 
     //start iperf command line server
-    virtual int startIperf();
+    virtual int startIperf() override;
     //start estimate tool (assolo) server
-    virtual int startEstimate();
+    virtual int startEstimate() override;
 
     //timer for heartbeat
     void timer();
@@ -89,12 +89,12 @@ protected:
     float testBandwidth(Message::node node, float old, int &state);
 
     //test the bandwidth using iperf3
-    float testBandwidthIperf(std::string ip, int port = -1);
+    virtual float testBandwidthIperf(std::string ip, int port = -1);
     //test the bandwidth using an estimation tool (assolo)
-    float testBandwidthEstimate(std::string ip, std::string myIp, float old);
+    virtual float testBandwidthEstimate(std::string ip, std::string myIp, float old);
 
     //test the latency with another node
-    int testPing(std::string ip);
+    virtual int testPing(std::string ip);
 
     //from ipS and mNodes select the closest server
     bool selectServer(vector<Message::node> mNodes);

@@ -1,9 +1,21 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.16.0)
 project(FogMon_Tests CXX)
 
-ADD_SUBDIRECTORY (googletest)
+# GoogleTest requires at least C++14
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 enable_testing()
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+# include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/follower ${CMAKE_CURRENT_SOURCE_DIR}/../src/leader)
@@ -40,10 +52,14 @@ find_library(UUID_LIBRARY uuid)
 
 target_link_libraries(Tests ${UUID_LIBRARY})
 target_link_libraries(Tests ${SQLITE_LIBRARY})
-target_link_libraries(Tests gtest ${PTHREAD_LIBRARY} ${SIGAR_LIBRARY})
+target_link_libraries(Tests ${PTHREAD_LIBRARY} ${SIGAR_LIBRARY})
 target_link_libraries(Tests ${SERIALPORT_LIBRARY})
 target_link_libraries(Tests ${CURL_LIBRARY})
-add_test( Tests Tests )
+target_link_libraries(Tests GTest::gtest_main)
+
+include(GoogleTest)
+
+gtest_discover_tests( Tests )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../cmake_modules")
@@ -57,5 +73,17 @@ SETUP_TARGET_FOR_COVERAGE_LCOV(NAME tests_coverage
 endif()
 
 add_custom_command(TARGET Tests POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/scripts $<TARGET_FILE_DIR:Tests>/scripts)
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${CMAKE_SOURCE_DIR}/scripts $<TARGET_FILE_DIR:Tests>/scripts)
+add_custom_command(TARGET Tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_CURRENT_BINARY_DIR}/../libsqlitefunctions.so $<TARGET_FILE_DIR:Tests>)
+add_custom_command(TARGET Tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_SOURCE_DIR}/test/assolo_rcv $<TARGET_FILE_DIR:Tests>)
+add_custom_command(TARGET Tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_SOURCE_DIR}/test/assolo_run $<TARGET_FILE_DIR:Tests>)
+add_custom_command(TARGET Tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_SOURCE_DIR}/test/assolo_snd $<TARGET_FILE_DIR:Tests>)
