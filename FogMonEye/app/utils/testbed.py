@@ -42,8 +42,9 @@ def get_session(session):
     reports = mongo.db.reports.find({"session":session}, projection={'_id': False}).sort([("datetime", -1)]).limit(10)
     data = unify_reports(reports,updates)
 
-    spec = get_spec(session)
+    
     try:
+        spec = get_spec(session)
         data["desc"] = spec["desc"]
     except:
         data["desc"] = None

@@ -97,6 +97,7 @@ void Follower::start(vector<Message::node> mNodes) {
     for(int i=0; i<10; i++){
         if(!selectServer(mNodes)) {
             fprintf(stderr,"Cannot connect to the main node...\n");
+            sleeper.sleepFor(chrono::seconds(5));
             continue;
         }
         connected = true;

@@ -27,15 +27,19 @@ def dns_check4(ip, DSTs):
         
 
 def get_associations(session, reports=None):
-    spec = get_spec(session)
-    if type(spec["specs"][0]["nodes"]) is list:
-        Nodes = [k for k in spec["specs"][0]["nodes"]]
-    else:
-        Nodes = [k for k,v in spec["specs"][0]["nodes"].items()]
-    Nodes = {i:"None" for i in Nodes}
+    try:
+        spec = get_spec(session)
+        if type(spec["specs"][0]["nodes"]) is list:
+            Nodes = [k for k in spec["specs"][0]["nodes"]]
+        else:
+            Nodes = [k for k,v in spec["specs"][0]["nodes"].items()]
+        Nodes = {i:"None" for i in Nodes}
+    except:
+        Nodes = {}
+        spec = None
     Nodes_ = {}
     if reports is None:
-        reports = get_reports(session,limit=len(Nodes)*3)
+        reports = get_reports(session,limit=len(Nodes)*3+1)
     elif type(reports) == dict:
         reports = [v for k,v in reports.items()]
     
@@ -48,11 +52,13 @@ def get_associations(session, reports=None):
             for test in node["bandwidth"]:
                 ip = test["target"]["ip"]
                 Nodes_[ip] = test["target"]["id"]
-    
-    for ip,id in Nodes_.items():
-        ip = dns_check4(ip,Nodes)
-        if ip is not None:
-            Nodes[ip] = id
+    if spec is not None:
+        for ip,id in Nodes_.items():
+            ip = dns_check4(ip,Nodes)
+            if ip is not None:
+                Nodes[ip] = id
+    else:
+        Nodes = Nodes_
 
     Ids = {}
     for k,v in Nodes.items():
