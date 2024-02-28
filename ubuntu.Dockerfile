@@ -10,26 +10,26 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 #python3-setuptools python3-venv python3-wheel libpq-dev
 #RUN pip3 install wheel
 RUN mkdir /scripts
-ADD scripts/requirements.txt /scripts
+ADD ./FogMon/scripts/requirements.txt /scripts
 RUN cat scripts/requirements.txt | xargs -n 1 -L 1 pip3 install
 
-ADD assolo /compile/assolo
+ADD ./FogMon/assolo /compile/assolo
 WORKDIR /compile/assolo
 RUN ./configure
 RUN make
 RUN cp $(ls ./Bin/*/*) /
 
-ADD sigar /compile/sigar
+ADD ./FogMon/sigar /compile/sigar
 WORKDIR /compile/sigar
-COPY sigar.patch /compile/sigar/sigar.patch
-COPY sigar2.patch /compile/sigar/sigar2.patch
+COPY ./FogMon/patches/sigar.patch /compile/sigar/sigar.patch
+COPY ./FogMon/patches/sigar2.patch /compile/sigar/sigar2.patch
 RUN patch < sigar.patch src/os/linux/linux_sigar.c
 RUN patch < sigar2.patch src/Makefile.am
 RUN ./autogen.sh && ./configure && make CFLAGS=-fgnu89-inline && make install 
 
 # RUN cmake . && make && make install
-ADD scripts /scripts
-ADD . /compile
+ADD ./FogMon/scripts /scripts
+ADD ./FogMon/ /compile
 WORKDIR /compile
 # RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends lcov valgrind && rm -rf /var/lib/apt/lists/*
 # RUN cmake . -DCMAKE_BUILD_TYPE=Debug
@@ -44,6 +44,9 @@ RUN rm -Rf /compile
 #cleanup
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
+
+# if needed to simulate a network delay
+ADD ./test/delay.py /delay.py
 
 ENTRYPOINT ["/FogMon"]
 CMD []

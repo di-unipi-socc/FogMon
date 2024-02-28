@@ -5,11 +5,16 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    command: --leader -i leader:8248 -s 10
+    # command: --leader -i webserver:80 -s 10
+    entrypoint: bash -c "python3 delay.py follower1 2 follower2 20 follower3 20 && /FogMon --leader -i webserver:80 -s 10"
     stdin_open: true
+    # to use tc command
+    cap_add:
+      - NET_ADMIN
     # tty: true
     networks:
-      default:
+      - default
+      - frontend
     expose:
       - "1024-65535"
   follower1:
@@ -17,12 +22,17 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    command: -C leader -i leader:8248 -s 10
+    # command: -C leader -i webserver:80 -s 10
+    entrypoint: bash -c "python3 delay.py leader 2 follower2 20 follower3 20 && /FogMon -C leader -i webserver:80 -s 10"
     stdin_open: true
+    # to use tc command
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - leader
     networks:
-      default:
+      - default
+      - frontend
     expose:
       - "1024-65535"
   follower2:
@@ -30,12 +40,17 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    command: -C leader -i leader:8248 -s 10
+    # command: -C leader -i webserver:80 -s 10
+    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower3 2 && /FogMon -C leader -i webserver:80 -s 10"
     stdin_open: true
+    # to use tc command
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - leader
     networks:
-      default:
+      - default
+      - frontend
     expose:
       - "1024-65535"
   follower3:
@@ -43,15 +58,92 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    command: -C leader -i leader:8248 -s 10
+    # command: -C leader -i webserver:80 -s 10
+    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower2 2 && /FogMon -C leader -i webserver:80 -s 10"
     stdin_open: true
+    # to use tc command
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - leader
     networks:
-      default:
+      - default
+      - frontend
+
     expose:
       - "1024-65535"
+
+  backend:
+    build:
+      context: ./FogMonEye/app
+      dockerfile: Dockerfile
+    image: backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: flaskdb
+      MONGODB_HOSTNAME: mongodb
+#    volumes:
+#      - appdata:/var/www/
+    depends_on:
+      - mongodb
+    networks:
+      - frontend
+      - backend
+
+  mongodb:
+    image: mongo:4.0.8
+    container_name: mongodb
+    restart: unless-stopped
+    command: mongod
+    environment:
+      MONGO_INITDB_DATABASE: flaskdb
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - backend
+    ports:
+      - "127.0.0.1:27017:27017"
+
+  webserver:
+    build:
+      context: ./FogMonEye/nginx
+      dockerfile: Dockerfile
+    image: nginx
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "true"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "8080:80"
+      - "8249:443"
+    volumes:
+      - nginxdata:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - frontend
+
+volumes:
+  mongodbdata:
+    driver: local
+  # appdata:
+  #   driver: local
+  nginxdata:
+    driver: local
+
 networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
   default:
     driver: bridge
     enable_ipv6: true

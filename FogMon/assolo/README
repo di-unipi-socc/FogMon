@@ -1,0 +1,170 @@
+ASSOLO is a new active probing tool for estimating available
+bandwidth based on the concept of "self-induced congestion".
+The tool features a new probing traffic profile called REACH
+(Reflected ExponentiAl Chirp), which tests a wide range of
+rates being more accurate in the center of the probing interval.
+Moreover, the tool runs inside a real-time operating system and
+uses some de-noising techniques to improve the measurement process.
+
+
+
+GENERAL OVERVIEW
+================
+
+This code uses REACH UDP-trains of packets to estimate available
+bandwidth (aka unused capacity) of a network path.
+
+Instead of reinventing the wheel, ASSOLO re-uses the basic
+low-level network packet sending functions of pathChirp 2.4.1,
+another great measurement tool devoleped by Vinay Ribeiro,
+Ryan Christopher King and Niels Kang Hoven (Rice University).
+
+The SENDER (assolo_snd) and RECEIVER (assolo_rcv) modules run as
+daemons on hosts at opposite edges of a path to be probed. Packet
+trains travel from the SENDER to the RECEIVER.
+
+We initiate the assolo probing using a third module, assolo_run,
+which can be run on any host (called the MASTER). This module also
+collects the results of the experiment and stores them in a file
+locally. Thus experiments can be initiated and the results analyzed
+from a central location in the Internet which runs the assolo_run
+module.
+
+The assolo_snd and assolo_rcv modules can be started on
+different machines around the Internet and will run indefinitely. They
+need not be restarted for each experiment.
+
+
+	         chirps
+     SENDER ----------------> RECEIVER (assolo_rcv)	
+   (assolo_snd)			 |
+			  	 |		
+      			      MASTER (assolo_run)
+                 (starts experiment/collects results)
+
+
+
+INSTALL INSTRUCTIONS
+====================
+Run the following:
+
+1) ./configure   
+2) make
+
+                                                                             
+The following binaries will be generated:
+
+Bin/<host_cpu>/assolo_rcv
+Bin/<host_cpu>/assolo_snd
+Bin/<host_cpu>/assolo_run
+
+For example on your Linux box could be <host_cpu>=i686.
+
+
+
+RUNNING EXPERIMENTS
+===================
+
+1) SENDER (needs to be run just once)
+
+Bin/<host_cpu>/assolo_snd 
+
+Options:
+	 -U <sender port, default=8365>
+	 -h help (produces this output)
+	 -v version
+	 -D print debug information
+
+NOTE ON PORT NUMBER: In case the default port number is already used
+at the sender, try out other port numbers larger than 1024 using the
+-U option.  The receiver must then use the same port number with the -U 
+option.
+
+2) RECEIVER (needs to be run just once)
+
+Bin/<host_cpu>/assolo_rcv
+
+Options:
+	-h Help
+	-v Version
+	-D print debug information 
+
+
+3) MASTER (needs to be rerun for each experiment) 
+
+Bin/<host_cpu>/assolo_run -S <sender> -R <receiver> -t <expt. duration (secs)>
+
+ ** In case of interrupt coalescence on Gigabit networks use the -J option:
+Example:
+Bin/<host_cpu>/assolo_rcv -S <sender> -R <receiver> -t <expt. duration (secs)> -J 6
+
+
+All Options:
+
+	 -n  <number of estimates to smooth over, default=11>
+ 	 -d  <decrease factor (>1), default=1.5>
+ 	 -b  <busy period length (integer >2), default=5>
+ 	 -U  <receiver port (chirp UDP), default=8365 (1024-65535)>
+ 	 -h  help: produces this output
+	 -S  sender host name or IP address 
+	 -R  receiver host name or IP address 
+	 -J  number of packets per Jumbo packet,default=1. In case of packet coalescence use values larger than 1, e.g. -J 6 
+	 -l  lowest rate (Mbps) to probe at within chirp, default=10.000000Mbps. NOTE: by default assolo will find an appropriate probing range.
+	 -u  highest rate (Mbps) to probe at within chirp, default=200.000000Mbps
+	 -p  packet size <40-8200>,default=1000 bytes
+	 -t  duration of experiment(sec), default=600 sec 
+	 -s  spread factor: ratio of consecutive inter-arrivals within a chirp, default=1.2 
+	 -a  average probing rate (Mbps), default=0.3Mbps 
+	 -v  version
+	 -e  treshold (default 5%)
+	 -f  filter (default type 0 - Vertical Horizontal Filter)
+
+
+
+RESULTS
+=======
+
+At the MASTER, the file
+
+ <sender_name>_<receiver_name>_<time stamp>.instbw
+
+will be generated in the directory from which the code is run.
+
+
+FORMAT of the file: 
+
+ <time_stamp> <avail-bw estimate (Mbps)>
+
+
+Measurements _should_ be in chronological order. However, we suggest
+to sort them using the standard *nix tool 'sort'.
+
+An easy way to see results is to plot them. A simple script like:
+
+
+close all; clear all;
+
+trace = load('trace_filename.instbw'); % change filename here!
+trace = sortrows(trace, 1);
+time = trace(:, 1);
+time = time - time(1)
+avail_bw = trace(:, 2);
+
+plot(time, avail_bw);
+hold on;
+set(gca, 'YLim', [75 100], 'XLim', [0 30]); xlabel('Time'); 
+ylabel('Available Bandwidth');
+
+
+enable you to see measured available bandwidth using Octave/Gnuplot.
+
+
+
+CORRESPONDENCE
+==============
+
+Please do send your comments about the performance of this available
+bandwidth estimation tool, and any changes you feel would make the
+tool more convenient or user friendly.
+
+Contact: Emanuele Goldoni, emanuele.goldoni@unipv.it

@@ -1,12 +1,17 @@
-docker-compose.yml
-Fed4Fire+
-**/build
+# ignore everything
+*
+# allow everything in the FogMon folder
+!FogMon/
+!test/
+
 **/.vscode
 **/__pycache__
-.*
+# **/.*
+**/build
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
 **/*.md
 **/*Dockerfile
 **/.dockerignore
-build.sh
-CMakeCache.txt
-cmake_install.cmake
+**/docker-compose.yml
