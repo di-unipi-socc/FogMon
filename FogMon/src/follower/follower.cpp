@@ -265,10 +265,7 @@ int Follower::startIperf() {
 
     port = 5201;
 
-    char command[1024];
-    sprintf(command, "%d", port);
-
-    vector<string> args = {"/usr/bin/iperf3", "-s", "-p", command};
+    vector<string> args = {"/usr/bin/iperf3", "-s", "-p", to_string(port)};
     ReadProc *proc = new ReadProc(args);
     
     sleeper.sleepFor(chrono::milliseconds(100));
@@ -295,10 +292,7 @@ int Follower::startEstimate() {
     vector<string> args1 = {"./assolo_rcv" };
     ReadProc *proc1 = new ReadProc(args1);
 
-    char command[256];
-    sprintf(command, "-U %d", port);
-
-    vector<string> args2 = {"./assolo_snd", command };
+    vector<string> args2 = {"./assolo_snd", "-U", to_string(port) };
     ReadProc *proc2 = new ReadProc(args2);
 
     sleeper.sleepFor(chrono::milliseconds(100));
@@ -361,14 +355,12 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
         return -1;
     }
 
-    char command[1024];
-    sprintf(command, "%d", this->portAssolo);
     old = old/1000; //convert to mbps
     if(old < 1.0 || old > 55) {
         return -1;
         //old = 5.0;
     }
-    vector<string> args = {"./assolo_run", "-R", ip, "-S", myIp, "-J", "1", "-t", "5", "-u", to_string(old*2), "-l", to_string(old/5), "-U", command, "-s", "1.1", "-a", "1Mbps"};
+    vector<string> args = {"./assolo_run", "-R", ip, "-S", myIp, "-J", "1", "-t", "5", "-u", to_string(old*2), "-l", to_string(old/5), "-U", to_string(this->portAssolo), "-s", "1.1", "-a", "1Mbps"};
     ReadProc *proc = new ReadProc(args);
 
 
@@ -389,7 +381,7 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
 
     // set output
     string output = proc->readoutput();
-    char buff[512];
+    char buff[512]; // buffer to read 512 at a time
     float ret = -1;
     if(res == 0) {
         std::regex reg("Opening file: ([0-9a-zA-Z_\\.]*)\n");

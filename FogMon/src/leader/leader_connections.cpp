@@ -359,9 +359,6 @@ bool LeaderConnections::sendRequestReport(Message::node ip) {
         return false;
     }
 
-    fflush(stdout);
-    char buffer[10];
-
     //build message
     Message m;
     m.setSender(this->parent->getMyNode());
@@ -411,8 +408,6 @@ bool LeaderConnections::sendMReport(Message::node ip, vector<Report::report_resu
     if(Socket < 0) {
         return false;
     }
-    fflush(stdout);
-    char buffer[10];
 
     //build message
     Message m;
@@ -447,9 +442,6 @@ bool LeaderConnections::sendMHello(Message::node ip) {
     if(Socket < 0) {
         return false;
     }
-
-    fflush(stdout);
-    char buffer[10];
 
     //build message
     Message m;

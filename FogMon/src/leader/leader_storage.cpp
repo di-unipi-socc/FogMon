@@ -87,13 +87,9 @@ std::string LeaderStorage::addNode(Message::node node, Report::hardware_result h
 
 void LeaderStorage::addIot(Message::node node, Report::IoT iot) {
     char *zErrMsg = 0;
-    char buf[1024];
     if(node.id == "") {
         return;
     }
-    // std::sprintf(buf,"INSERT OR REPLACE INTO MIots (id, desc, ms, idNode) VALUES (\"%s\", \"%s\", %d, \"%s\")",iot.id.c_str(), iot.desc.c_str(), iot.latency, node.id.c_str());
-
-    // int err = sqlite3_exec(this->db, buf, 0, 0, &zErrMsg);
     int err = executeQuery("INSERT OR REPLACE INTO MIots (id, desc, ms, idNode) VALUES (?,?,?,?)", {iot.id, iot.desc, iot.latency, node.id}, 0, 0, &zErrMsg);
     isError(err, zErrMsg, "addIotLeader");
 }
@@ -160,7 +156,6 @@ void LeaderStorage::addReportBandwidth(Message::node node, vector<Report::test_r
 
  void LeaderStorage::addReportIot(Message::node node, std::vector<Report::IoT> iots) {
     char *zErrMsg = 0;
-    char buf[1024];
     if(node.id == "") {
         return;
     }
@@ -430,7 +425,6 @@ vector<Message::node> LeaderStorage::removeOldLNodes(int seconds, int &leaders_n
 
 vector<Message::node> LeaderStorage::removeOldNodes(int seconds) {
     char *zErrMsg = 0;
-    char buf[1024];
 
     //sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 

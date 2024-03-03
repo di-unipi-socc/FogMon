@@ -262,8 +262,7 @@ bool FollowerConnections::sendHello(Message::node ipS) {
         return false;
     }
 
-    fflush(stdout);
-    char buffer[10];
+
 
     //build hello message
     Message m;
@@ -308,8 +307,7 @@ optional<pair<int64_t,Message::node>> FollowerConnections::sendUpdate(Message::n
         return nullopt;
     }
 
-    fflush(stdout);
-    char buffer[10];
+
 
     //build update message
     Message m;
@@ -363,8 +361,7 @@ int FollowerConnections::sendStartIperfTest(Message::node ip) {
         return -1;
     }
 
-    fflush(stdout);
-    char buffer[10];
+
 
     //build start iperf message
     Message m;
@@ -398,8 +395,7 @@ int FollowerConnections::sendStartEstimateTest(Message::node ip, std::string &my
         return -1;
     }
 
-    fflush(stdout);
-    char buffer[10];
+
 
     //build start estimate message
     Message m;
