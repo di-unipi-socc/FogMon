@@ -8,15 +8,8 @@ from model import mongo
 
 logging.basicConfig(level=logging.INFO)
 
-def make_app():
-    app = Flask(__name__)
-
+def make_db(app):
     app.config["MONGO_URI"] = 'mongodb://' + os.environ['MONGODB_HOSTNAME'] + ':27017/' + os.environ['MONGODB_DATABASE']
-
-    for bp in blueprints:
-        app.register_blueprint(bp)
-        bp.app = app
-
     mongo.init_app(app)
 
     index_compoud = IndexModel([("datetime", DESCENDING),("session", ASCENDING),], name="session_datetime")
@@ -26,12 +19,27 @@ def make_app():
     index_compoud2 = IndexModel([("datetime", DESCENDING),("session", ASCENDING),("sender.id",ASCENDING)], name="session_datetime_sender")
     index_compoud2_2 = IndexModel([("session", ASCENDING),("datetime", DESCENDING),("sender.id",ASCENDING)], name="session_datetime_sender2")
 
+    # spec contains the configuration (testbed and nodes) of the session
+    # footprint contains the footprint (footprint of fogmon) of the session
+    # reports contains the reports (info gathered by fogmon, 1 report per leader) by the leaders for the session
+    # update contains the topology updates (leader selection) for the session
+
     mongo.db.spec.create_indexes([index_session])
     mongo.db.footprint.create_indexes([index_session])
     mongo.db.reports.create_indexes([index_compoud,index_compoud_2,index_session,index_datetime,index_compoud2,index_compoud2_2])
     mongo.db.update.create_indexes([index_compoud,index_compoud_2,index_session,index_datetime])
     for index in mongo.db.reports.list_indexes():
         logging.info(index)
+
+def make_app():
+    app = Flask(__name__)
+
+    make_db(app)
+
+    for bp in blueprints:
+        app.register_blueprint(bp)
+        bp.app = app    
+
     
 
     return app

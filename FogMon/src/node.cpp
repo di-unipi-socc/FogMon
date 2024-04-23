@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Node::Node(string port, bool isLeader, int threads) {
+Node::Node(string port, bool isLeader, int threads, std::string id) {
     this->timeReport = 30;
     this->timeTests = 30;
     this->timeLatency = 30;
@@ -31,11 +31,14 @@ Node::Node(string port, bool isLeader, int threads) {
     this->agent = NULL;
     this->port = port;
     this->threads = threads;
-    this->id = this->genId();
-
+    if (id == "") {
+        this->id = this->genId();
+        cout << "Generated id: "<< this->id << endl;
+    }else{
+        this->id = id;
+        cout << "Using id: "<< this->id << endl;
+    }
     this->reverseDns = 0;
-
-    cout << "Generated id: "<< this->id << endl;
 
     unlink("leader_node.db");
 
@@ -161,6 +164,7 @@ bool Node::setParam(std::string name, std::string value){
     }else{
         return false;
     }
+    cout << "setting: "<<name << " = "<< value << endl;
     return true;
 }
 

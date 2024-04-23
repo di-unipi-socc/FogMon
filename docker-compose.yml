@@ -5,8 +5,9 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    # command: --leader -i webserver:80 -s 10
-    entrypoint: bash -c "python3 delay.py follower1 2 follower2 20 follower3 20 && /FogMon --leader -i webserver:80 -s 10"
+      target: runner
+    # command: --leader -i webserver:80 -s 0
+    entrypoint: bash -c "python3 delay.py follower1 2 follower2 20 follower3 20 && /FogMon --leader -i webserver:80 -s 0 --node-id node1"
     stdin_open: true
     # to use tc command
     cap_add:
@@ -22,8 +23,10 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    # command: -C leader -i webserver:80 -s 10
-    entrypoint: bash -c "python3 delay.py leader 2 follower2 20 follower3 20 && /FogMon -C leader -i webserver:80 -s 10"
+      target: runner
+    image: leader
+    # command: -C leader -i webserver:80 -s 0
+    entrypoint: bash -c "python3 delay.py leader 2 follower2 20 follower3 20 && /FogMon -C leader -i webserver:80 -s 0 --node-id node2"
     stdin_open: true
     # to use tc command
     cap_add:
@@ -40,8 +43,9 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    # command: -C leader -i webserver:80 -s 10
-    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower3 2 && /FogMon -C leader -i webserver:80 -s 10"
+      target: runner
+    # command: -C leader -i webserver:80 -s 0
+    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower3 2 && /FogMon -C leader -i webserver:80 -s 0 --node-id node3"
     stdin_open: true
     # to use tc command
     cap_add:
@@ -58,8 +62,9 @@ services:
     build:
       context: .
       dockerfile: ubuntu.Dockerfile
-    # command: -C leader -i webserver:80 -s 10
-    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower2 2 && /FogMon -C leader -i webserver:80 -s 10"
+      target: runner
+    # command: -C leader -i webserver:80 -s 0
+    entrypoint: bash -c "python3 delay.py leader 20 follower1 20 follower2 2 && /FogMon -C leader -i webserver:80 -s 0 --node-id node4"
     stdin_open: true
     # to use tc command
     cap_add:
@@ -69,7 +74,6 @@ services:
     networks:
       - default
       - frontend
-
     expose:
       - "1024-65535"
 
@@ -144,6 +148,14 @@ networks:
     driver: bridge
   backend:
     driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.237.0/24
+          gateway: 172.16.237.1
+        - subnet: 2001:3984:3988::/64
+          gateway: 2001:3984:3988::1
   default:
     driver: bridge
     enable_ipv6: true

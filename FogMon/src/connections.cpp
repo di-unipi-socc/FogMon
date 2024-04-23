@@ -179,9 +179,13 @@ bool Connections::getMessage(int fd, Message &m) {
         auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<float>>(t_end-t_start).count();
         std::cout << "recv() elapsed time: "<< elapsed_time << " s"<< endl;
         perror("   recv() failed at len");
-        cout << "len: "<<len << endl << " error: "<< error <<endl;
+        cout << "len: "<< len << endl << " error: "<< error <<endl;
         //stacktrace();
+    }else if (len > 1000*1000*10) { // 10MB around 100 nodes in a group (300B x 100^2 = 3MB, depends on the ids and ips length)
+        //TODO: compress the message
+        cout << "message too big: len = "<< len << endl;
     }else if(len > 0) {
+        cout << "message: len = "<< len << endl;
         char * data;
         try {
             data = new char[len+1];
@@ -277,6 +281,9 @@ int Connections::openConnection(string ip, string port) {
 			freeaddrinfo(result);
             return -1;
         }
+        // Set sockopt to reuse the address
+        int optval = 1;
+        setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
         // Connect to server.
         int arg;
         if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
@@ -303,7 +310,7 @@ int Connections::openConnection(string ip, string port) {
                     FD_SET(Socket, &myset); 
                     iResult = select(Socket+1, NULL, &myset, NULL, &tv); 
                     if (iResult < 0 && errno != EINTR) { 
-                        fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                        fprintf(stderr, "Error connecting1 %d - %s\n", errno, strerror(errno)); 
                         break;
                     } 
                     else if (iResult > 0) {
@@ -335,13 +342,13 @@ int Connections::openConnection(string ip, string port) {
                 } while (1); 
             } 
             else { 
-                //fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
+                fprintf(stderr, "Error connecting2 %d - %s\n", errno, strerror(errno)); 
             } 
         }
         if(ris == false) {
             close(Socket);
             Socket = -1;
-            //fprintf(stdout, "retry connection %s", ip.c_str());
+            fprintf(stdout, "retry connection %s", ip.c_str());
             continue;
         }
 

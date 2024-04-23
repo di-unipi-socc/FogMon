@@ -111,7 +111,7 @@ void Server::listener() {
     }
 
     //timeout of poll
-    timeout = (3 * 60 * 1000);
+    timeout = (3 * 1000);
 
     //initializate poll structure
     memset(fds, 0 , sizeof(fds));
@@ -146,6 +146,7 @@ void Server::listener() {
             
             if(fds[i].revents&POLLIN != POLLIN)
             {
+                printf("  Error! revents = %d\n", fds[i].revents);   
                 running = false;
                 break;
             }
@@ -207,7 +208,7 @@ void Server::listener() {
             }
         }
     }while(this->running);
-
+    printf("Closing sockets...\n");
     //cleanup sockets
     for (i = 0; i < nfds; i++)
     {

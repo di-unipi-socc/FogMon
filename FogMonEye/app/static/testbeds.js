@@ -153,8 +153,9 @@ function drawSession(graph) {
 
 function getSession(id, spec) {
     $("#session").empty();
+    d3.selectAll("svg > *").remove();
     var request = $.ajax({
-        url: "/testbed/"+id,
+        url: "/api/testbed/"+id,
         method: "GET",
         dataType: "json"
     });
@@ -178,6 +179,7 @@ function getSession(id, spec) {
     });
     
     request.fail(function( jqXHR, textStatus ) {
+        $("#session-name").text(id);
         $("#session").empty();
         $("#session").append(htmlNoData);
     });
@@ -185,7 +187,7 @@ function getSession(id, spec) {
 
 function getError(id) {
     var request = $.ajax({
-        url: "/testbed/"+id+"/accuracy",
+        url: "/api/testbed/"+id+"/accuracy",
         method: "GET",
         dataType: "json"
     });
@@ -215,7 +217,7 @@ function getError(id) {
 
 function getFootprint(id) {
     var request = $.ajax({
-        url: "/testbed/"+id+"/footprint",
+        url: "/api/testbed/"+id+"/footprint",
         method: "GET",
         dataType: "json"
     });
@@ -274,7 +276,7 @@ $(document).ready(function(){
         e.preventDefault();
         var id = $("#session").attr("session");
         $.ajax({
-            url: '/testbed/'+id+'/desc',
+            url: '/api/testbed/'+id+'/desc',
             type: 'put',
             contentType: "application/json",
             data: JSON.stringify({"desc":$('#change-desc > #description').val()}),

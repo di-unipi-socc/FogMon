@@ -55,8 +55,9 @@ int main(int argc, char *argv[]) {
         cout << "-C             ip          ip to connect" <<endl;
         cout << "-P             port        port to connect" <<endl;
         cout << "--my-port      port        listening port" <<endl;
-        cout << "-i             ip:port          ip of the interface"<<endl;
+        cout << "-i             ip:port     ip of the interface"<<endl;
         cout << "--heartbeat    time        silent time (changed name)"<<endl;
+        cout << "--node-id      id          id of the node (if not, set random uid)"<<endl;
         cout <<endl<< "there are other for timings" <<endl;
         return 0;
     }
@@ -105,6 +106,8 @@ int main(int argc, char *argv[]) {
 
     int reverseDns = 0;
     
+    string id = "";
+
     std::string interfaceIp = "";
     int session = 0;
 
@@ -156,7 +159,11 @@ int main(int argc, char *argv[]) {
     if(input.cmdOptionExists("--reverse-dns"))
         reverseDns = stoi(input.getCmdOption("--reverse-dns"));
 
-    Node node(myPort, leader, threads);
+    if(input.cmdOptionExists("--node-id")) {
+        id = input.getCmdOption("--node-id");
+    }
+
+    Node node(myPort, leader, threads, id);
 
     vector<Message::node> known;
 

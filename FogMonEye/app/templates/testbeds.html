@@ -22,10 +22,10 @@
         <tbody>
 {% endif %}
 {% for r in data %}
-            <tr session={{ r.session }} spec={{ "1" if r.specs is defined else "0" }}>
+            <tr session={{ r.session }} spec={{ "1" if r.moments is defined else "0" }}>
                 <td>{{ r.session }}</td>
                 <td>{{ r.datetime }}</td>
-                <td>{{ r.specs if r.specs is defined else "False" }}</td>
+                <td>{{ r.moments if r.moments is defined else "False" }}</td>
             </tr>
 {% endfor %}
 {% if num > 0 %}

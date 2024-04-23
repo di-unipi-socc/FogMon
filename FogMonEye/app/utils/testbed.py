@@ -8,8 +8,8 @@ from model import clean_results, deaggregate, get_spec, remove_reports_older_tha
 import logging
 
 def get_sessions():
-    sessions1 = mongo.db.spec.find({}, projection={'_id': False})
-    sessions2 = mongo.db.reports.aggregate([
+    specs = mongo.db.spec.find({}, projection={'_id': False})
+    sessions = mongo.db.reports.aggregate([
         {"$sort": SON([("datetime", -1)])},
         {"$group": {
             "_id": {"session": "$session"},
@@ -18,21 +18,10 @@ def get_sessions():
             #"report": {"$first": "$report"}
         }}
     ])
-    sessions1 = clean_results(sessions1)
-    sessions = deaggregate(sessions2)
+    specs = clean_results(specs)
+    sessions = deaggregate(sessions)
 
     sessions = [v for v in sorted(sessions, key=lambda item: item["datetime"])]
-
-    for session in sessions1:
-        found = False
-        for session2 in sessions:
-            if session["session"] == session2["session"]:
-                found = True
-                session2["specs"] = True
-                break
-        if not found:
-            session["specs"] = True
-            sessions.append(session)
     
 
     return sessions
@@ -47,6 +36,7 @@ def get_session(session):
         spec = get_spec(session)
         data["desc"] = spec["desc"]
     except:
+        data["spec"] = None
         data["desc"] = None
 
     import networkx as nx
@@ -79,55 +69,51 @@ def get_session(session):
     return data
 
 def add_testbed(data):
-    stri = json.dumps(data, sort_keys=True)
-    data = json.loads(stri, object_pairs_hook=OrderedDict)
+    data = json.dumps(data, sort_keys=True)
+    data = json.loads(data, object_pairs_hook=OrderedDict)
     data = SON(data)
 
     with mongo.cx.start_session() as mongo_session:
         with mongo_session.start_transaction():
-            els = mongo.db.spec.find({})
-            found = False
-            for el in els:
-                if data == el["specs"][0]:
-                    if len(el["specs"]) != 1:
-                        logging.info("find but more than 1 spec already")
-                        continue
-                        # if (datetime.now()-el["change_dates"][0]).total_seconds() > 60*60*5:
-                        #     continue
-                    found = True
-                    break
-            if found:
-                logging.info("Old session")
-                session = el["session"]
-                el["change_dates"] = []
-                el["specs"] = el["specs"][:1]
-                mongo.db.spec.replace_one({"session": session}, el, upsert=True)
-            else:
-                logging.info("New session")
-                sessions = get_sessions()
-                session = 0
-                while session in [el["session"] for el in sessions]:
-                    session+=1
-                item = {
-                    "session": session,
-                    "specs": [data],
-                    "change_dates": []
-                }
-                mongo.db.spec.replace_one({"session": session}, item, upsert=True)
+            logging.info("New session")
+            sessions = get_sessions()
+            session = 0
+            while session in [el["session"] for el in sessions]:
+                session+=1
+            item = {
+                "session": session,
+                "moments": [],
+                "change_dates": [],
+                "data": data
+            }
+            mongo.db.spec.replace_one({"session": session}, item, upsert=True)
     return session
 
-def change_testbed(session, data):
-    stri = json.dumps(data, sort_keys=True)
-    data = json.loads(stri, object_pairs_hook=OrderedDict)
+def add_moment(session, data, remove_old=False):
+    data = json.dumps(data, sort_keys=True)
+    data = json.loads(data, object_pairs_hook=OrderedDict)
     data = SON(data)
     with mongo.cx.start_session() as mongo_session:
         with mongo_session.start_transaction():
             spec = mongo.db.spec.find_one({"session": session})
-            spec["change_dates"].append(datetime.utcnow())
-            spec["specs"].append(data)
+            spec["change_dates"].append(datetime.now(datetime.UTC))
+            if remove_old:
+                spec["moments"] = [data]
+            else:
+                spec["moments"].append(data)
             moment = len(spec["change_dates"])
             mongo.db.spec.replace_one({"session": session}, spec, upsert=True)
     return moment
+
+def add_extra(session, data):
+    data = json.dumps(data, sort_keys=True)
+    data = json.loads(data, object_pairs_hook=OrderedDict)
+    data = SON(data)
+    with mongo.cx.start_session() as mongo_session:
+        with mongo_session.start_transaction():
+            spec = mongo.db.spec.find_one({"session": session})
+            spec["extra"] = data
+            mongo.db.spec.replace_one({"session": session}, spec, upsert=True)
 
 def remove(session, all=False):
     with mongo.cx.start_session() as mongo_session:
@@ -138,10 +124,8 @@ def remove(session, all=False):
             if all:
                 mongo.db.spec.delete_many({"session": session})
 
-
-
-
 def search_lasts(reports, update):
+    # get last reports for each leader selected in the update
     selected = update["update"]["selected"]
     lasts = []
     for leader in selected:
@@ -153,6 +137,8 @@ def search_lasts(reports, update):
 
 
 def unify_reports(reports,updates):
+    # from reports and updates get the last reports for the last update
+    # return both reports and update
     updates = clean_results(updates)
     logging.info("clean")
     reports = clean_results(reports)
@@ -160,8 +146,6 @@ def unify_reports(reports,updates):
     try:
         reports = search_lasts(reports, updates[0])
         logging.info("search_lasts")
-
-        
     except:
         return {"Reports":[reports[0]["report"]],"Leaders":None}
     return {"Reports":reports,"Leaders":updates[0]}

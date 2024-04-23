@@ -5,12 +5,13 @@ import logging
 from statistics import mean
 
 def check_monitor(session):
+    # return None if not monitored (not an experiment, only monitoring)
     spec = get_spec(session)
     if spec["change_dates"] == []:
-        if "monitor" in spec["specs"][-1]:
-            if spec["specs"][-1]["monitor"] == True:
-                if "nodes" in spec["specs"][-1]:
-                    return spec["specs"][-1]["nodes"]
+        if "monitor" in spec["data"]:
+            if spec["data"]["monitor"] == True:
+                if "nodes" in spec["data"]:
+                    return spec["data"]["nodes"]
     return None
 
 
@@ -23,7 +24,11 @@ def compat(data, ips):
     Ldr = {}
     Ids = {}
     Ips = {}
+    ids = set()
 
+    # fill Ids and Ips
+    # Ips is a dict with ips as keys and ids as values
+    # Ids is a dict with ids as keys and ips as values
     logging.info([k for k in reports])
     for ldr, report in reports.items():
         for node in report["reports"]:
@@ -38,11 +43,13 @@ def compat(data, ips):
                     Ids[id] = ip
                     Ips[ip] = id
             src_id = node["source"]["id"]
+            ids.add(src_id)
             test_ip(node["source"]["ip"], src_id)
             Ldr[src_id] = node["leader"]
             
             def test_fun(test, T):
                 dst_id = test["target"]["id"]
+                ids.add(dst_id)
                 test_ip(test["target"]["ip"], dst_id)
                 
             for test in node["latency"]:
@@ -50,6 +57,7 @@ def compat(data, ips):
             for test in node["bandwidth"]:
                 test_fun(test,"B")
     
+    # check if we did not match an ip, if is ::1, we can match it
     diff = [ip for ip in list(set(ips) - set(Ips.keys()))]
     logging.info(Ids)
     if len(diff) == 1:
@@ -65,40 +73,40 @@ def compat(data, ips):
     logging.info(len(Ips))
     logging.info(len(Ids))
 
-    hardware = {ip:{} for ip in Ips}
-    links = {"L":{ip:{ip2:{"lasttime":-1} for ip2 in Ips if ip != ip2} for ip in Ips},"B":{ip:{ip2:{"lasttime":-1} for ip2 in Ips if ip != ip2} for ip in Ips}}
+    hardware = {src_id:{} for src_id in ids}
+    links = {"L":{src_id:{dst_id:{"lasttime":-1} for dst_id in ids if src_id != dst_id} for src_id in ids},"B":{src_id:{dst_id:{"lasttime":-1} for dst_id in ids if src_id != dst_id} for src_id in ids}}
 
     for ldr, report in reports.items():
         for node in report["reports"]:
             src_id = node["source"]["id"]
-            src_ip = Ids[node["source"]["id"]]
+            # src_ip = Ids[node["source"]["id"]]
             src_ldr = Ldr[src_id]
             
             def test_fun(test, T):
                 dst_id = test["target"]["id"]
-                dst_ip = Ids[test["target"]["id"]]
+                # dst_ip = Ids[test["target"]["id"]]
                 dst_ldr = Ldr[dst_id]
 
-                if links[T][src_ip][dst_ip]["lasttime"] < test["lasttime"]:
+                if links[T][src_id][dst_id]["lasttime"] < test["lasttime"]:
                     val = {}
                     val["mean"] = test["mean"]
                     val["variance"] = test["variance"]
                     val["lasttime"] = test["lasttime"]
-                    links[T][src_ip][dst_ip] = val
+                    links[T][src_id][dst_id] = val
             
-            if hardware[src_ip] == {}:
-                hardware[src_ip] = node["hardware"]
+            if hardware[src_id] == {}:
+                hardware[src_id] = node["hardware"]
             else:
-                if hardware[src_ip]["lasttime"] < node["hardware"]["lasttime"]:
-                    hardware[src_ip] = node["hardware"]
+                if hardware[src_id]["lasttime"] < node["hardware"]["lasttime"]:
+                    hardware[src_id] = node["hardware"]
 
 
             for test in node["latency"]:
                 test_fun(test,"L")
             for test in node["bandwidth"]:
                 test_fun(test,"B")            
-    
-    return {"matrix":links, "hardware": hardware, "ips": ips}
+
+    return {"matrix":links, "hardware": hardware, "ids": list(ids)}
 
 
 def monitor(session):
@@ -133,4 +141,9 @@ def monitor(session):
     data = {"Reports":lasts,"Leaders":updates[0]}
 
     data = compat(data, ips)
+
+    spec = get_spec(session)
+
+    data["extra"] = spec["extra"]
+
     return data

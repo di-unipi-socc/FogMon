@@ -29,10 +29,10 @@ def dns_check4(ip, DSTs):
 def get_associations(session, reports=None):
     try:
         spec = get_spec(session)
-        if type(spec["specs"][0]["nodes"]) is list:
-            Nodes = [k for k in spec["specs"][0]["nodes"]]
+        if type(spec["moments"][0]["nodes"]) is list:
+            Nodes = [k for k in spec["moments"][0]["nodes"]]
         else:
-            Nodes = [k for k,v in spec["specs"][0]["nodes"].items()]
+            Nodes = [k for k,v in spec["moments"][0]["nodes"].items()]
         Nodes = {i:"None" for i in Nodes}
     except:
         Nodes = {}

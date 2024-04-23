@@ -32,7 +32,7 @@ bool sendToInterface(string ip,string str) {
 
     curl = curl_easy_init();
     if(curl) {
-        string link = "http://"+ip+"/data";
+        string link = "http://"+ip+"/api/data";
         curl_easy_setopt(curl, CURLOPT_URL, link.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);

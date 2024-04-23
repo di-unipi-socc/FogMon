@@ -13,7 +13,7 @@ class IAgent;
 class Node {
 public:
 
-    Node(std::string port, bool isLeader, int threads);
+    Node(std::string port, bool isLeader, int threads, std::string id="");
     ~Node();
     //start listener for incoming ping and directions
     void start();

@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
-from utils.testbed import get_sessions, get_session, save_update, save_report, add_testbed, change_testbed, remove
+from utils.testbed import get_sessions, get_session, save_update, save_report, add_testbed, add_moment, remove, add_extra
 from utils.accuracy import accuracy
 from utils.exports import export_stabilities
 from utils.footprint import save_footprints, compute_footprint
 from utils.monitor import monitor
 from model import change_desc
 
-api = Blueprint('api', __name__)
+api = Blueprint('api', __name__, url_prefix='/api')
 
 @api.route('/testbed/<int:session>/remove')
 def get_convert(session):
@@ -41,19 +41,50 @@ def post_testbed():
         session=session
     ), 201
 
-@api.route('/testbed/<int:session>', methods=['POST'])
-def put_testbed(session):
+@api.route('/testbed/<int:session>/moment', methods=['PUT'])
+def put_moment(session):
     try:
         data = request.get_json(force=True)
     except:
         import traceback
         print(traceback.format_exc(), flush=True)
         raise
-    moment = change_testbed(session, data)
+    # remove old moments if any
+    # add new moment
+    moment = add_moment(session, data, remove_old=True)
     return jsonify(
         status=True,
         message='Saved successfully!',
         moment=moment
+    ), 201
+
+@api.route('/testbed/<int:session>/moment', methods=['POST'])
+def post_moment(session):
+    try:
+        data = request.get_json(force=True)
+    except:
+        import traceback
+        print(traceback.format_exc(), flush=True)
+        raise
+    moment = add_moment(session, data)
+    return jsonify(
+        status=True,
+        message='Saved successfully!',
+        moment=moment
+    ), 201
+
+@api.route('/testbed/<int:session>/extra', methods=['PUT'])
+def put_extra(session):
+    try:
+        data = request.get_json(force=True)
+    except:
+        import traceback
+        print(traceback.format_exc(), flush=True)
+        raise
+    add_extra(session, data)
+    return jsonify(
+        status=True,
+        message='Saved successfully!',
     ), 201
 
 @api.route('/testbed/<int:session>')

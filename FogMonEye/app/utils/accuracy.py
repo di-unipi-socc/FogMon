@@ -205,7 +205,7 @@ def stabilities(session):
         for i in range(len(spec["change_dates"])):
             date = spec["change_dates"][i]
             try:
-                stab = stability(session, spec["specs"][i], begin=begin, end=date)
+                stab = stability(session, spec["moments"][i], begin=begin, end=date)
             except:
                 import traceback
                 print("1",traceback.format_exc(), flush=True)
@@ -213,7 +213,7 @@ def stabilities(session):
             stabs.append(stab)
             begin = date
     try:
-        stab = stability(session, spec["specs"][-1], begin=begin, end=None)
+        stab = stability(session, spec["moments"][-1], begin=begin, end=None)
     except:
         import traceback
         print("1",traceback.format_exc(), flush=True)
@@ -229,7 +229,7 @@ def stabilities(session):
             ((_,_,reports_change1,changes1),spec1) = last
             stab = ((begin,end,reports_change1,changes1),spec1)
         else:
-            stab = (stab,spec["specs"][i])
+            stab = (stab,spec["moments"][i])
         ret.append(stab)
         last = stab
 
@@ -390,7 +390,7 @@ def change2(spec, reportB, reportA=None):
             leaderB = leaders2[dst_id]
             if leaderA == leaderB and (test["lasttime"] == 0 or (test["mean"] == 0 and T=="B")):
                 logging.info(f'zero: {nodeA["source"]["ip"]} {test["target"]["ip"]} {leaderA}')
-                logging.info(spec["specs"][0]["nodes"])
+                logging.info(spec["moments"][0]["nodes"])
                 return True
             return False
                 

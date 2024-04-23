@@ -14,20 +14,8 @@ def deaggregate(cursor):
     return vals
 
 def clean_results(results):
-    # for result in results:
-    #     result.pop("_id")
     return list(results)
-    # item = {}
-    # data = []
-    
-    # for result in results:
-    #     item = {}
-    #     for k,v in result.items():
-    #         if k == "_id":
-    #             v = str(v)
-    #         item[k] = v
-    #     data.append(item)
-    # return data
+
 
 def get_footprints(session):
     cursor = mongo.db.footprint.find({"session":session},projection={'_id': False}).sort([("moment", 1)])

@@ -10,7 +10,7 @@ def compute_footprint(session):
     for item in items:
         # calc mean bandwidth for every node
         moment = item["moment"]
-        Nodes = [k for k,v in spec["specs"][moment]["nodes"].items()]
+        Nodes = [k for k,v in spec["moments"][moment]["nodes"].items()]
         datas = item["data"]
         footprint = {}
         footprint["cpu"] = {"max": 0, "min": 9999999999, "mean": 0}
@@ -37,8 +37,8 @@ def compute_footprint(session):
 
 def save_footprints(files,session):
     spec = get_spec(session)
-    moment = len(spec["specs"])-1
-    Nodes = [k for k,v in spec["specs"][-1]["nodes"].items()]
+    moment = len(spec["moments"])-1
+    Nodes = [k for k,v in spec["moments"][-1]["nodes"].items()]
 
     datas = {}
 
