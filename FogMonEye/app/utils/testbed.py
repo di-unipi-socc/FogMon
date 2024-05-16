@@ -22,7 +22,14 @@ def get_sessions():
     sessions = deaggregate(sessions)
 
     sessions = [v for v in sorted(sessions, key=lambda item: item["datetime"])]
-    
+
+    # concat specs and sessions
+    for spec in specs:
+        for session in sessions:
+            if session["session"] == spec["session"]:
+                break
+        else:
+            sessions.append({"session": spec["session"], "datetime": None})    
 
     return sessions
 

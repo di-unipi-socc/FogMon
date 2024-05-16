@@ -1,4 +1,4 @@
-FROM ubuntu:latest as builder
+FROM ubuntu:22.04 as builder
 
 # libserialport-dev libcurl4-openssl-dev for fogmon compilation
 # gcc g++ make cmake libtool automake autoconf apt-utils patch pkg-config for compilation
@@ -35,7 +35,7 @@ RUN cp ./libsqlitefunctions.so /
 # RUN rm -Rf /compile
 
 # FROM debian:bookworm-slim as runner
-FROM ubuntu:latest as runner
+FROM ubuntu:22.04 as runner
 
 # iperf3 iputils-ping iproute2 for network tests
 # sqlite3 for database access (maybe not needed)
@@ -51,7 +51,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 RUN mkdir /scripts
 ADD ./FogMon/scripts/requirements.txt /scripts
 # --break-system-packages to install in debian image
-RUN cat scripts/requirements.txt | xargs -n 1 -L 1 pip3 install
+RUN pip3 install -r scripts/requirements.txt --no-cache-dir
 
 # copy lib.so of sigar
 COPY --from=builder /usr/local/lib/libsigar.so /usr/local/lib/
