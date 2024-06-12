@@ -41,7 +41,7 @@ protected:
     int readS(long fd, void *data, int len);
     int writeS(long fd, const char *data, int len);
 
-    int openConnection(std::string ipS, std::string port="5555");
+    int openConnection(std::string ipS, std::string port);
 
     std::string getSource(int fd, Message &m);
 public:

@@ -185,7 +185,7 @@ bool Connections::getMessage(int fd, Message &m) {
         //TODO: compress the message
         cout << "message too big: len = "<< len << endl;
     }else if(len > 0) {
-        cout << "message: len = "<< len << endl;
+        // cout << "message: len = "<< len << endl;
         char * data;
         try {
             data = new char[len+1];
@@ -238,7 +238,7 @@ bool Connections::sendMessage(int fd, Message &m) {
 bool Connections::notifyAll(Message &m) {
     vector<Message::node> nodes = this->parent->getStorage()->getNodes();
     for(auto node : nodes) {
-        int fd = this->openConnection(node.ip);
+        int fd = this->openConnection(node.ip, node.port);
         if(fd >= 0 ) {
             this->sendMessage(fd,m);
             close(fd);

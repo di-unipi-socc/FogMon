@@ -15,7 +15,7 @@ protected:
 
     ILeader* parent;
     
-    bool notifyAllM(Message &m);
+    bool notifyAllM(Message &m, vector<Message::node> contacted = vector<Message::node>());
 
 public:
     LeaderConnections(int nThread);
@@ -23,7 +23,7 @@ public:
 
     void initialize(ILeader* parent) override;
     
-    bool sendMHello(Message::node ip) override;
+    optional<bool> sendMHello(Message::node ip) override;
 
     bool sendRemoveNodes(std::vector<Message::node> ips) override;
     bool sendRequestReport(Message::node ip) override;

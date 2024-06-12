@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fogmon
+spec:
+  selector:
+    matchLabels:
+      app: fogmon
+  template:
+    metadata:
+      labels:
+        app: fogmon
+    spec:
+      containers:
+      - name: fogmon
+        image: diunipisocc/liscio-fogmon:latest
+        command: ["/FogMon"]
+        args: ["--leader", "-i", <hostname:port of interface>, "-s", "0", "-C", <hostname of a node>, "--node-id-hostname"]
+        ports:
+          - containerPort: 5555
+            hostPort: 5555
+          - containerPort: 5201
+            hostPort: 5201
+          - containerPort: 8365
+            hostPort: 8365
+          - containerPort: 7365
+            hostPort: 7365
+        resources:
+          limits:
+            memory: "128M"
+            cpu: "500m"
+            ephemeral-storage: "128M"

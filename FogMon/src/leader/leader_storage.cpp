@@ -257,6 +257,7 @@ vector<Message::node> LeaderStorage::getMNodes() {
 }
 
 void LeaderStorage::addMNode(Message::node node) {
+    printf("Adding leader: %s %s:%s\n", node.id.c_str(), node.ip.c_str(), node.port.c_str());
     char *zErrMsg = 0;
     if(this->ip == "") {
         return;
@@ -366,9 +367,9 @@ vector<Message::node> LeaderStorage::removeOldLNodes(int seconds, int &leaders_n
     err = executeQuery(query, {seconds, seconds}, IStorage::VectorIntCallback, &lasttimes, &zErrMsg);
     isError(err, zErrMsg, "removeOldLNodesLeader1");
 
-    for(auto lasttime : lasttimes) {
-        printf("Lasttime: %d\n", lasttime);
-    }
+    // for(auto lasttime : lasttimes) {
+    //     printf("Lasttime: %d\n", lasttime);
+    // }
 
     vector<Message::node> rem;
 

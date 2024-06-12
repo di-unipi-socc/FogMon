@@ -1,24 +1,28 @@
-from pyclustering.cluster.kmedoids import kmedoids
+# from pyclustering.cluster.kmedoids import kmedoids
+import kmedoids
 import random
 import math
 
-def avg_dist(matrix,cluster,medoid):
+
+def avg_dist(matrix, cluster, medoid):
     m = 0
     for i in cluster:
-        if i==medoid:
+        if i == medoid:
             continue
-        m+= matrix[i][medoid]
-    if len(cluster)==1:
+        m += matrix[i][medoid]
+    if len(cluster) == 1:
         return 0
     return m/(len(cluster)-1)
 
-def quality(matrix,clusters,medoids):
+
+def quality(matrix, clusters, medoids):
     v = 0
-    avgs = [avg_dist(matrix,clusters[i],medoids[i]) for i in range(len(medoids))]
+    avgs = [avg_dist(matrix, clusters[i], medoids[i])
+            for i in range(len(medoids))]
     for i in range(len(medoids)):
         m = 0
         for j in range(len(medoids)):
-            if i==j:
+            if i == j:
                 continue
             m2 = (avgs[i]+avgs[j])/matrix[medoids[i]][medoids[j]]
             if m < m2:
@@ -26,8 +30,9 @@ def quality(matrix,clusters,medoids):
         v += m
     return v/len(medoids)
 
+
 class Clusterer:
-    def __init__(self, Ls,Ns, Links, formula=0):
+    def __init__(self, Ls, Ns, Links, formula=0):
         self.Nodes = Ns
         self.Leaders = Ls
 
@@ -36,7 +41,7 @@ class Clusterer:
 
         self.D = {}
         for i in range(self.N):
-            self.D[self.Nodes[i]]=i
+            self.D[self.Nodes[i]] = i
 
         self.A = [[Links[i][j] for j in self.Nodes] for i in self.Nodes]
 
@@ -49,30 +54,45 @@ class Clusterer:
         else:
             k = int(math.sqrt(self.N))
         # Set random initial medoids. considering the already selected leaders
-        if self.L<k:
+        if self.L < k:
             sample = []
             for i in range(len(self.A)):
                 if i not in [self.D[i] for i in self.Leaders]:
                     sample.append(i)
-            self.initial_medoids = [self.D[i] for i in self.Leaders] + random.sample(sample,k=k-self.L)
-        elif self.L==k:
+            self.initial_medoids = [
+                self.D[i] for i in self.Leaders] + random.sample(sample, k=k-self.L)
+        elif self.L == k:
             self.initial_medoids = [self.D[i] for i in self.Leaders]
         else:
-            self.initial_medoids = random.sample([self.D[i] for i in self.Leaders],k=k)
+            self.initial_medoids = random.sample(
+                [self.D[i] for i in self.Leaders], k=k)
 
     def cluster(self, tries=1):
         mini = math.inf
         data = None
         for _ in range(tries):
 
-            # create K-Medoids algorithm for processing distance matrix instead of points
-            kmedoids_instance = kmedoids(self.A, self.initial_medoids, data_type='distance_matrix')
-            # run cluster analysis and obtain results
-            kmedoids_instance.process()
-            medoids = kmedoids_instance.get_medoids()
-            clusters = kmedoids_instance.get_clusters()
-            q = quality(self.A,clusters,medoids)
+            # # create K-Medoids algorithm for processing distance matrix instead of points
+            # kmedoids_instance = kmedoids(self.A, self.initial_medoids, data_type='distance_matrix')
+            # # run cluster analysis and obtain results
+            # kmedoids_instance.process()
+            # medoids = kmedoids_instance.get_medoids()
+            # clusters = kmedoids_instance.get_clusters()
 
+            c = kmedoids.fasterpam(self.A, len(self.initial_medoids))
+
+            medoids = c.medoids
+            labels = c.labels
+            clusters = [[n for n in range(self.N) if labels[n] == c]
+                        for c in range(len(medoids))]
+            # print(len(self.A))
+            # print(medoids)
+            # print(labels)
+            # print(clusters)
+            # # exit()
+
+            q = quality(self.A, clusters, medoids)
+            # print(q)
             if q < mini:
                 mini = q
 
@@ -81,14 +101,14 @@ class Clusterer:
                 for i in self.D:
                     if self.D[i] in medoids:
                         new_leaders.append(i)
-                
+
                 changes = 0
 
                 for i in new_leaders:
                     if i not in self.Leaders:
-                        changes+=1
+                        changes += 1
 
-                inv = {v:k for k,v in self.D.items()}
+                inv = {v: k for k, v in self.D.items()}
 
                 clusts = []
 
@@ -103,5 +123,5 @@ class Clusterer:
                     "new_leaders": new_leaders,
                     "changes": changes,
                     "clusters": clusts
-                    }
+                }
         return data

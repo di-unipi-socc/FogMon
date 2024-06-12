@@ -30,7 +30,7 @@ Selector::~Selector() {
 }
 
 bool Selector::initSelection(int id) {
-    printf("init selection %d >? %d\n",id,this->id);
+    printf("init selection[%d] %d >? %d\n", this->status, id, this->id);
     const std::lock_guard<std::mutex> lock(this->selectionMutex);
     if(this->status == READY) {
         if(this->id >= id) {
@@ -54,17 +54,31 @@ bool Selector::checkOld() {
     auto now = std::chrono::high_resolution_clock::now();
     auto elapsed_time = std::chrono::duration_cast<std::chrono::duration<float>>(now-this->last).count();
 
-    if(elapsed_time > 60*2) {
-        printf("old selection stopping\n");
-        status = FREE;
+    if (status == STARTED) {
 
-        std::lock_guard<std::mutex> lock2(this->clusterMutex);
-        if(this->clusterProc) {
-            delete this->clusterProc;
+        bool condition = false;
+
+        if (this->clusterProc) {
+            if (this->clusterProc->nowaitproc() == 0) {
+                condition = true;
+            }
         }
-        this->clusterProc = NULL;
-        printf("old selection stopped\n");
-        return true;
+        if (elapsed_time > 60*2) {
+            condition = true;
+        }
+
+        if(condition) {
+            printf("old selection stopping\n");
+            status = FREE;
+
+            std::lock_guard<std::mutex> lock2(this->clusterMutex);
+            if(this->clusterProc) {
+                delete this->clusterProc;
+            }
+            this->clusterProc = NULL;
+            printf("old selection stopped\n");
+            return true;
+        }
     }
     return false;
 }
@@ -105,9 +119,9 @@ bool Selector::calcSelection(Message::node from, int id, bool &res) {
         if(!sel.empty()) {
             this->parent->getConnections()->sendSelection(sel,from);
         }
-        {
-            status = FREE;
-        }
+        // {
+        //     status = FREE;
+        // }
     });
 
     return true;
@@ -139,24 +153,31 @@ bool Selector::checkSelection(bool qualityCheck, bool doit) {
     bool check = false;
     int formula = this->parent->node->leaderFormula;
     if (formula == -2)
-        check = trunc(sqrt(nF)*2) >= nL+1;
+        check = trunc(sqrt(nF)*2) > nL;
     else if (formula == -1)
-        check = trunc(sqrt(nF)/2) >= nL+1;
-    else if(formula > 0)
+        check = trunc(sqrt(nF)/2) > nL;
+    else if(formula > 0) // exact number of leaders
         check = formula != nL;
+        if (formula > nF) { // if not enough nodes then select all
+            check = nL != nF;
+        }
     else
-        check = trunc(sqrt(nF)) >= nL+1;
+        check = trunc(sqrt(nF)) > nL;
+
+    if (nF == nL && formula <= 0 && nL > 1) {
+        check = true; // if all the nodes are leader, we need to select new leaders (except if the formula need an exact number of leaders)
+    }
 
 
     if(check) {
-        printf("STARTING SELECTION (not enough nodes)\n");
+        printf("STARTING SELECTION (too few/many leader nodes)\n");
         this->startSelection();
         return true;
     }
     if(qualityCheck) {
         try {
             //calculate with a script the update and set the id on it
-            vector<string> args = {"./scripts/quality.py"};
+            vector<string> args = {"/usr/bin/python3", "./scripts/quality.py"};
             ReadProc * proc = new ReadProc(args);
 
             {
@@ -309,8 +330,8 @@ void Selector::startSelection() {
                 status = FREE;
             }
         }
-        this->parent->getConnections()->sendEndSelection(Message::leader_update(),false);
         printf("aborted selection3\n");
+        this->parent->getConnections()->sendEndSelection(Message::leader_update(),false);
         return;
     }
 
@@ -379,7 +400,6 @@ void Selector::startSelection() {
             }
             printf("ending selection\n");
             this->parent->getConnections()->sendEndSelection(sel,true);
-
             {
                 status = FREE;
             }

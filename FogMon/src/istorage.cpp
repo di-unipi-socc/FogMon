@@ -118,7 +118,7 @@ int IStorage::getTestCallback(void *R, int argc, char **argv, char **azColName) 
     test.target.id = string(argv[0]);
     test.target.ip = string(argv[1]);
     test.target.port = string(argv[2]);
-    printf("lasttime: %s, %s, %s, %s, %s, %s\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+    // printf("lasttime: %s, %s, %s, %s, %s, %s\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
     if(argv[3] == NULL) {
         test.mean = 0;
     }else {

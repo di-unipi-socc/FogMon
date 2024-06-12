@@ -47,29 +47,39 @@ void Leader::start(vector<Message::node> mNodes) {
     if(mNodes.size() == 0) {
         valid = true;
     }
+    int num = mNodes.size();
     for(auto l : mNodes) {
+        printf("connecting to leader: %s %s %s\n",l.id.c_str(), l.ip.c_str(), l.port.c_str());
         if(l.id == this->getMyNode().id) {
-            if(mNodes.size() == 1) {
-                valid = true;
-            }
+            num--;
             continue;
         }
 
-        bool res = false;
+        optional<bool> res = false;
         for(int i=0; i<5; i++) {
             res = this->connections->sendMHello(l);
-            if(res)
-                i=5;
+            if(res.value_or(true)) {
+                if (!res.has_value()) {
+                    num--;
+                }
+                break;
+            }
             sleeper.sleepFor(chrono::seconds(10));
+            printf("connecting to leader[retry%d]: %s %s %s\n", i, l.id.c_str(), l.ip.c_str(), l.port.c_str());
         }
-        if(!res) {
-            fprintf(stderr,"cannot connect to the network2 (%s)\n",l.ip.c_str());
+        if(!res.value_or(true)) {
+            fprintf(stderr,"cannot connect to the network2 (%s:%s)\n",l.ip.c_str(), l.port.c_str());
             continue;
         }
         valid = true;
     }
 
+    if (num == 0) {
+        valid = true;
+    }
+
     if(!valid) {
+        fprintf(stderr,"Failed to start leader\n");
         this->stop();
         exit(1);
     }
@@ -80,15 +90,15 @@ void Leader::start(vector<Message::node> mNodes) {
         if(ip.id == this->getMyNode().id)
             continue;
 
-        bool res = false;
+        optional<bool> res = false;
         for(int i=0; i<5; i++) {
             res = this->connections->sendMHello(ip);
-            if(res)
+            if(res.value_or(true))
                 i=5;
             sleeper.sleepFor(chrono::seconds(10));
         }
-        if(!res) {
-            fprintf(stderr,"cannot connect to the network2 (%s)\n",ip.ip.c_str());
+        if(!res.value_or(true)) {
+            fprintf(stderr,"cannot connect to the network2 (%s:%s)\n",ip.ip.c_str(), ip.port.c_str());
         }
     }
 
@@ -122,7 +132,7 @@ void Leader::timerFun() {
         for(auto&& node : ips) {
             bool res = this->connections->sendRequestReport(node);
             if(!res) {
-                printf("Removing node from this group: %s\n",node.ip.c_str());
+                printf("Removing node from this group: %s:%s\n",node.ip.c_str(), node.port.c_str());
                 rem.push_back(node);
             }
         }

@@ -70,9 +70,9 @@ Some ports needs to be open for incoming connections, by default they are:
 
 5201/TCP iperf
 
-8366/TCP assolo
+8365/UDP assolo (master and sender)
 
-8365/UDP assolo
+7365/UDP assolo_rcv
 
 ## Example execution on 5 nodes
 Let's call the 5 nodes A, B, C, D, E and their ip IP_A, IP_B,..., IP_E.

@@ -49,7 +49,7 @@ services:
       APP_DEBUG: "true"
       SERVICE_NAME: "webserver"
     ports:
-      - "8080:80"
+      - "8123:80"
       - "8249:443"
     volumes:
       - nginxdata:/var/log/nginx

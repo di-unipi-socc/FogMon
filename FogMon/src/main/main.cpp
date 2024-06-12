@@ -161,7 +161,20 @@ int main(int argc, char *argv[]) {
 
     if(input.cmdOptionExists("--node-id")) {
         id = input.getCmdOption("--node-id");
+    } else if(input.cmdOptionExists("--node-id-hostname")) {
+        // get hostname as id
+        char hostname[1024];
+        hostname[1023] = '\0';
+        gethostname(hostname, 1023);
+        id = hostname;
     }
+
+    string assolo_port = "8365";
+    string iperf_port = "5201";
+    
+
+    printf("ipR: %s\n", ipR.c_str());
+    printf("portR: %s\n", portR.c_str());
 
     Node node(myPort, leader, threads, id);
 
@@ -209,6 +222,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         a=-1;
+        sleep(1); // sleep for 1 second in case scanf does not block (if no stdin is available in a container for example)
         scanf("%d",&a);
     }while(true);
     printf("exiting as requested\n");

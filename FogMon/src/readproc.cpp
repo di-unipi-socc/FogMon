@@ -36,7 +36,7 @@ ReadProc::ReadProc(vector<string> args) {
     status = posix_spawn(&pid, cargs[0], &action, NULL, cargs, environ);
     if (status != 0)
     {
-        cerr << "posix_spawn: " << strerror(status) << endl;
+        cerr << "posix_spawn["<< args[0] << " " << args[0] <<"]: " << strerror(status) << endl;
         close(out[1]);
     }
 }

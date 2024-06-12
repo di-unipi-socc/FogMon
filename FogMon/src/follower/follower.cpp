@@ -56,7 +56,7 @@ void Follower::initialize(Factory* fact) {
         this->connections = this->factory->newConnections(this->nThreads);
     }
     this->connections->initialize(this);
-    this->server = this->factory->newServer(this->connections,5555);
+    this->server = this->factory->newServer(this->connections, stoi(this->myNode.port));
 }
 
 Follower::~Follower() {
@@ -287,7 +287,7 @@ int Follower::startEstimate() {
     
     int port = random()%2000 + 5600;
 
-    port = 8366;
+    port = 8365;
 
     vector<string> args1 = {"./assolo_rcv" };
     ReadProc *proc1 = new ReadProc(args1);

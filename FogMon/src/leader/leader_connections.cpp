@@ -70,7 +70,7 @@ void LeaderConnections::handler(int fd, Message &m) {
 
             if(m.getSender().id == this->parent->getMyNode().id)
             {
-                res.setArgument(Message::Argument::NEGATIVE);
+                res.setArgument(Message::Argument::NONE);
             }else {
                 this->parent->getStorage()->addMNode(m.getSender());
                 
@@ -306,7 +306,7 @@ void LeaderConnections::handler(int fd, Message &m) {
         FollowerConnections::handler(fd, m);
 }
 
-bool LeaderConnections::notifyAllM(Message &m) {
+bool LeaderConnections::notifyAllM(Message &m, vector<Message::node> contacted) {
     vector<Message::node> nodes = this->parent->getStorage()->getMNodes();
     int n = 0;
     int num = 0;
@@ -314,7 +314,7 @@ bool LeaderConnections::notifyAllM(Message &m) {
         if(node.id == this->parent->getMyNode().id)
             continue;
         n++;
-        int fd = this->openConnection(node.ip);
+        int fd = this->openConnection(node.ip, node.port);
         if(fd >= 0 ) {
             if(this->sendMessage(fd,m)) {
                 Message res;
@@ -323,6 +323,7 @@ bool LeaderConnections::notifyAllM(Message &m) {
                         res.getCommand() == m.getCommand()) {
                         if(res.getArgument() == Message::Argument::POSITIVE) {
                             num++;
+                            contacted.push_back(node);
                         }
                         else if(res.getArgument() == Message::Argument::NEGATIVE) {
                             close(fd);
@@ -437,12 +438,13 @@ bool LeaderConnections::sendMReport(Message::node ip, vector<Report::report_resu
     return ret;
 }
 
-bool LeaderConnections::sendMHello(Message::node ip) {
+optional<bool> LeaderConnections::sendMHello(Message::node ip) {
+    
     int Socket = this->openConnection(ip.ip, ip.port);
     if(Socket < 0) {
+        cout << "sendMHello0 failed " << ip.ip << ":" << ip.port << endl;
         return false;
     }
-
     //build message
     Message m;
     m.setSender(this->parent->getMyNode());
@@ -451,7 +453,7 @@ bool LeaderConnections::sendMHello(Message::node ip) {
     m.setArgument(Message::Argument::REPORT);
     m.setData(this->parent->getStorage()->getNode());
 
-    bool ret = false;
+    optional<bool> ret = false;
 
     //send message
     if(this->sendMessage(Socket, m)) {
@@ -470,7 +472,21 @@ bool LeaderConnections::sendMHello(Message::node ip) {
                     }
                     ret = true;
                 }
+            } else if( res.getType()==Message::Type::MRESPONSE &&
+                res.getCommand() == Message::Command::MHELLO &&
+                res.getArgument() == Message::Argument::NONE) {
+                ret = nullopt;
+
+            } else {
+                cerr << res.getType() << " " << res.getCommand() << " " << res.getArgument() << endl;
             }
+        }
+    }
+    if (ret.value_or(false) == false) {
+        if (ret.has_value()) {
+            cerr << "sendMHello failed " << ip.ip << ":" << ip.port << endl;
+        } else {
+            cerr << "sendMHello failed [we are the same] " << ip.ip << ":" << ip.port << endl;
         }
     }
     close(Socket);
@@ -497,8 +513,31 @@ bool LeaderConnections::sendStartSelection(int id) {
     broadcast.setArgument(Message::Argument::NONE);
 
     broadcast.setData(id);
+    vector<Message::node> contacted;
+    bool ret = this->notifyAllM(broadcast, contacted);
+    if (!ret) {
+        cerr << "sendStartSelection failed" << endl;
+        // rollback with a sendEndSelection false
+        Message broadcast;
+        broadcast.setSender(this->parent->getMyNode());
+        broadcast.setType(Message::Type::MREQUEST);
+        broadcast.setCommand(Message::Command::SELECTION_END);
+        broadcast.setArgument(Message::Argument::NEGATIVE);      
+        Message::leader_update update;  
+        broadcast.setData(update);
 
-    return this->notifyAllM(broadcast);
+        for (auto &node : contacted) {
+            int Socket = this->openConnection(node.ip, node.port);
+            if(Socket < 0) {
+                continue;
+            }
+            if (!this->sendMessage(Socket, broadcast)) {
+                continue;
+            }
+        }
+
+    }
+    return ret;
 }
 
 bool LeaderConnections::sendSelection(Message::leader_update update, Message::node node) {

@@ -13,7 +13,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 ADD ./FogMon/assolo /compile/assolo
 WORKDIR /compile/assolo
-RUN ./configure && make
+ARG TARGETPLATFORM
+RUN rm -rf ./Bin/*
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ./configure && make; fi
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then ./configure --build=aarch64-unknown-linux-gnu && make; fi
 RUN cp $(ls ./Bin/*/*) /
 
 ADD ./FogMon/sigar /compile/sigar
@@ -64,6 +67,11 @@ COPY --from=builder /assolo* /
 ADD ./FogMon/scripts /scripts
 # if needed to simulate a network delay
 ADD ./test/delay.py /delay.py
+
+EXPOSE 5555
+EXPOSE 5201
+EXPOSE 8365/udp
+EXPOSE 7365/udp
 
 ENTRYPOINT ["/FogMon"]
 CMD []
