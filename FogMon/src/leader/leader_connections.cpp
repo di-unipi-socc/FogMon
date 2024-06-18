@@ -532,8 +532,10 @@ bool LeaderConnections::sendStartSelection(int id) {
                 continue;
             }
             if (!this->sendMessage(Socket, broadcast)) {
+                close(Socket);
                 continue;
             }
+            close(Socket);
         }
 
     }
@@ -553,7 +555,7 @@ bool LeaderConnections::sendSelection(Message::leader_update update, Message::no
     m.setArgument(Message::Argument::NONE);
 
     m.setData(update);
-
+    bool ret = false;
     //send message
     if(this->sendMessage(Socket, m)) {
         Message res;
@@ -561,12 +563,13 @@ bool LeaderConnections::sendSelection(Message::leader_update update, Message::no
             if( res.getType()==Message::Type::MRESPONSE &&
                 res.getCommand() == Message::Command::SELECTION &&
                 res.getArgument() == Message::Argument::POSITIVE) {
-
-                return true;
+                
+                ret = true;
             }
         }
     }
-    return false;
+    close(Socket);
+    return ret;
 }
 
 bool LeaderConnections::sendEndSelection(Message::leader_update update, bool result) {

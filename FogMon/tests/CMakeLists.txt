@@ -78,12 +78,3 @@ add_custom_command(TARGET Tests POST_BUILD
 add_custom_command(TARGET Tests POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy
                     ${CMAKE_CURRENT_BINARY_DIR}/../libsqlitefunctions.so $<TARGET_FILE_DIR:Tests>)
-add_custom_command(TARGET Tests POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_SOURCE_DIR}/test/assolo_rcv $<TARGET_FILE_DIR:Tests>)
-add_custom_command(TARGET Tests POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_SOURCE_DIR}/test/assolo_run $<TARGET_FILE_DIR:Tests>)
-add_custom_command(TARGET Tests POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_SOURCE_DIR}/test/assolo_snd $<TARGET_FILE_DIR:Tests>)

@@ -6,11 +6,12 @@ CMakeCache.txt
 Makefile
 ./FogMon
 ./libsqlitefunctions.so
-cmake_modules
-tests/CTestTestfile.cmake
+CTestTestfile.cmake
 tests/UnitTests
 .vscode
 build
 tmp
 __pycache__/
 *.pyc
+_deps
+Tests*_include.cmake

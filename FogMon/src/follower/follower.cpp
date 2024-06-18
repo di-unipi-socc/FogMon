@@ -320,14 +320,14 @@ float Follower::testBandwidthIperf(string ip, int port) {
         args = {"/usr/bin/iperf3", "-c", ip, "-t", "5", "-i", "1", "-J"};
     }
 
-    ReadProc *proc = new ReadProc(args);
+    ReadProc proc(args);
 
-    while (proc->nowaitproc() != 0) {
+    while (proc.nowaitproc() != 0) {
         sleeper.sleepFor(chrono::milliseconds(100));
     }
 
-    int exit_code = proc->getexitcode();
-    string output = proc->readoutput();
+    int exit_code = proc.getexitcode();
+    string output = proc.readoutput();
     
     if(exit_code == 0) {
         Document doc;
@@ -443,14 +443,15 @@ float Follower::testBandwidthEstimate(string ip, string myIp, float old) {
 
 int Follower::testPing(string ip) {
     vector<string> args = {"/bin/ping", "-c", "3", ip};
-    ReadProc *proc = new ReadProc(args);
+    ReadProc proc(args);
 
-    while (proc->nowaitproc() != 0) {
+    while (proc.nowaitproc() != 0) {
         sleeper.sleepFor(chrono::milliseconds(100));
     }
 
-    int exit_code = proc->getexitcode();
-    string output = proc->readoutput();
+    int exit_code = proc.getexitcode();
+    string output = proc.readoutput();
+    
 
     if(exit_code == 0) {
         std::regex reg("time=([0-9\\.]*) ms");

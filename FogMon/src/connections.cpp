@@ -278,72 +278,72 @@ int Connections::openConnection(string ip, string port) {
         if (Socket == -1)
 		{
             fprintf(stderr, "socket failed");
-			freeaddrinfo(result);
-            return -1;
+			Socket = -1;
+            continue;
         }
         // Set sockopt to reuse the address
         int optval = 1;
         setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
         // Connect to server.
         int arg;
-        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
-            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-            return -1;
+        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) {
+            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+            Socket = -1;
+            continue;
         } 
         arg |= O_NONBLOCK; 
         if( fcntl(Socket, F_SETFL, arg) < 0) { 
-            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-            return -1;
-        } 
-        fd_set myset;
+            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+            Socket = -1;
+            continue;
+        }
         bool ris = false;
-        // Trying to connect with timeout 
-        iResult = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen); 
-        if (iResult < 0) { 
-            if (errno == EINPROGRESS) { 
+        // Trying to connect with timeout
+        iResult = connect(Socket, ptr->ai_addr, (int)ptr->ai_addrlen);
+        if (iResult < 0) {
+            if (errno == EINPROGRESS) {
+                // fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
                 int num = 3;
-                do {
-                    struct timeval tv; 
-                    tv.tv_sec = 10; 
-                    tv.tv_usec = 0; 
-                    FD_ZERO(&myset); 
-                    FD_SET(Socket, &myset); 
-                    iResult = select(Socket+1, NULL, &myset, NULL, &tv); 
-                    if (iResult < 0 && errno != EINTR) { 
-                        fprintf(stderr, "Error connecting1 %d - %s\n", errno, strerror(errno)); 
+                int timeout = 10000; // 10 seconds
+
+                while (num > 0) {
+                    struct pollfd fds[1];
+                    fds[0].fd = Socket;
+                    fds[0].events = (POLLOUT);
+
+                    int ret = poll(fds, 1, timeout);
+                    if (ret == -1) {
+                        fprintf(stderr, "Error in poll() %d - %s\n", errno, strerror(errno));
                         break;
-                    } 
-                    else if (iResult > 0) {
-                        int valopt;
-                        socklen_t lon;
-                        // Socket selected for write 
-                        lon = sizeof(int); 
-                        if (getsockopt(Socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) { 
-                            fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
+                    } else if (ret == 0) {
+                        // timeout
+                        // fprintf(stderr, "Timeout in poll()\n");
+                        num--;
+                    } else {
+                        // fprintf(stderr, "poll() returned %d\n", ret);
+                        // fprintf(stderr, "revents = %d\n", fds[0].revents);
+                        if (fds[0].revents & (POLLOUT | POLLWRBAND)) {
+                            int valopt;
+                            socklen_t lon;
+                            // Socket is ready for write, check if the connection is ok
+                            lon = sizeof(int);
+                            if (getsockopt(Socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+                                fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+                                break;
+                            }
+                            if (valopt) {
+                                // error with the connection
+                                fprintf(stderr, "Error in connection found %d - %s\n", valopt, strerror(valopt));
+                                break;
+                            }
+                            ris = true;
                             break;
-                        } 
-                        // Check the value returned... 
-                        if (valopt) { 
-                            //error with the connection
-                            break; 
-                        } 
-                        ris = true;
-                        break;
-                    } 
-                    else { 
-                        //timeout
-                        if(num>0) {
-                            num--;
-                            continue;
                         }
-                        else
-                            break;
-                    } 
-                } while (1); 
-            } 
-            else { 
-                fprintf(stderr, "Error connecting2 %d - %s\n", errno, strerror(errno)); 
-            } 
+                    }
+                }
+            } else {
+                fprintf(stderr, "Error connecting2 %d - %s\n", errno, strerror(errno));
+            }
         }
         if(ris == false) {
             close(Socket);
@@ -352,16 +352,18 @@ int Connections::openConnection(string ip, string port) {
             continue;
         }
 
-        // Set to blocking mode again... 
-        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) { 
-            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-            return -1;
+        // Set to blocking mode again...
+        if( (arg = fcntl(Socket, F_GETFL, NULL)) < 0) {
+            fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+            Socket = -1;
+            continue;
         } 
-        arg &= (~O_NONBLOCK); 
-        if( fcntl(Socket, F_SETFL, arg) < 0) { 
-            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-            return -1;
-        } 
+        arg &= (~O_NONBLOCK);
+        if( fcntl(Socket, F_SETFL, arg) < 0) {
+            fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+            Socket = -1;
+            continue;
+        }
         break;
     }
 

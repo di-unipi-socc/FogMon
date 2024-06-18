@@ -133,7 +133,7 @@ public:
     virtual void initialize(ILeader* parent) {}
     virtual void initialize(IAgent* parent) {}
     
-    virtual bool sendMHello(Message::node ip) {}
+    virtual optional<bool> sendMHello(Message::node ip) {}
 
     virtual bool sendRemoveNodes(std::vector<Message::node> ips) {}
     virtual bool sendRequestReport(Message::node ip) {}

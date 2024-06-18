@@ -359,7 +359,18 @@ void Selector::startSelection() {
             int numLeaders = this->parent->getStorage()->getMNodes().size();
 
             //wait remaining time
-            this->sleeper.sleepFor(chrono::seconds(duration*3+20));
+            t1 = std::chrono::high_resolution_clock::now();
+            while (true) {
+                t2 = std::chrono::high_resolution_clock::now();
+                auto duration2 = std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count();
+                if ((duration*3+20) < duration2) {
+                    break;
+                }
+                if (numLeaders == this->updates.size()) {
+                    break;
+                }
+                this->sleeper.sleepFor(chrono::seconds(1));
+            }
 
             for(auto update : this->updates) {
                 printf("possible: (cost = %f, changes = %d, id = %d)\n",update.cost,update.changes,update.id);

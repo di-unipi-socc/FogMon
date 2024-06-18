@@ -48,11 +48,6 @@ Node::Node(string port, bool isLeader, int threads, std::string id) {
 
 Node::~Node() {
     this->stop();
-    try{
-        if(this->agent)
-            delete this->agent;
-        this->agent = NULL;
-    }catch(...) {}
 }
 
 void Node::start() {
@@ -60,7 +55,13 @@ void Node::start() {
 }
 
 void Node::stop() {
-    this->agent->stop();
+    try{
+        if(this->agent) {
+            this->agent->stop();
+            delete this->agent;
+        }
+        this->agent = NULL;
+    }catch(...) {}
 }
 
 void Node::create() {

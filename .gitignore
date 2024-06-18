@@ -6,7 +6,6 @@ CMakeCache.txt
 Makefile
 ./FogMon
 ./libsqlitefunctions.so
-cmake_modules
 tests/CTestTestfile.cmake
 tests/UnitTests
 .vscode
