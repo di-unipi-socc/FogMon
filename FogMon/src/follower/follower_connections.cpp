@@ -142,6 +142,17 @@ void FollowerConnections::handler(int fd, Message &m) {
                 if(this->sendMessage(fd, res)) {
                     
                 }
+            }else if(m.getCommand() == Message::Command::MHELLO) {
+                // answer to the hello message with the list of known nodes
+                vector<Message::node> nodes = this->parent->node->getMNodes();
+                Message res;
+                res.setType(Message::Type::RESPONSE);
+                res.setCommand(Message::Command::MHELLO);
+                res.setArgument(Message::Argument::POSITIVE);
+                res.setData(nodes);
+                if(this->sendMessage(fd, res)) {
+                    
+                }
             }
         }else if(m.getArgument() == Message::Argument::ROLES) {
             if(m.getCommand() == Message::Command::SET) {
