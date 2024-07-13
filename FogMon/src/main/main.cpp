@@ -20,7 +20,6 @@ void handler(int sig) {
   void *array[10];
   size_t size;
 
-  // get void*'s for all entries on the stack
   size = backtrace(array, 10);
 
   // print out all the frames to stderr
@@ -46,8 +45,6 @@ int main(int argc, char *argv[]) {
     cout << argv[1] << endl;
     InputParser input(argc,argv);
 
-    signal(SIGSEGV, handler);   // install our handler
-
     if(input.cmdOptionExists("-h") || input.cmdOptionExists("--help")) {
         cout << "Usage: ./program [OPTIONS]..." << endl<<endl;
         cout << "param          value       comment"<<endl;
@@ -58,10 +55,14 @@ int main(int argc, char *argv[]) {
         cout << "-i             ip:port     ip of the interface"<<endl;
         cout << "--heartbeat    time        silent time (changed name)"<<endl;
         cout << "--node-id      id          id of the node (if not, set random uid)"<<endl;
+        cout << "--node-id-hostname         use the hostname as id"<<endl;
         cout <<endl<< "there are other for timings" <<endl;
         return 0;
     }
-     
+
+    if(input.cmdOptionExists("--debug")) {
+        signal(SIGSEGV, handler);
+    }
 
     string ipR = "";
     string portR = "5555";
